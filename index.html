@@ -48,8 +48,10 @@
             <h3>📖 MINI-MANUALE UNIX</h3>
             <div class="manual-grid">
                 <div class="manual-item"><code>grep -v 'X'</code><p>Scarta le righe contenenti X.</p></div>
-                <div class="manual-item"><code>sort</code><p>Riordina alfabeticamente.</p></div>
+                <div class="manual-item"><code>grep 'X'</code><p>Tiene solo le righe contenenti X (distingue maiuscole/minuscole).</p></div>
+                <div class="manual-item"><code>sort</code><p>Riordina alfabeticamente (le maiuscole vengono prima). Con <code>-r</code> in ordine inverso.</p></div>
                 <div class="manual-item"><code>uniq</code><p>Rimuove duplicati adiacenti.</p></div>
+                <div class="manual-item"><code>head -n N</code> / <code>tail -n N</code><p>Tiene le prime / ultime N righe.</p></div>
                 <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina gli errori critici.</p></div>
                 <div class="manual-item"><code>sed 's/.*/\U&/'</code><p>Converti tutto in maiuscolo.</p></div>
             </div>

@@ -1,6 +1,7 @@
 const SLOT_COUNT = 4;
 
 // allowedCommands elenca solo i comandi reali: lo slot vuoto viene aggiunto dal motore in prima posizione.
+// Dopo ogni modifica verifica i livelli con: node tools/validate-levels.js
 const levels = [
     {
         id: 1,
@@ -8,18 +9,19 @@ const levels = [
         mission: "Usa <code>grep</code> per isolare solo i pacchetti validi eliminando i file corrotti (<code>ERR</code>).",
         stdin: ["file1", "ERR:corrotto", "file2", "ERR:corrotto"],
         target: ["file1", "file2"],
-        hint: "Inserisci un blocco 'grep -v ERR' per scartare i file con errori.",
+        hint: "'grep' tiene le righe che contengono il testo; con '-v' fa l'opposto e le scarta.",
         allowedCommands: [
-            { cmd: "grep", args: { pattern: "ERR", invert: true }, desc: "Scarta gli errori" }
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "grep", args: { pattern: "ERR", invert: true }, desc: "Scarta le righe con 'ERR'" }
         ]
     },
     {
         id: 2,
         title: "Ordinamento e Duplicati",
         mission: "Pulisci il flusso rimuovendo i doppioni con <code>uniq</code> e ordinando con <code>sort</code>.",
-        stdin: ["zebra", "mela", "mela", "cane"],
+        stdin: ["zebra", "mela", "cane", "mela"],
         target: ["cane", "mela", "zebra"],
-        hint: "Prima ordina con 'sort' e poi rimuovi i doppioni con 'uniq'.",
+        hint: "'uniq' elimina solo i duplicati ADIACENTI: le due 'mela' devono prima finire vicine.",
         allowedCommands: [
             { cmd: "sort", desc: "Riordina alfabeticamente" },
             { cmd: "uniq", desc: "Elimina duplicati adiacenti" }
@@ -28,10 +30,10 @@ const levels = [
     {
         id: 3,
         title: "Gestione Stderr",
-        mission: "Scarta i pacchetti di errore critici usando <code>2>/dev/null</code>, converti in maiuscolo e ordina.",
-        stdin: ["alfa", "CRASH", "beta", "alfa"],
+        mission: "Cestina i <code>CRASH</code> con <code>2>/dev/null</code> e ottieni l'elenco ordinato, in maiuscolo e senza doppioni.",
+        stdin: ["alfa", "beta", "CRASH", "Beta", "alfa"],
         target: ["ALFA", "BETA"],
-        hint: "1) Cestina il CRASH, 2) Converti in maiuscolo, 3) Ordina, 4) Uniq.",
+        hint: "'sort' mette le maiuscole prima delle minuscole: 'Beta' e 'beta' finiscono lontane. Uniforma il maiuscolo prima di ordinare.",
         allowedCommands: [
             { cmd: "devnull", args: { match: "CRASH" }, desc: "Cestina i 'CRASH'" },
             { cmd: "upper", desc: "Maiuscolo" },
@@ -42,24 +44,24 @@ const levels = [
     {
         id: 4,
         title: "Taglio Rapido",
-        mission: "Ordina, rimuovi duplicati e mantieni solo i primi 2 elementi usando <code>head</code>.",
-        stdin: ["gamma", "alfa", "alfa", "beta"],
-        target: ["ALFA", "BETA"],
-        hint: "Usa 'sort', 'uniq', 'sed' per il maiuscolo e 'head -n 2'.",
+        mission: "Ottieni i primi 2 elementi distinti in ordine alfabetico usando <code>head</code> o <code>tail</code>.",
+        stdin: ["delta", "gamma", "beta", "gamma", "beta"],
+        target: ["beta", "delta"],
+        hint: "Se tagli troppo presto perdi elementi, e se non togli i doppioni prima di tagliare ne prendi due uguali.",
         allowedCommands: [
             { cmd: "sort", desc: "Riordina" },
             { cmd: "uniq", desc: "Rimuovi duplicati" },
-            { cmd: "upper", desc: "Maiuscolo" },
-            { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" }
+            { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" },
+            { cmd: "tail", args: { n: 2 }, desc: "Prendi gli ultimi 2" }
         ]
     },
     {
         id: 5,
         title: "Depurazione Avanzata",
         mission: "Elimina i log di sistema (<code>WARN</code>), metti in maiuscolo, ordina e pulisci.",
-        stdin: ["server2", "WARN:low", "server1", "server2", "WARN:low"],
+        stdin: ["server2", "server1", "warn:disk", "Server2", "Server2"],
         target: ["SERVER1", "SERVER2"],
-        hint: "Pulisci con 'grep -v WARN', poi maiuscolo, sort e uniq.",
+        hint: "'grep' distingue maiuscole e minuscole: 'WARN' non trova 'warn'... finché qualcuno non lo rende maiuscolo.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "WARN", invert: true }, desc: "Scarta i 'WARN'" },
             { cmd: "upper", desc: "Maiuscolo" },
@@ -70,15 +72,18 @@ const levels = [
     {
         id: 6,
         title: "Boss Final",
-        mission: "Scarta i <code>FATAL</code>, ordina, rimuovi i doppioni e converti in maiuscolo.",
-        stdin: ["nodeB", "FATAL", "nodeA", "nodeA"],
-        target: ["NODEA", "NODEB"],
-        hint: "Usa i 4 slot per: 1) 2>/dev/null, 2) sort, 3) uniq, 4) sed",
+        mission: "Estrai i 2 nodi con il nome più alto, in ordine decrescente, in maiuscolo e senza doppioni. Gli slot sono solo 4: non tutti i comandi servono.",
+        stdin: ["NodeB", "nodeA", "nodeC", "FATAL", "nodeA", "nodeC"],
+        target: ["NODEC", "NODEB"],
+        hint: "Ti serve davvero cestinare i FATAL? Pensa a dove finiscono dopo un 'sort -r' e a cosa lascia fuori 'head'.",
         allowedCommands: [
             { cmd: "devnull", args: { match: "FATAL" }, desc: "Cestina i 'FATAL'" },
-            { cmd: "sort", desc: "Riordina" },
+            { cmd: "upper", desc: "Maiuscolo" },
+            { cmd: "sort", desc: "Ordine crescente" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
             { cmd: "uniq", desc: "Rimuovi duplicati" },
-            { cmd: "upper", desc: "Maiuscolo" }
+            { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" },
+            { cmd: "tail", args: { n: 2 }, desc: "Prendi gli ultimi 2" }
         ]
     }
 ];
