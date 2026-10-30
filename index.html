@@ -23,8 +23,9 @@
         </div>
 
         <div class="io-panel">
-            <div><strong>stdin:</strong> <span id="txt-stdin">[]</span></div>
-            <div><strong>stdout atteso:</strong> <span id="txt-target" style="color: #3fb950;">[]</span></div>
+            <div><strong>input:</strong> <span id="txt-stdin" class="chips"></span></div>
+            <div><strong>stdout atteso:</strong> <span id="txt-target" class="chips"></span></div>
+            <div class="legend"><span class="chip">stdout</span> <span class="chip err">stderr</span></div>
         </div>
 
         <p style="font-size: 10px; color: #8b949e; margin-bottom: 6px; text-align: center;">Tocca le celle per cambiare comando:</p>
@@ -34,6 +35,12 @@
             <div class="cell" onclick="cycleCell(1)" id="c1"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
             <div class="cell" onclick="cycleCell(2)" id="c2"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
             <div class="cell" onclick="cycleCell(3)" id="c3"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
+        </div>
+
+        <div class="stream-view" id="stream-view">
+            <div class="stream-title" id="stream-title">Flusso</div>
+            <div class="chips" id="stream-lines"></div>
+            <div class="stream-terminal" id="stream-terminal"></div>
         </div>
 
         <div class="action-buttons">
@@ -52,7 +59,9 @@
                 <div class="manual-item"><code>sort</code><p>Riordina alfabeticamente (le maiuscole vengono prima). Con <code>-r</code> in ordine inverso.</p></div>
                 <div class="manual-item"><code>uniq</code><p>Rimuove duplicati adiacenti.</p></div>
                 <div class="manual-item"><code>head -n N</code> / <code>tail -n N</code><p>Tiene le prime / ultime N righe.</p></div>
-                <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina gli errori critici.</p></div>
+                <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina lo stderr del comando a cui è attaccato.</p></div>
+                <div class="manual-item"><code>2&gt;&amp;1</code><p>Unisce lo stderr allo stdout, così gli errori entrano nella pipe.</p></div>
+                <div class="manual-item"><code>|</code><p>Passa solo lo stdout al comando successivo: lo stderr va dritto al terminale.</p></div>
                 <div class="manual-item"><code>sed 's/.*/\U&/'</code><p>Converti tutto in maiuscolo.</p></div>
             </div>
         </div>

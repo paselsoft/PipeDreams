@@ -22,8 +22,7 @@ function solveLevel(lvl, slotCount = SLOT_COUNT) {
         const key = used.join(",");
         if (solutions.has(key)) continue;
 
-        const { output } = executePipeline(lvl.stdin, indices.map(idx => options[idx]));
-        if (streamsEqual(output, lvl.target)) {
+        if (isSolved(lvl, executePipeline(lvl.stdin, indices.map(idx => options[idx])))) {
             solutions.set(key, used.map(idx => stepLabel(options[idx])).join(" | "));
         }
     }

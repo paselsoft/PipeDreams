@@ -176,3 +176,54 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Righe dei flussi */
+.chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    vertical-align: middle;
+}
+.chip {
+    display: inline-block;
+    background: #0f2b1d;
+    border: 1px solid #238636;
+    color: #7ee787;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+.chip.err {
+    background: #2d1215;
+    border-color: #da3633;
+    color: #ff7b72;
+}
+.chip.err::before { content: "2> "; opacity: 0.6; }
+.chip.ok { background: #0f2b1d; border-color: #3fb950; color: #3fb950; font-weight: bold; }
+.chip.bad { background: #2d1215; border-color: #f85149; color: #f85149; text-decoration: line-through; }
+.chip.missing { background: transparent; border: 1px dashed #f85149; color: #f85149; }
+.chip.empty { background: transparent; border: 1px dashed #484f58; color: #8b949e; }
+.legend { font-size: 10px; color: #8b949e; }
+
+.stream-view {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    min-height: 44px;
+}
+.stream-title { color: #8b949e; font-size: 10px; margin-bottom: 4px; }
+.stream-terminal { margin-top: 6px; color: #ff7b72; font-size: 10px; }
+.stream-terminal:empty { display: none; }
+
+/* Slot in esecuzione durante l'animazione */
+.cell.running {
+    border-style: solid;
+    border-color: #d2a8ff;
+    background: #271d3a;
+    box-shadow: 0 0 10px #d2a8ff;
+    transform: scale(1.04);
+}

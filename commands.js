@@ -1,5 +1,8 @@
 // Registro dei comandi Unix simulati.
-// Ogni comando è una funzione pura: (stream: string[], args) => string[]
+// Comandi normali: run(stdout: string[], args) => string[]. Leggono solo stdout; lo stderr
+// in sospeso del comando precedente non attraversa la pipe e finisce sul terminale.
+// Reindirizzamenti (redirect: true): apply(lines, args) => lines, agiscono sui flussi del
+// comando a cui sono attaccati, cioè l'ultimo comando prima di loro (o il programma sorgente).
 // label(args) restituisce la sintassi mostrata al giocatore.
 const COMMANDS = {
     grep: {
@@ -29,10 +32,15 @@ const COMMANDS = {
         label: a => `tail -n ${a.n}`,
         run: (s, a) => s.slice(-a.n)
     },
-    // Provvisorio: scarta le righe uguali a `match` finché stdout e stderr non saranno flussi separati
     devnull: {
         label: () => "2>/dev/null",
-        run: (s, a) => s.filter(line => line !== a.match)
+        redirect: true,
+        apply: lines => lines.filter(line => line.fd !== 2)
+    },
+    merge: {
+        label: () => "2>&1",
+        redirect: true,
+        apply: lines => lines.map(line => ({ text: line.text, fd: 1 }))
     }
 };
 
@@ -43,19 +51,39 @@ function stepLabel(step) {
     return step.cmd === null ? "[ Vuoto ]" : COMMANDS[step.cmd].label(step.args || {});
 }
 
-// Esegue una sequenza di step e restituisce l'output finale e lo stato dopo ogni step
+// Nei livelli una riga di stderr si scrive { err: "testo" }, una di stdout come semplice stringa
+function normalizeInput(stdin) {
+    return stdin.map(line => typeof line === "string" ? { text: line, fd: 1 } : { text: line.err, fd: 2 });
+}
+
+const textsOf = (lines, fd) => lines.filter(line => line.fd === fd).map(line => line.text);
+
+// Esegue gli step e restituisce stdout finale, stderr arrivato al terminale e lo stato dopo ogni step
 function executePipeline(stdin, steps) {
-    let stream = [...stdin];
+    let lines = normalizeInput(stdin);
+    const terminal = [];
     const trace = [];
     for (const step of steps) {
         if (step.cmd !== null) {
-            stream = COMMANDS[step.cmd].run(stream, step.args || {});
+            const command = COMMANDS[step.cmd];
+            if (command.redirect) {
+                lines = command.apply(lines, step.args || {});
+            } else {
+                terminal.push(...textsOf(lines, 2));
+                lines = command.run(textsOf(lines, 1), step.args || {}).map(text => ({ text, fd: 1 }));
+            }
         }
-        trace.push([...stream]);
+        trace.push({ lines: lines.map(line => ({ ...line })), terminal: [...terminal] });
     }
-    return { output: stream, trace };
+    terminal.push(...textsOf(lines, 2));
+    return { output: textsOf(lines, 1), stderr: terminal, trace };
 }
 
 function streamsEqual(a, b) {
     return a.length === b.length && a.every((line, i) => line === b[i]);
+}
+
+// Livello risolto: stdout identico al target e sul terminale solo lo stderr previsto (di norma nessuno)
+function isSolved(lvl, result) {
+    return streamsEqual(result.output, lvl.target) && streamsEqual(result.stderr, lvl.targetStderr || []);
 }

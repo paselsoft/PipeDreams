@@ -1,5 +1,6 @@
 const SLOT_COUNT = 4;
 
+// Una riga di stdin è una stringa (stdout) oppure { err: "testo" } (stderr).
 // allowedCommands elenca solo i comandi reali: lo slot vuoto viene aggiunto dal motore in prima posizione.
 // Dopo ogni modifica verifica i livelli con: node tools/validate-levels.js
 const levels = [
@@ -30,12 +31,12 @@ const levels = [
     {
         id: 3,
         title: "Gestione Stderr",
-        mission: "Cestina i <code>CRASH</code> con <code>2>/dev/null</code> e ottieni l'elenco ordinato, in maiuscolo e senza doppioni.",
-        stdin: ["alfa", "beta", "CRASH", "Beta", "alfa"],
+        mission: "Il programma scrive un <code>CRASH</code> su stderr, che non passa per la pipe ma sporca il terminale. Cestinalo con <code>2>/dev/null</code>, poi ottieni l'elenco ordinato, in maiuscolo e senza doppioni.",
+        stdin: ["alfa", "beta", { err: "CRASH" }, "Beta", "alfa"],
         target: ["ALFA", "BETA"],
-        hint: "'sort' mette le maiuscole prima delle minuscole: 'Beta' e 'beta' finiscono lontane. Uniforma il maiuscolo prima di ordinare.",
+        hint: "Un reindirizzamento vale per il comando a cui è attaccato: lo stderr nasce dal programma iniziale, quindi '2>/dev/null' va subito. E 'sort' mette le maiuscole prima delle minuscole.",
         allowedCommands: [
-            { cmd: "devnull", args: { match: "CRASH" }, desc: "Cestina i 'CRASH'" },
+            { cmd: "devnull", desc: "Cestina lo stderr" },
             { cmd: "upper", desc: "Maiuscolo" },
             { cmd: "sort", desc: "Riordina" },
             { cmd: "uniq", desc: "Rimuovi duplicati" }
@@ -71,13 +72,30 @@ const levels = [
     },
     {
         id: 6,
-        title: "Boss Final",
-        mission: "Estrai i 2 nodi con il nome più alto, in ordine decrescente, in maiuscolo e senza doppioni. Gli slot sono solo 4: non tutti i comandi servono.",
-        stdin: ["NodeB", "nodeA", "nodeC", "FATAL", "nodeA", "nodeC"],
-        target: ["NODEC", "NODEB"],
-        hint: "Ti serve davvero cestinare i FATAL? Pensa a dove finiscono dopo un 'sort -r' e a cosa lascia fuori 'head'.",
+        title: "Unire i Flussi",
+        mission: "Ti servono proprio gli errori: con <code>2>&1</code> lo stderr si unisce allo stdout ed entra nella pipe. Estrai l'elenco degli errori senza ripetizioni consecutive.",
+        stdin: ["job1: ok", { err: "ERR: disco pieno" }, "job2: ok", { err: "ERR: disco pieno" }, { err: "ERR: timeout" }, "job3: ok"],
+        target: ["ERR: disco pieno", "ERR: timeout"],
+        hint: "Senza '2>&1' gli errori scavalcano la pipe e 'grep' non li vede. E 'uniq' unisce solo righe adiacenti: cosa c'è in mezzo ai due 'disco pieno'?",
         allowedCommands: [
-            { cmd: "devnull", args: { match: "FATAL" }, desc: "Cestina i 'FATAL'" },
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "grep", args: { pattern: "ERR", invert: true }, desc: "Scarta le righe con 'ERR'" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" }
+        ]
+    },
+    {
+        id: 7,
+        title: "Boss Final",
+        mission: "Alcuni nodi sono andati in crash e lo segnalano su stderr. Mostra i 2 errori dei nodi con il nome più alto, in ordine decrescente e in maiuscolo. Gli slot sono solo 4: non tutti i comandi servono.",
+        stdin: ["avvio ok", { err: "fatal: nodeb" }, "backup ok", { err: "FATAL: nodeC" }, "avvio ok", { err: "fatal: nodea" }],
+        target: ["FATAL: NODEC", "FATAL: NODEB"],
+        hint: "Gli errori ti servono, quindi non cestinarli. Dopo il maiuscolo, in ordine decrescente 'FATAL' viene prima di 'BACKUP' e 'AVVIO'.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
             { cmd: "upper", desc: "Maiuscolo" },
             { cmd: "sort", desc: "Ordine crescente" },
             { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
