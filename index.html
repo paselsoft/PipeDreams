@@ -44,7 +44,8 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-hint" onclick="showHint()">[ ? ] AIUTO</button>
+            <button class="btn-hint" onclick="openMenu()">☰ LIVELLI</button>
+            <button class="btn-hint" onclick="showHint()">? AIUTO</button>
             <button class="btn-run" id="btn-run" onclick="runPipeline()">ESEGUI ( ▶ )</button>
         </div>
 
@@ -68,9 +69,23 @@
 
     </div>
 
+    <!-- MENU LIVELLI -->
+    <div class="menu-overlay" id="level-menu" hidden onclick="if (event.target === this) closeMenu()">
+        <div class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+            <div class="menu-header">
+                <h2 id="menu-title">SELEZIONA LIVELLO</h2>
+                <button class="menu-close" onclick="closeMenu()" aria-label="Chiudi">✕</button>
+            </div>
+            <div class="menu-total" id="menu-total"></div>
+            <div class="menu-list" id="menu-list"></div>
+            <button class="menu-reset" onclick="resetProgress()">Azzera progressi</button>
+        </div>
+    </div>
+
     <script src="commands.js"></script>
     <script src="levels.js"></script>
     <script src="solver.js"></script>
+    <script src="progress.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

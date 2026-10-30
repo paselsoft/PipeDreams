@@ -10,6 +10,7 @@ let transitionTimer = null;
 let runId = 0;
 // Risultato del solver per il livello corrente (par = numero minimo di comandi)
 let currentSolution = null;
+let progress = loadProgress();
 
 function loadLevel(index) {
     currentLevelIndex = index;
@@ -20,6 +21,8 @@ function loadLevel(index) {
 
     const lvl = levels[index];
     currentSolution = solveLevel(lvl);
+    progress.lastLevel = index;
+    saveProgress(progress);
     document.getElementById("level-title").innerText = `LIVELLO ${index + 1}/${levels.length}: ${lvl.title}`;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${lvl.mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
@@ -32,6 +35,10 @@ function loadLevel(index) {
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
     document.getElementById("console").innerHTML = "";
     logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
+    const record = progress.levels[lvl.id];
+    if (record) {
+        logToConsole(`> Record personale: ${starString(record.stars)} (${record.best} comandi)`, "log-hint");
+    }
 }
 
 function setBusy(busy) {
@@ -169,12 +176,16 @@ function showResult(lvl, result) {
     }
 
     if (isSolved(lvl, result)) {
-        logToConsole(`> ${rating()}`, "log-success");
+        const used = usedSlots();
+        const stars = computeStars(used, currentSolution.par);
+        const isRecord = recordResult(progress, lvl.id, stars, used);
+        saveProgress(progress);
+        logToConsole(`> ${rating(stars, used)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
         if (currentLevelIndex < levels.length - 1) {
             logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
             transitionTimer = setTimeout(() => { loadLevel(currentLevelIndex + 1); }, 2000);
         } else {
-            logToConsole(`> [COMPLETATO] Hai finito la campagna!`, "log-success");
+            logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
             setBusy(false);
         }
     } else {
@@ -188,14 +199,71 @@ function showResult(lvl, result) {
 }
 
 // Confronta i comandi usati con il par calcolato dal solver
-function rating() {
-    const used = usedSlots();
+function computeStars(used, par) {
+    if (used <= par) return 3;
+    if (used === par + 1) return 2;
+    return 1;
+}
+
+function rating(stars, used) {
     const par = currentSolution.par;
     const count = `${used} ${used === 1 ? "comando" : "comandi"}`;
-    if (used <= par) return `★★★ Soluzione ottimale (${count}, par ${par})`;
-    if (used === par + 1) return `★★☆ ${count} (par ${par})`;
-    return `★☆☆ ${count} (par ${par})`;
+    if (stars === 3) return `${starString(stars)} Soluzione ottimale (${count}, par ${par})`;
+    return `${starString(stars)} ${count} (par ${par})`;
 }
+
+function openMenu() {
+    renderMenu();
+    document.getElementById("level-menu").hidden = false;
+}
+
+function closeMenu() {
+    document.getElementById("level-menu").hidden = true;
+}
+
+function renderMenu() {
+    document.getElementById("menu-total").innerText =
+        `Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`;
+    const list = document.getElementById("menu-list");
+    list.innerHTML = "";
+    levels.forEach((lvl, i) => {
+        const unlocked = isUnlocked(progress, levels, i);
+        const item = document.createElement("button");
+        item.className = "menu-level" + (i === currentLevelIndex ? " current" : "");
+        item.disabled = !unlocked;
+
+        const name = document.createElement("span");
+        name.textContent = `${i + 1}. ${lvl.title}`;
+        const stars = document.createElement("span");
+        stars.className = "stars";
+        stars.textContent = unlocked ? (progress.levels[lvl.id] ? starString(levelStars(progress, lvl.id)) : "nuovo") : "🔒";
+        item.append(name, stars);
+
+        item.onclick = () => {
+            closeMenu();
+            loadLevel(i);
+        };
+        list.appendChild(item);
+    });
+}
+
+function resetProgress() {
+    if (!confirm("Vuoi davvero azzerare tutti i progressi e le stelle?")) return;
+    progress = emptyProgress();
+    saveProgress(progress);
+    closeMenu();
+    loadLevel(0);
+}
+
+// Riprende dall'ultimo livello giocato, se ancora sbloccato
+function startLevelIndex() {
+    const last = progress.lastLevel;
+    return last >= 0 && last < levels.length && isUnlocked(progress, levels, last) ? last : 0;
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMenu();
+});
 
 function logToConsole(text, className = "") {
     const consoleBox = document.getElementById("console");
@@ -211,4 +279,4 @@ const levelReport = validateLevels(levels);
 console.table(levelReport);
 levelReport.filter(r => r.par === null).forEach(r => console.error(`Livello ${r.livello} irrisolvibile!`));
 
-loadLevel(0);
+loadLevel(startLevelIndex());
