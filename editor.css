@@ -1,5 +1,5 @@
 /* Editor dei livelli: riusa i colori e i componenti di style.css */
-.editor { max-width: 720px; }
+.editor { max-width: 860px; }
 
 .ed-section {
     border-bottom: 1px solid #30363d;
@@ -7,12 +7,12 @@
     margin-bottom: 14px;
 }
 .ed-section:last-child { border-bottom: none; margin-bottom: 0; }
-.ed-section h2 { font-size: 13px; color: #58a6ff; margin: 0 0 10px 0; }
+.ed-section h2 { font-size: 16px; color: #58a6ff; margin: 0 0 10px 0; }
 
-.ed-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; }
+.ed-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 15px; }
 .ed-inline { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
 .ed-inline input { width: 60px; }
-.ed-muted { color: #8b949e; font-size: 10px; margin: 0 0 6px 0; }
+.ed-muted { color: #8b949e; font-size: 13px; margin: 0 0 6px 0; }
 .ed-muted code, .ed-section p code { color: #7ee787; }
 .ed-preview { margin: 4px 0 0 0; }
 
@@ -23,7 +23,7 @@
     border-radius: 4px;
     padding: 6px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 15px;
     box-sizing: border-box;
 }
 .editor textarea { width: 100%; resize: vertical; }
@@ -41,7 +41,7 @@
     flex-wrap: wrap;
     gap: 6px;
     align-items: center;
-    font-size: 11px;
+    font-size: 14px;
 }
 .ed-cmd.invalid { border-color: #da3633; }
 .ed-cmd .ed-label { color: #7ee787; font-weight: bold; flex-basis: 100%; }
@@ -69,7 +69,7 @@
     padding: 8px;
     width: 100%;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 15px;
     cursor: pointer;
 }
 
@@ -80,7 +80,7 @@
 .ed-solution select { width: 100%; }
 
 /* Messaggi del solver */
-.ed-msg { padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 11px; line-height: 1.4; }
+.ed-msg { padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 14px; line-height: 1.4; }
 .ed-msg.error { background: #2d1215; color: #f85149; border: 1px solid #da3633; }
 .ed-msg.warn { background: #2b2111; color: #e3b341; border: 1px solid #9e6a03; }
 .ed-msg.ok { background: #0f2b1d; color: #3fb950; border: 1px solid #238636; }
@@ -88,7 +88,7 @@
 
 #ed-code {
     color: #e6edf3;
-    font-size: 10px;
+    font-size: 13px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     margin: 0;
