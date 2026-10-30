@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipe Dreams - Editor livelli</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+
+    <h1>PIPE DREAMS <span style="color:#ff7b72">| editor</span></h1>
+    <p class="subtitle"><a href="index.html">← Torna al gioco</a></p>
+
+    <div class="game-container editor">
+
+        <section class="ed-section">
+            <h2>1. Livello</h2>
+            <div class="ed-row">
+                <label for="ed-load">Parti da</label>
+                <select id="ed-load"></select>
+            </div>
+            <div class="ed-row">
+                <label for="ed-title">Titolo</label>
+                <input id="ed-title" type="text">
+            </div>
+            <div class="ed-row ed-inline">
+                <label for="ed-act">Atto</label>
+                <input id="ed-act" type="number" min="1" max="10">
+                <label for="ed-slots">Slot</label>
+                <input id="ed-slots" type="number" min="1" max="8">
+                <span class="ed-muted" id="ed-id"></span>
+            </div>
+            <div class="ed-row">
+                <label for="ed-mission">Obiettivo <span class="ed-muted">(HTML ammesso, es. &lt;code&gt;)</span></label>
+                <textarea id="ed-mission" rows="3"></textarea>
+                <div class="mission-box ed-preview" id="ed-mission-preview"></div>
+            </div>
+            <div class="ed-row">
+                <label for="ed-hint">Suggerimento</label>
+                <textarea id="ed-hint" rows="2"></textarea>
+            </div>
+        </section>
+
+        <section class="ed-section">
+            <h2>2. Input del programma</h2>
+            <p class="ed-muted">Una riga per riga. Inizia con <code>2&gt; </code> per scrivere su stderr.</p>
+            <textarea id="ed-stdin" rows="6" spellcheck="false"></textarea>
+            <div class="chips" id="ed-stdin-preview"></div>
+        </section>
+
+        <section class="ed-section">
+            <h2>3. Comandi disponibili</h2>
+            <div id="ed-commands"></div>
+            <button class="ed-btn" onclick="addCommand()">+ Aggiungi comando</button>
+        </section>
+
+        <section class="ed-section">
+            <h2>4. Soluzione prevista</h2>
+            <p class="ed-muted">Lo stdout atteso viene calcolato da questa soluzione.</p>
+            <div class="ed-solution" id="ed-solution"></div>
+            <div class="ed-row">
+                <strong>stdout atteso:</strong>
+                <div class="chips" id="ed-target"></div>
+            </div>
+            <div class="shell-box">
+                <div class="shell-header"><span>$ riga di shell della soluzione</span></div>
+                <code id="ed-shell"></code>
+            </div>
+        </section>
+
+        <section class="ed-section">
+            <h2>5. Analisi del solver</h2>
+            <div id="ed-analysis"></div>
+        </section>
+
+        <section class="ed-section">
+            <h2>6. Prova ed esporta</h2>
+            <div class="action-buttons">
+                <button class="btn-hint" onclick="newLevel()">NUOVO</button>
+                <button class="btn-run" id="ed-play" onclick="playTest()">PROVA NEL GIOCO ▶</button>
+            </div>
+            <div class="shell-box">
+                <div class="shell-header">
+                    <span>Codice da incollare in levels.js</span>
+                    <button class="btn-copy" id="ed-copy" onclick="copyCode()">COPIA</button>
+                </div>
+                <pre id="ed-code"></pre>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="commands.js"></script>
+    <script src="levels.js"></script>
+    <script src="solver.js"></script>
+    <script src="progress.js"></script>
+    <script src="shell.js"></script>
+    <script src="render.js"></script>
+    <script src="editor.js"></script>
+</body>
+</html>

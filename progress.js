@@ -54,3 +54,26 @@ function totalStars(progress, levelList) {
 function starString(stars) {
     return "★".repeat(stars) + "☆".repeat(3 - stars);
 }
+
+// Livello di prova scritto dall'editor e aperto dal gioco con index.html?test
+const TEST_LEVEL_KEY = "pipedreams.editor.test";
+
+function saveTestLevel(level) {
+    try {
+        localStorage.setItem(TEST_LEVEL_KEY, JSON.stringify(level));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function loadTestLevel() {
+    try {
+        const level = JSON.parse(localStorage.getItem(TEST_LEVEL_KEY));
+        const valid = level && Array.isArray(level.stdin) && Array.isArray(level.target) &&
+            Array.isArray(level.allowedCommands) && level.allowedCommands.every(step => COMMANDS[step.cmd]);
+        return valid ? level : null;
+    } catch (e) {
+        return null;
+    }
+}

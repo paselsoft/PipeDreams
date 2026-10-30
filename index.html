@@ -9,9 +9,14 @@
 <body>
 
     <h1>PIPE DREAMS <span style="color:#ff7b72">| grep</span></h1>
-    <p class="subtitle">Mobile & Desktop Unix Edition</p>
+    <p class="subtitle">Mobile & Desktop Unix Edition · <a href="editor.html">editor livelli</a></p>
 
     <div class="game-container">
+
+        <div class="test-banner" id="test-banner" hidden>
+            <span id="test-banner-text">MODALITÀ PROVA: stai giocando il livello dell'editor, i progressi non vengono salvati.</span>
+            <a href="editor.html">← Torna all'editor</a>
+        </div>
         
         <div class="header-bar">
             <div class="level-indicator" id="level-title">LIVELLO -</div>
@@ -48,7 +53,7 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-hint" onclick="openMenu()">☰ LIVELLI</button>
+            <button class="btn-hint" id="btn-menu" onclick="openMenu()">☰ LIVELLI</button>
             <button class="btn-hint" onclick="showHint()">? AIUTO</button>
             <button class="btn-run" id="btn-run" onclick="runPipeline()">ESEGUI ( ▶ )</button>
         </div>
@@ -96,6 +101,7 @@
     <script src="solver.js"></script>
     <script src="progress.js"></script>
     <script src="shell.js"></script>
+    <script src="render.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

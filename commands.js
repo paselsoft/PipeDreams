@@ -5,6 +5,8 @@
 // sono attaccati (l'ultimo comando prima di loro, o il programma sorgente). Come in bash,
 // se un comando ha più reindirizzamenti vince l'ultimo.
 // label(args) restituisce la sintassi mostrata al giocatore.
+// params descrive gli argomenti per l'editor dei livelli: text, char (un solo carattere),
+// number (intero >= 1), flag (opzione sì/no), set (insieme di caratteri di tr, accetta \n).
 
 // I comandi numerici trattano come 0 le righe che non iniziano con un numero, come GNU sort -n
 const leadingNumber = line => parseFloat(line) || 0;
@@ -29,10 +31,12 @@ const shellQuote = set => `'${set.replace(/\n/g, "\\n")}'`;
 
 const COMMANDS = {
     grep: {
+        params: [{ key: "pattern", type: "text", label: "testo" }, { key: "invert", type: "flag", label: "-v" }],
         label: a => `grep${a.invert ? " -v" : ""} '${a.pattern}'`,
         run: (s, a) => s.filter(line => line.includes(a.pattern) !== Boolean(a.invert))
     },
     sort: {
+        params: [{ key: "reverse", type: "flag", label: "-r" }, { key: "numeric", type: "flag", label: "-n" }],
         label: a => `sort${a.reverse || a.numeric ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}`,
         run: (s, a) => {
             // A parità di valore numerico GNU sort confronta l'intera riga
@@ -44,6 +48,7 @@ const COMMANDS = {
         }
     },
     uniq: {
+        params: [{ key: "count", type: "flag", label: "-c" }],
         label: a => `uniq${a.count ? " -c" : ""}`,
         run: (s, a) => {
             const groups = [];
@@ -57,27 +62,33 @@ const COMMANDS = {
         }
     },
     upper: {
+        params: [],
         label: () => "sed 's/.*/\\U&/'",
         run: s => s.map(line => line.toUpperCase())
     },
     head: {
+        params: [{ key: "n", type: "number", label: "-n", default: 2 }],
         label: a => `head -n ${a.n}`,
         run: (s, a) => s.slice(0, a.n)
     },
     tail: {
+        params: [{ key: "n", type: "number", label: "-n", default: 2 }],
         label: a => `tail -n ${a.n}`,
         run: (s, a) => s.slice(-a.n)
     },
     wc: {
+        params: [],
         label: () => "wc -l",
         run: s => [String(s.length)]
     },
     cut: {
+        params: [{ key: "delim", type: "char", label: "-d", default: ":" }, { key: "field", type: "number", label: "-f", default: 1 }],
         label: a => `cut -d'${a.delim}' -f${a.field}`,
         // Le righe senza delimitatore passano intere, come fa cut senza -s
         run: (s, a) => s.map(line => line.includes(a.delim) ? (line.split(a.delim)[a.field - 1] ?? "") : line)
     },
     tr: {
+        params: [{ key: "from", type: "set", label: "da" }, { key: "to", type: "set", label: "a" }, { key: "delete", type: "set", label: "-d" }],
         label: a => a.delete ? `tr -d ${shellQuote(a.delete)}` : `tr ${shellQuote(a.from)} ${shellQuote(a.to)}`,
         run: (s, a) => {
             const text = s.map(line => {
@@ -97,11 +108,13 @@ const COMMANDS = {
         }
     },
     devnull: {
+        params: [],
         label: () => "2>/dev/null",
         redirect: true,
         route: "null"
     },
     merge: {
+        params: [],
         label: () => "2>&1",
         redirect: true,
         route: "pipe"

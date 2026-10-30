@@ -357,3 +357,20 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
     cursor: pointer;
 }
 .shell-note { color: #6e7681; font-size: 9px; margin-top: 6px; }
+
+/* Modalità prova (livello dell'editor) */
+.test-banner {
+    background: #2b2111;
+    border: 1px solid #e3b341;
+    color: #e3b341;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.test-banner[hidden] { display: none; }
+.test-banner a, p.subtitle a { color: #58a6ff; }
+.btn-hint[hidden] { display: none; }

@@ -11,6 +11,8 @@ let runId = 0;
 // Risultato del solver per il livello corrente (par = numero minimo di comandi)
 let currentSolution = null;
 let progress = loadProgress();
+// index.html?test: gioca il livello di prova dell'editor senza toccare i progressi salvati
+const TEST_MODE = new URLSearchParams(location.search).has("test");
 
 function loadLevel(index) {
     currentLevelIndex = index;
@@ -22,7 +24,7 @@ function loadLevel(index) {
     const lvl = levels[index];
     currentSolution = solveLevel(lvl);
     progress.lastLevel = index;
-    saveProgress(progress);
+    persistProgress();
     document.getElementById("level-title").innerText = `LIVELLO ${index + 1}/${levels.length}: ${lvl.title}`;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${lvl.mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
@@ -128,26 +130,6 @@ function updateSlotCounter() {
     document.getElementById("score-display").innerText = `Slot: ${usedSlots()}/${gridState.length}${par}`;
 }
 
-// Disegna una lista di righe come chip; `states` opzionale assegna classi extra (ok/bad/missing)
-function renderChips(container, lines, states = []) {
-    container.innerHTML = "";
-    if (lines.length === 0) {
-        const chip = document.createElement("span");
-        chip.className = "chip empty";
-        chip.textContent = "(vuoto)";
-        container.appendChild(chip);
-        return;
-    }
-    lines.forEach((line, i) => {
-        const chip = document.createElement("span");
-        chip.className = ["chip", line.fd === 2 ? "err" : "", states[i] || ""].join(" ").trim();
-        // Le righe vuote (es. prodotte da tr o cut) restano visibili come segnaposto
-        if (line.text === "") chip.classList.add("blank");
-        chip.textContent = line.text === "" ? "(riga vuota)" : line.text;
-        container.appendChild(chip);
-    });
-}
-
 function renderStream(title, lines, terminal) {
     document.getElementById("stream-title").innerText = title;
     renderChips(document.getElementById("stream-lines"), lines);
@@ -227,7 +209,7 @@ function showResult(lvl, result) {
         const used = usedSlots();
         const stars = computeStars(used, currentSolution.par);
         const isRecord = recordResult(progress, lvl.id, stars, used);
-        saveProgress(progress);
+        persistProgress();
         logToConsole(`> ${rating(stars, used)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
         if (currentLevelIndex < levels.length - 1) {
             logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
@@ -262,6 +244,10 @@ function rating(stars, used) {
     const count = commandCount(used);
     if (stars === 3) return `${starString(stars)} Soluzione ottimale (${count}, par ${par})`;
     return `${starString(stars)} ${count} (par ${par})`;
+}
+
+function persistProgress() {
+    if (!TEST_MODE) saveProgress(progress);
 }
 
 function openMenu() {
@@ -310,7 +296,7 @@ function renderMenu() {
 function resetProgress() {
     if (!confirm("Vuoi davvero azzerare tutti i progressi e le stelle?")) return;
     progress = emptyProgress();
-    saveProgress(progress);
+    persistProgress();
     closeMenu();
     loadLevel(0);
 }
@@ -339,4 +325,16 @@ const levelReport = validateLevels(levels);
 console.table(levelReport);
 levelReport.filter(r => r.par === null).forEach(r => console.error(`Livello ${r.livello} irrisolvibile!`));
 
-loadLevel(startLevelIndex());
+if (TEST_MODE) {
+    const testLevel = loadTestLevel();
+    document.getElementById("test-banner").hidden = false;
+    document.getElementById("btn-menu").hidden = true;
+    progress = emptyProgress();
+    if (testLevel) {
+        levels.splice(0, levels.length, testLevel);
+    } else {
+        document.getElementById("test-banner-text").innerText = "Nessun livello di prova valido: torna all'editor e premi PROVA NEL GIOCO.";
+    }
+}
+
+loadLevel(TEST_MODE ? 0 : startLevelIndex());
