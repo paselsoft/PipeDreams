@@ -37,7 +37,7 @@ function loadLevel(index) {
     logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
     const record = progress.levels[lvl.id];
     if (record) {
-        logToConsole(`> Record personale: ${starString(record.stars)} (${record.best} comandi)`, "log-hint");
+        logToConsole(`> Record personale: ${starString(record.stars)} (${commandCount(record.best)})`, "log-hint");
     }
 }
 
@@ -205,9 +205,13 @@ function computeStars(used, par) {
     return 1;
 }
 
+function commandCount(n) {
+    return `${n} ${n === 1 ? "comando" : "comandi"}`;
+}
+
 function rating(stars, used) {
     const par = currentSolution.par;
-    const count = `${used} ${used === 1 ? "comando" : "comandi"}`;
+    const count = commandCount(used);
     if (stars === 3) return `${starString(stars)} Soluzione ottimale (${count}, par ${par})`;
     return `${starString(stars)} ${count} (par ${par})`;
 }
