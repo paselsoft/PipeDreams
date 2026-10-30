@@ -1,0 +1,178 @@
+body {
+    background-color: #0d1117;
+    color: #00ff66;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+}
+h1 { font-size: 22px; text-shadow: 0 0 10px #00ff66; margin-bottom: 2px; }
+p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
+
+.game-container {
+    display: inline-block;
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-top: 2px solid #00ff66;
+    padding: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+.level-indicator { color: #f0883e; font-weight: bold; }
+
+.mission-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+.mission-box span { color: #58a6ff; font-weight: bold; }
+
+.io-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: #21262d;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+@media (min-width: 500px) {
+    .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.cell {
+    background: #21262d;
+    border: 2px dashed #484f58;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    padding: 5px;
+    user-select: none;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+}
+.cell:active {
+    transform: scale(0.96);
+}
+.cell.active {
+    border-style: solid;
+    border-color: #00ff66;
+    background: #0f2b1d;
+    color: #7ee787;
+}
+.cell .cmd-name {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+.cell .cmd-desc {
+    font-size: 9px;
+    color: #8b949e;
+}
+.cell.active .cmd-desc {
+    color: #a3d9a5;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.btn-run {
+    background: #238636;
+    color: #ffffff;
+    border: none;
+    padding: 12px 15px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    font-size: 14px;
+    flex: 2;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-hint {
+    background: #21262d;
+    color: #58a6ff;
+    border: 1px solid #30363d;
+    padding: 12px 10px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    font-size: 13px;
+    flex: 1;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#console {
+    background: #010409;
+    border: 1px solid #30363d;
+    padding: 10px;
+    height: 100px;
+    text-align: left;
+    overflow-y: auto;
+    font-size: 11px;
+    color: #c9d1d9;
+    border-radius: 6px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+.log-stdin { color: #58a6ff; }
+.log-step { color: #d2a8ff; }
+.log-success { color: #3fb950; font-weight: bold; }
+.log-error { color: #f85149; font-weight: bold; }
+.log-hint { color: #e3b341; font-style: italic; }
+
+.manual-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+.manual-box h3 { margin-top: 0; color: #58a6ff; font-size: 12px; border-bottom: 1px solid #30363d; padding-bottom: 4px; }
+.manual-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+.manual-item code { color: #7ee787; font-weight: bold; }
+.manual-item p { margin: 2px 0 0 0; color: #8b949e; font-size: 10px; }
+
+.btn-run:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
