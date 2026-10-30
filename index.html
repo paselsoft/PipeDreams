@@ -38,6 +38,15 @@
             <div class="stream-terminal" id="stream-terminal"></div>
         </div>
 
+        <div class="shell-box">
+            <div class="shell-header">
+                <span>$ riga di shell equivalente</span>
+                <button class="btn-copy" id="btn-copy" onclick="copyShellLine()">COPIA</button>
+            </div>
+            <code id="shell-line"></code>
+            <div class="shell-note">Provala in bash su Linux (GNU coreutils): dà lo stesso output del gioco.</div>
+        </div>
+
         <div class="action-buttons">
             <button class="btn-hint" onclick="openMenu()">☰ LIVELLI</button>
             <button class="btn-hint" onclick="showHint()">? AIUTO</button>
@@ -86,6 +95,7 @@
     <script src="levels.js"></script>
     <script src="solver.js"></script>
     <script src="progress.js"></script>
+    <script src="shell.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

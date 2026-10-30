@@ -319,3 +319,41 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
     padding-bottom: 2px;
     border-bottom: 1px solid #30363d;
 }
+
+/* Riga di shell equivalente */
+.shell-box {
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+}
+.shell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #8b949e;
+    font-size: 10px;
+    margin-bottom: 6px;
+}
+#shell-line {
+    display: block;
+    color: #e6edf3;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+    user-select: all;
+}
+.btn-copy {
+    background: #21262d;
+    color: #58a6ff;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.shell-note { color: #6e7681; font-size: 9px; margin-top: 6px; }

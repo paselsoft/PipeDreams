@@ -1,8 +1,9 @@
 // Registro dei comandi Unix simulati.
 // Comandi normali: run(stdout: string[], args) => string[]. Leggono solo stdout; lo stderr
-// in sospeso del comando precedente non attraversa la pipe e finisce sul terminale.
-// Reindirizzamenti (redirect: true): apply(lines, args) => lines, agiscono sui flussi del
-// comando a cui sono attaccati, cioè l'ultimo comando prima di loro (o il programma sorgente).
+// del comando precedente non attraversa la pipe e va dove indica la sua destinazione.
+// Reindirizzamenti (redirect: true): route indica dove mandare lo stderr del comando a cui
+// sono attaccati (l'ultimo comando prima di loro, o il programma sorgente). Come in bash,
+// se un comando ha più reindirizzamenti vince l'ultimo.
 // label(args) restituisce la sintassi mostrata al giocatore.
 
 // I comandi numerici trattano come 0 le righe che non iniziano con un numero, come GNU sort -n
@@ -98,12 +99,12 @@ const COMMANDS = {
     devnull: {
         label: () => "2>/dev/null",
         redirect: true,
-        apply: lines => lines.filter(line => line.fd !== 2)
+        route: "null"
     },
     merge: {
         label: () => "2>&1",
         redirect: true,
-        apply: lines => lines.map(line => ({ text: line.text, fd: 1 }))
+        route: "pipe"
     }
 };
 
@@ -121,26 +122,48 @@ function normalizeInput(stdin) {
 
 const textsOf = (lines, fd) => lines.filter(line => line.fd === fd).map(line => line.text);
 
-// Stato della pipeline: righe in transito (stdout e stderr in sospeso) e stderr già finito sul terminale
+// Stato della pipeline:
+// - lines: output del comando corrente (stdout e stderr nell'ordine di scrittura)
+// - errRoute: destinazione del suo stderr ("terminal", "null" o "pipe")
+// - terminal: stderr dei comandi precedenti già finito sul terminale
 function initialState(stdin) {
-    return { lines: normalizeInput(stdin), terminal: [] };
+    return { lines: normalizeInput(stdin), errRoute: "terminal", terminal: [] };
+}
+
+// Applica la destinazione dello stderr: cosa entra nella pipe e cosa arriva al terminale
+function resolveOutput(state) {
+    const piped = state.lines.filter(line => line.fd === 1 || state.errRoute === "pipe");
+    return {
+        stdout: piped.map(line => line.text),
+        toTerminal: state.errRoute === "terminal" ? textsOf(state.lines, 2) : []
+    };
 }
 
 function applyStep(state, step) {
     if (step.cmd === null) return state;
     const command = COMMANDS[step.cmd];
     if (command.redirect) {
-        return { lines: command.apply(state.lines, step.args || {}), terminal: state.terminal };
+        return { ...state, errRoute: command.route };
     }
+    const { stdout, toTerminal } = resolveOutput(state);
     return {
-        lines: command.run(textsOf(state.lines, 1), step.args || {}).map(text => ({ text, fd: 1 })),
-        terminal: [...state.terminal, ...textsOf(state.lines, 2)]
+        lines: command.run(stdout, step.args || {}).map(text => ({ text, fd: 1 })),
+        errRoute: "terminal",
+        terminal: [...state.terminal, ...toTerminal]
     };
 }
 
-// A fine pipeline lo stderr ancora in sospeso arriva anch'esso al terminale
+// A fine pipeline lo stderr dell'ultimo comando segue anch'esso la sua destinazione
 function finishState(state) {
-    return { output: textsOf(state.lines, 1), stderr: [...state.terminal, ...textsOf(state.lines, 2)] };
+    const { stdout, toTerminal } = resolveOutput(state);
+    return { output: stdout, stderr: [...state.terminal, ...toTerminal] };
+}
+
+// Righe come appaiono dopo uno step: lo stderr cestinato sparisce, quello unito diventa stdout
+function visibleLines(state) {
+    return state.lines
+        .filter(line => line.fd === 1 || state.errRoute !== "null")
+        .map(line => ({ text: line.text, fd: line.fd === 2 && state.errRoute === "pipe" ? 1 : line.fd }));
 }
 
 // Esegue gli step e restituisce stdout finale, stderr arrivato al terminale e lo stato dopo ogni step
@@ -149,7 +172,7 @@ function executePipeline(stdin, steps) {
     const trace = [];
     for (const step of steps) {
         state = applyStep(state, step);
-        trace.push({ lines: state.lines.map(line => ({ ...line })), terminal: [...state.terminal] });
+        trace.push({ lines: visibleLines(state), terminal: [...state.terminal] });
     }
     return { ...finishState(state), trace };
 }

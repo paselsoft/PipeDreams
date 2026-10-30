@@ -29,6 +29,7 @@ function loadLevel(index) {
     renderChips(document.getElementById("txt-target"), lvl.target.map(text => ({ text, fd: 1 })));
 
     buildGrid();
+    updateShellLine();
     updateSlotCounter();
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
     document.getElementById("console").innerHTML = "";
@@ -74,6 +75,7 @@ function cycleCell(index) {
     gridState[index] = (gridState[index] + 1) % maxCmds;
     updateCellUI(index);
     updateSlotCounter();
+    updateShellLine();
 }
 
 function updateCellUI(index) {
@@ -88,6 +90,33 @@ function updateCellUI(index) {
     } else {
         cellElem.classList.add("active");
     }
+}
+
+function updateShellLine() {
+    document.getElementById("shell-line").textContent =
+        buildShellLine(levels[currentLevelIndex].stdin, currentSteps(), " |\n  ");
+}
+
+async function copyShellLine() {
+    const text = document.getElementById("shell-line").textContent;
+    let copied = false;
+    try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+    } catch (e) {
+        // API negata o non disponibile (es. alcuni browser con file://): metodo classico
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        try { copied = document.execCommand("copy"); } catch (err) { copied = false; }
+        area.remove();
+    }
+    const button = document.getElementById("btn-copy");
+    button.textContent = copied ? "COPIATA ✓" : "SELEZIONA E COPIA";
+    setTimeout(() => { button.textContent = "COPIA"; }, 1500);
 }
 
 function usedSlots() {
