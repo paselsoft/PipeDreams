@@ -74,6 +74,9 @@
                 <div class="manual-item"><code>tr 'a' 'b'</code> / <code>tr -d 'a'</code><p>Sostituisce o elimina caratteri; con <code>'\n'</code> spezza le righe.</p></div>
                 <div class="manual-item"><code>uniq -c</code><p>Come uniq, ma antepone quante volte si ripeteva ogni riga.</p></div>
                 <div class="manual-item"><code>sort -n</code> / <code>sort -rn</code><p>Ordina per valore numerico (crescente / decrescente).</p></div>
+                <div class="manual-item"><code>sed -E 's/RE/SOST/g'</code><p>Sostituisce ciò che corrisponde alla regex RE (con <code>g</code> tutte le volte). <code>(...)</code> cattura un gruppo, che riusi con <code>\1</code>; <code>&amp;</code> è l'intera corrispondenza.</p></div>
+                <div class="manual-item"><code>awk '{print $N}'</code><p>Stampa il campo N, separando sui gruppi di spazi; <code>-F':'</code> cambia separatore.</p></div>
+                <div class="manual-item"><code>paste -sd','</code><p>Unisce tutte le righe in una sola, separate dal carattere indicato.</p></div>
                 <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina lo stderr del comando a cui è attaccato.</p></div>
                 <div class="manual-item"><code>2&gt;&amp;1</code><p>Unisce lo stderr allo stdout, così gli errori entrano nella pipe.</p></div>
                 <div class="manual-item"><code>|</code><p>Passa solo lo stdout al comando successivo: lo stderr va dritto al terminale.</p></div>

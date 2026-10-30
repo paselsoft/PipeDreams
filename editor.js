@@ -6,7 +6,8 @@ const DRAFT_KEY = "pipedreams.editor.draft";
 // Nome mostrato nel menu a tendina dei comandi
 const COMMAND_NAMES = {
     grep: "grep", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
-    wc: "wc -l", cut: "cut", tr: "tr", devnull: "2>/dev/null", merge: "2>&1"
+    wc: "wc -l", cut: "cut", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
+    devnull: "2>/dev/null", merge: "2>&1"
 };
 
 // Bozza corrente. solution contiene, per ogni slot, l'indice del comando scelto (-1 = vuoto).
@@ -66,6 +67,7 @@ function commandError(command) {
     for (const param of COMMANDS[command.cmd].params) {
         const value = command.args[param.key];
         if (typeof value === "string" && value.includes("'")) return `${param.label}: l'apice ' non è supportato`;
+        if (param.optional && value === "") continue;
         if (param.type === "number" && !(Number.isInteger(value) && value >= 1)) return `${param.label}: serve un intero ≥ 1`;
         if (param.type === "char" && [...value].length !== 1) return `${param.label}: serve un solo carattere`;
         if (param.type === "text" && value === "") return `${param.label}: obbligatorio`;
@@ -73,6 +75,9 @@ function commandError(command) {
     if (command.cmd === "tr" && !command.args.delete && (!command.args.from || !command.args.to)) {
         return "tr: compila 'da' e 'a', oppure solo '-d'";
     }
+    const validate = COMMANDS[command.cmd].validate;
+    const invalid = validate && validate(cleanArgs(command));
+    if (invalid) return invalid;
     if (!command.desc.trim()) return "manca la descrizione";
     return null;
 }

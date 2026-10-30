@@ -202,5 +202,93 @@ const levels = [
             { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" },
             { cmd: "tail", args: { n: 2 }, desc: "Prendi gli ultimi 2" }
         ]
+    },
+    {
+        id: 13,
+        act: 3,
+        title: "Sostituzioni",
+        mission: "Nel file di configurazione le password sono in chiaro: sostituiscile con <code>***</code> usando <code>sed -E 's/regex/sostituzione/'</code>, senza toccare i nomi utente.",
+        stdin: ["user=mario2 pass=1234", "user=anna pass=98765", "user=luca7 pass=42"],
+        target: ["user=mario2 pass=***", "user=anna pass=***", "user=luca7 pass=***"],
+        hint: "Una regex troppo generica come [0-9]+ colpisce anche i numeri nei nomi utente: aggancia la sostituzione a 'pass='.",
+        allowedCommands: [
+            { cmd: "sed", args: { pattern: "[0-9]+", replacement: "***", global: true }, desc: "Ogni numero \u2192 ***" },
+            { cmd: "sed", args: { pattern: "[0-9]", replacement: "*", global: true }, desc: "Ogni cifra \u2192 *" },
+            { cmd: "sed", args: { pattern: "pass=[0-9]+", replacement: "pass=***" }, desc: "Password \u2192 ***" },
+            { cmd: "grep", args: { pattern: "pass" }, desc: "Tieni le righe con 'pass'" },
+            { cmd: "sort", desc: "Riordina" }
+        ]
+    },
+    {
+        id: 14,
+        act: 3,
+        title: "Gli Spazi di awk",
+        slots: 5,
+        mission: "Ordina i colori dal pi\u00f9 votato al meno votato, mostrando solo il nome. <code>awk '{print $2}'</code> stampa il secondo campo, separando sui gruppi di spazi.",
+        stdin: ["rosso", "blu", "rosso", "verde", "blu", "rosso", "blu", "giallo", "blu"],
+        target: ["blu", "rosso", "verde", "giallo"],
+        hint: "Dopo 'uniq -c' le righe iniziano con molti spazi: per cut ogni spazio separa un campo (vuoto), per awk no.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "awk", args: { field: 1 }, desc: "Campo 1 di awk" },
+            { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" }
+        ]
+    },
+    {
+        id: 15,
+        act: 3,
+        title: "Date Europee",
+        mission: "Metti i log in ordine cronologico e riscrivi le date come giorno/mese/anno. In <code>sed -E</code> le parentesi catturano gruppi, che riusi con <code>\\1</code>, <code>\\2</code>...",
+        stdin: ["2024-03-15 backup", "2023-12-01 aggiornamento", "2024-01-20 riavvio"],
+        target: ["01/12/2023 aggiornamento", "20/01/2024 riavvio", "15/03/2024 backup"],
+        hint: "Le date AAAA-MM-GG in ordine alfabetico sono anche in ordine cronologico; le GG/MM/AAAA no. Ordina prima di riscriverle.",
+        allowedCommands: [
+            { cmd: "sed", args: { pattern: "([0-9]+)-([0-9]+)-([0-9]+)", replacement: "\\1/\\2/\\3" }, desc: "Riscrivi come \\1/\\2/\\3" },
+            { cmd: "sed", args: { pattern: "([0-9]+)-([0-9]+)-([0-9]+)", replacement: "\\3/\\2/\\1" }, desc: "Riscrivi come \\3/\\2/\\1" },
+            { cmd: "sort", desc: "Ordine crescente" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" }
+        ]
+    },
+    {
+        id: 16,
+        act: 3,
+        title: "Incollare le Righe",
+        mission: "Crea una riga CSV con gli utenti che usano bash, in ordine alfabetico. <code>paste -sd','</code> unisce tutte le righe in una, separate da virgole.",
+        stdin: ["mario2:1003:/bin/bash", "daemon:1:/usr/sbin/nologin", "anna:1001:/bin/bash", "mario:1000:/bin/bash", "www:33:/usr/sbin/nologin", "luca:1002:/bin/bash"],
+        target: ["anna,luca,mario,mario2"],
+        hint: "awk -F':' sceglie il separatore dei campi. Ordina i nomi, non le righe intere: nell'ordine dei byte 'mario2:' viene prima di 'mario:'.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "bash" }, desc: "Tieni le righe con 'bash'" },
+            { cmd: "awk", args: { field: 1, separator: ":" }, desc: "Campo 1: utente" },
+            { cmd: "awk", args: { field: 3, separator: ":" }, desc: "Campo 3: shell" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" },
+            { cmd: "tr", args: { from: ":", to: "," }, desc: "Due punti \u2192 virgola" }
+        ]
+    },
+    {
+        id: 17,
+        act: 3,
+        title: "Boss Atto III",
+        slots: 7,
+        mission: "Dal log del server ricava una riga riassuntiva <code>pagina=richieste</code>, separate da virgole, dalla pagina pi\u00f9 richiesta alla meno richiesta.",
+        stdin: ["10:02  GET  /home      200", "10:05  GET  /prodotti  404", "10:07  GET  /home      304", "10:11  GET  /about     200", "10:16  GET  /prodotti  200", "10:20  GET  /home      200"],
+        target: ["home=3,prodotti=2,about=1"],
+        hint: "Colonne allineate con pi\u00f9 spazi: serve awk. Poi la ricetta della classifica; infine sed trasforma '      3 /home' in 'home=3' e paste unisce le righe.",
+        allowedCommands: [
+            { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+            { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+            { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "sed", args: { pattern: " *([0-9]+) /(.*)", replacement: "\\1=\\2" }, desc: "Riscrivi come numero=pagina" },
+            { cmd: "sed", args: { pattern: " *([0-9]+) /(.*)", replacement: "\\2=\\1" }, desc: "Riscrivi come pagina=numero" },
+            { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" },
+            { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" }
+        ]
     }
 ];

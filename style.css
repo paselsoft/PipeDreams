@@ -193,6 +193,8 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
     border-radius: 4px;
     font-size: 11px;
     transition: all 0.2s ease;
+    /* Spazi multipli e iniziali visibili: contano per cut, awk e uniq -c */
+    white-space: pre;
 }
 .chip.err {
     background: #2d1215;

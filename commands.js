@@ -6,7 +6,9 @@
 // se un comando ha più reindirizzamenti vince l'ultimo.
 // label(args) restituisce la sintassi mostrata al giocatore.
 // params descrive gli argomenti per l'editor dei livelli: text, char (un solo carattere),
-// number (intero >= 1), flag (opzione sì/no), set (insieme di caratteri di tr, accetta \n).
+// number (intero >= 1), flag (opzione sì/no), set (insieme di caratteri di tr, accetta \n);
+// optional: true permette il valore vuoto.
+// validate(args), se presente, restituisce un messaggio d'errore per argomenti non supportati.
 
 // I comandi numerici trattano come 0 le righe che non iniziano con un numero, come GNU sort -n
 const leadingNumber = line => parseFloat(line) || 0;
@@ -28,6 +30,86 @@ function expandSet(set) {
 
 // Mostra i caratteri speciali come li scriveresti nella shell
 const shellQuote = set => `'${set.replace(/\n/g, "\\n")}'`;
+
+// sed -E usa le regex estese POSIX (ERE). Il sottoinsieme ammesso si comporta come in JavaScript:
+// niente alternative "|" (POSIX sceglie la corrispondenza più lunga, JS la prima), niente
+// classi "[[:digit:]]", né escape come \d o \w che ERE non conosce.
+function sedPatternError(pattern) {
+    if (pattern.includes("|")) return "l'alternativa | non è supportata";
+    if (pattern.includes("[:")) return "le classi [[:...:]] non sono supportate: usa [0-9], [a-z]...";
+    if (/\\[A-Za-z0-9]/.test(pattern)) return "escape come \\d o \\w non esistono in sed: usa [0-9]";
+    if (pattern.includes("(?")) return "costrutto (?...) non supportato";
+    try {
+        new RegExp(pattern);
+    } catch (e) {
+        return "espressione regolare non valida";
+    }
+    return null;
+}
+
+// Il delimitatore di s/// è "/", oppure "#" se pattern o sostituzione contengono "/"
+const sedDelimiter = a => (a.pattern + (a.replacement || "")).includes("/") ? "#" : "/";
+
+// Sostituzione in stile sed: & è l'intera corrispondenza, \1..\9 i gruppi, \& e \\ letterali, \n a capo
+function sedReplacement(template, match, groups) {
+    let out = "";
+    for (let i = 0; i < template.length; i++) {
+        const c = template[i];
+        if (c === "&") {
+            out += match;
+        } else if (c === "\\" && i + 1 < template.length) {
+            const next = template[++i];
+            if (/[1-9]/.test(next)) out += groups[Number(next) - 1] ?? "";
+            else if (next === "n") out += "\n";
+            else out += next;
+        } else {
+            out += c;
+        }
+    }
+    return out;
+}
+
+// s///: come GNU, una corrispondenza vuota subito dopo la precedente non viene sostituita
+// (JavaScript la sostituirebbe: con s/x*/-/g, "x" darebbe "--" invece di "-")
+function sedSubstitute(line, regex, replacement, global) {
+    let out = "";
+    let pos = 0;
+    let prevEnd = -1;
+    while (pos <= line.length) {
+        regex.lastIndex = pos;
+        const m = regex.exec(line);
+        if (!m) break;
+        const start = m.index;
+        const end = start + m[0].length;
+        if (start === end && start === prevEnd) {
+            if (start >= line.length) break;
+            out += line.slice(pos, start + 1);
+            pos = start + 1;
+            continue;
+        }
+        out += line.slice(pos, start) + sedReplacement(replacement, m[0], m.slice(1));
+        prevEnd = end;
+        if (start === end) {
+            if (start >= line.length) {
+                pos = start;
+                break;
+            }
+            out += line[start];
+            pos = start + 1;
+        } else {
+            pos = end;
+        }
+        if (!global) break;
+    }
+    return out + line.slice(pos);
+}
+
+// awk divide sui gruppi di spazi e tabulazioni (ignorando quelli iniziali), oppure esattamente su -F
+function awkFields(line, separator) {
+    if (separator) return line.split(separator);
+    const trimmed = line.replace(/^[ \t]+|[ \t]+$/g, "");
+    return trimmed === "" ? [] : trimmed.split(/[ \t]+/);
+}
 
 const COMMANDS = {
     grep: {
@@ -90,7 +172,10 @@ const COMMANDS = {
     tr: {
         params: [{ key: "from", type: "set", label: "da" }, { key: "to", type: "set", label: "a" }, { key: "delete", type: "set", label: "-d" }],
         label: a => a.delete ? `tr -d ${shellQuote(a.delete)}` : `tr ${shellQuote(a.from)} ${shellQuote(a.to)}`,
+        // Il gioco applica tr riga per riga: trasformare o cancellare gli a capo unirebbe le righe
+        validate: a => (a.delete || a.from || "").includes("\n") ? "tr non può agire sugli a capo: per unire le righe usa paste -sd" : null,
         run: (s, a) => {
+            if (s.length === 0) return [];
             const text = s.map(line => {
                 if (a.delete) {
                     const del = expandSet(a.delete);
@@ -106,6 +191,45 @@ const COMMANDS = {
             // Se tr introduce degli a capo, il flusso si spezza in più righe
             return text.join("\n").split("\n");
         }
+    },
+    sed: {
+        params: [
+            { key: "pattern", type: "text", label: "regex" },
+            { key: "replacement", type: "text", label: "sostituzione", optional: true },
+            { key: "global", type: "flag", label: "g" }
+        ],
+        label: a => {
+            const d = sedDelimiter(a);
+            return `sed -E 's${d}${a.pattern}${d}${(a.replacement || "")}${d}${a.global ? "g" : ""}'`;
+        },
+        validate: a => {
+            if ((a.pattern + (a.replacement || "")).includes("/") && (a.pattern + (a.replacement || "")).includes("#")) {
+                return "non usare insieme / e #";
+            }
+            if (/\\$/.test((a.replacement || ""))) return "la sostituzione non può finire con \\";
+            return sedPatternError(a.pattern);
+        },
+        run: (s, a) => {
+            if (s.length === 0) return [];
+            const regex = new RegExp(a.pattern, "g");
+            const text = s.map(line => sedSubstitute(line, regex, (a.replacement || ""), a.global));
+            // Un \n nella sostituzione spezza la riga, come fa sed
+            return text.join("\n").split("\n");
+        }
+    },
+    awk: {
+        params: [
+            { key: "field", type: "number", label: "$", default: 1 },
+            { key: "separator", type: "char", label: "-F", optional: true }
+        ],
+        label: a => `awk${a.separator ? ` -F'${a.separator}'` : ""} '{print $${a.field}}'`,
+        run: (s, a) => s.map(line => awkFields(line, a.separator)[a.field - 1] ?? "")
+    },
+    paste: {
+        params: [{ key: "delim", type: "char", label: "-d", default: "," }],
+        label: a => `paste -sd'${a.delim}'`,
+        // Unisce tutte le righe in una sola; anche senza input produce una riga (vuota)
+        run: (s, a) => [s.join(a.delim)]
     },
     devnull: {
         params: [],
