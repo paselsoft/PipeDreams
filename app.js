@@ -2,7 +2,7 @@
 const STEP_DELAY = 600;
 
 let currentLevelIndex = 0;
-let gridState = new Array(SLOT_COUNT).fill(0);
+let gridState = [];
 // Blocca input ed esecuzioni durante l'animazione e il passaggio al livello successivo
 let isBusy = false;
 let transitionTimer = null;
@@ -14,7 +14,7 @@ let progress = loadProgress();
 
 function loadLevel(index) {
     currentLevelIndex = index;
-    gridState = new Array(SLOT_COUNT).fill(0);
+    gridState = new Array(levelSlots(levels[index])).fill(0);
     clearTimeout(transitionTimer);
     runId++;
     setBusy(false);
@@ -28,9 +28,7 @@ function loadLevel(index) {
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     renderChips(document.getElementById("txt-target"), lvl.target.map(text => ({ text, fd: 1 })));
 
-    for (let i = 0; i < SLOT_COUNT; i++) {
-        updateCellUI(i);
-    }
+    buildGrid();
     updateSlotCounter();
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
     document.getElementById("console").innerHTML = "";
@@ -39,6 +37,25 @@ function loadLevel(index) {
     if (record) {
         logToConsole(`> Record personale: ${starString(record.stars)} (${commandCount(record.best)})`, "log-hint");
     }
+}
+
+// Crea una cella per ogni slot del livello
+function buildGrid() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    gridState.forEach((_, i) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.id = `c${i}`;
+        cell.onclick = () => cycleCell(i);
+        const name = document.createElement("span");
+        name.className = "cmd-name";
+        const desc = document.createElement("span");
+        desc.className = "cmd-desc";
+        cell.append(name, desc);
+        grid.appendChild(cell);
+        updateCellUI(i);
+    });
 }
 
 function setBusy(busy) {
@@ -79,7 +96,7 @@ function usedSlots() {
 
 function updateSlotCounter() {
     const par = currentSolution && currentSolution.par !== null ? ` · Par: ${currentSolution.par}` : "";
-    document.getElementById("score-display").innerText = `Slot: ${usedSlots()}/${SLOT_COUNT}${par}`;
+    document.getElementById("score-display").innerText = `Slot: ${usedSlots()}/${gridState.length}${par}`;
 }
 
 // Disegna una lista di righe come chip; `states` opzionale assegna classi extra (ok/bad/missing)
@@ -95,7 +112,9 @@ function renderChips(container, lines, states = []) {
     lines.forEach((line, i) => {
         const chip = document.createElement("span");
         chip.className = ["chip", line.fd === 2 ? "err" : "", states[i] || ""].join(" ").trim();
-        chip.textContent = line.text;
+        // Le righe vuote (es. prodotte da tr o cut) restano visibili come segnaposto
+        if (line.text === "") chip.classList.add("blank");
+        chip.textContent = line.text === "" ? "(riga vuota)" : line.text;
         container.appendChild(chip);
     });
 }
@@ -225,12 +244,20 @@ function closeMenu() {
     document.getElementById("level-menu").hidden = true;
 }
 
+const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
 function renderMenu() {
     document.getElementById("menu-total").innerText =
         `Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`;
     const list = document.getElementById("menu-list");
     list.innerHTML = "";
     levels.forEach((lvl, i) => {
+        if (i === 0 || lvl.act !== levels[i - 1].act) {
+            const heading = document.createElement("div");
+            heading.className = "menu-act";
+            heading.textContent = `ATTO ${ROMAN[lvl.act] || lvl.act}`;
+            list.appendChild(heading);
+        }
         const unlocked = isUnlocked(progress, levels, i);
         const item = document.createElement("button");
         item.className = "menu-level" + (i === currentLevelIndex ? " current" : "");

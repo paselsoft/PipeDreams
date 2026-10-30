@@ -308,3 +308,14 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 12px; }
 @media (max-width: 420px) {
     .btn-hint { padding: 12px 6px; font-size: 12px; }
 }
+
+.chip.blank { font-style: italic; opacity: 0.6; }
+.menu-act {
+    color: #58a6ff;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #30363d;
+}

@@ -30,12 +30,7 @@
 
         <p style="font-size: 10px; color: #8b949e; margin-bottom: 6px; text-align: center;">Tocca le celle per cambiare comando:</p>
         
-        <div class="grid" id="grid">
-            <div class="cell" onclick="cycleCell(0)" id="c0"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
-            <div class="cell" onclick="cycleCell(1)" id="c1"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
-            <div class="cell" onclick="cycleCell(2)" id="c2"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
-            <div class="cell" onclick="cycleCell(3)" id="c3"><span class="cmd-name">[ Vuoto ]</span><span class="cmd-desc">-</span></div>
-        </div>
+        <div class="grid" id="grid"></div>
 
         <div class="stream-view" id="stream-view">
             <div class="stream-title" id="stream-title">Flusso</div>
@@ -60,6 +55,11 @@
                 <div class="manual-item"><code>sort</code><p>Riordina alfabeticamente (le maiuscole vengono prima). Con <code>-r</code> in ordine inverso.</p></div>
                 <div class="manual-item"><code>uniq</code><p>Rimuove duplicati adiacenti.</p></div>
                 <div class="manual-item"><code>head -n N</code> / <code>tail -n N</code><p>Tiene le prime / ultime N righe.</p></div>
+                <div class="manual-item"><code>wc -l</code><p>Conta le righe del flusso.</p></div>
+                <div class="manual-item"><code>cut -d':' -f2</code><p>Divide ogni riga sul delimitatore e tiene il campo indicato.</p></div>
+                <div class="manual-item"><code>tr 'a' 'b'</code> / <code>tr -d 'a'</code><p>Sostituisce o elimina caratteri; con <code>'\n'</code> spezza le righe.</p></div>
+                <div class="manual-item"><code>uniq -c</code><p>Come uniq, ma antepone quante volte si ripeteva ogni riga.</p></div>
+                <div class="manual-item"><code>sort -n</code> / <code>sort -rn</code><p>Ordina per valore numerico (crescente / decrescente).</p></div>
                 <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina lo stderr del comando a cui è attaccato.</p></div>
                 <div class="manual-item"><code>2&gt;&amp;1</code><p>Unisce lo stderr allo stdout, così gli errori entrano nella pipe.</p></div>
                 <div class="manual-item"><code>|</code><p>Passa solo lo stdout al comando successivo: lo stderr va dritto al terminale.</p></div>

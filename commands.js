@@ -4,21 +4,56 @@
 // Reindirizzamenti (redirect: true): apply(lines, args) => lines, agiscono sui flussi del
 // comando a cui sono attaccati, cioè l'ultimo comando prima di loro (o il programma sorgente).
 // label(args) restituisce la sintassi mostrata al giocatore.
+
+// I comandi numerici trattano come 0 le righe che non iniziano con un numero, come GNU sort -n
+const leadingNumber = line => parseFloat(line) || 0;
+const byteOrder = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+
+// Espande gli intervalli di tr: "a-z" diventa "abc...z"
+function expandSet(set) {
+    let chars = "";
+    for (let i = 0; i < set.length; i++) {
+        if (set[i + 1] === "-" && i + 2 < set.length) {
+            for (let c = set.charCodeAt(i); c <= set.charCodeAt(i + 2); c++) chars += String.fromCharCode(c);
+            i += 2;
+        } else {
+            chars += set[i];
+        }
+    }
+    return chars;
+}
+
+// Mostra i caratteri speciali come li scriveresti nella shell
+const shellQuote = set => `'${set.replace(/\n/g, "\\n")}'`;
+
 const COMMANDS = {
     grep: {
         label: a => `grep${a.invert ? " -v" : ""} '${a.pattern}'`,
         run: (s, a) => s.filter(line => line.includes(a.pattern) !== Boolean(a.invert))
     },
     sort: {
-        label: a => `sort${a.reverse ? " -r" : ""}${a.numeric ? " -n" : ""}`,
+        label: a => `sort${a.reverse || a.numeric ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}`,
         run: (s, a) => {
-            const sorted = [...s].sort(a.numeric ? (x, y) => parseFloat(x) - parseFloat(y) : undefined);
+            // A parità di valore numerico GNU sort confronta l'intera riga
+            const compare = a.numeric
+                ? (x, y) => leadingNumber(x) - leadingNumber(y) || byteOrder(x, y)
+                : byteOrder;
+            const sorted = [...s].sort(compare);
             return a.reverse ? sorted.reverse() : sorted;
         }
     },
     uniq: {
-        label: () => "uniq",
-        run: s => s.filter((line, i) => i === 0 || line !== s[i - 1])
+        label: a => `uniq${a.count ? " -c" : ""}`,
+        run: (s, a) => {
+            const groups = [];
+            for (const line of s) {
+                const last = groups[groups.length - 1];
+                if (last && last.line === line) last.count++;
+                else groups.push({ line, count: 1 });
+            }
+            // uniq -c antepone il conteggio allineato a destra su 7 caratteri, come GNU
+            return groups.map(g => a.count ? `${String(g.count).padStart(7)} ${g.line}` : g.line);
+        }
     },
     upper: {
         label: () => "sed 's/.*/\\U&/'",
@@ -31,6 +66,34 @@ const COMMANDS = {
     tail: {
         label: a => `tail -n ${a.n}`,
         run: (s, a) => s.slice(-a.n)
+    },
+    wc: {
+        label: () => "wc -l",
+        run: s => [String(s.length)]
+    },
+    cut: {
+        label: a => `cut -d'${a.delim}' -f${a.field}`,
+        // Le righe senza delimitatore passano intere, come fa cut senza -s
+        run: (s, a) => s.map(line => line.includes(a.delim) ? (line.split(a.delim)[a.field - 1] ?? "") : line)
+    },
+    tr: {
+        label: a => a.delete ? `tr -d ${shellQuote(a.delete)}` : `tr ${shellQuote(a.from)} ${shellQuote(a.to)}`,
+        run: (s, a) => {
+            const text = s.map(line => {
+                if (a.delete) {
+                    const del = expandSet(a.delete);
+                    return [...line].filter(c => !del.includes(c)).join("");
+                }
+                const from = expandSet(a.from);
+                const to = expandSet(a.to);
+                return [...line].map(c => {
+                    const i = from.indexOf(c);
+                    return i === -1 ? c : to[Math.min(i, to.length - 1)];
+                }).join("");
+            });
+            // Se tr introduce degli a capo, il flusso si spezza in più righe
+            return text.join("\n").split("\n");
+        }
     },
     devnull: {
         label: () => "2>/dev/null",
@@ -58,25 +121,37 @@ function normalizeInput(stdin) {
 
 const textsOf = (lines, fd) => lines.filter(line => line.fd === fd).map(line => line.text);
 
+// Stato della pipeline: righe in transito (stdout e stderr in sospeso) e stderr già finito sul terminale
+function initialState(stdin) {
+    return { lines: normalizeInput(stdin), terminal: [] };
+}
+
+function applyStep(state, step) {
+    if (step.cmd === null) return state;
+    const command = COMMANDS[step.cmd];
+    if (command.redirect) {
+        return { lines: command.apply(state.lines, step.args || {}), terminal: state.terminal };
+    }
+    return {
+        lines: command.run(textsOf(state.lines, 1), step.args || {}).map(text => ({ text, fd: 1 })),
+        terminal: [...state.terminal, ...textsOf(state.lines, 2)]
+    };
+}
+
+// A fine pipeline lo stderr ancora in sospeso arriva anch'esso al terminale
+function finishState(state) {
+    return { output: textsOf(state.lines, 1), stderr: [...state.terminal, ...textsOf(state.lines, 2)] };
+}
+
 // Esegue gli step e restituisce stdout finale, stderr arrivato al terminale e lo stato dopo ogni step
 function executePipeline(stdin, steps) {
-    let lines = normalizeInput(stdin);
-    const terminal = [];
+    let state = initialState(stdin);
     const trace = [];
     for (const step of steps) {
-        if (step.cmd !== null) {
-            const command = COMMANDS[step.cmd];
-            if (command.redirect) {
-                lines = command.apply(lines, step.args || {});
-            } else {
-                terminal.push(...textsOf(lines, 2));
-                lines = command.run(textsOf(lines, 1), step.args || {}).map(text => ({ text, fd: 1 }));
-            }
-        }
-        trace.push({ lines: lines.map(line => ({ ...line })), terminal: [...terminal] });
+        state = applyStep(state, step);
+        trace.push({ lines: state.lines.map(line => ({ ...line })), terminal: [...state.terminal] });
     }
-    terminal.push(...textsOf(lines, 2));
-    return { output: textsOf(lines, 1), stderr: terminal, trace };
+    return { ...finishState(state), trace };
 }
 
 function streamsEqual(a, b) {
