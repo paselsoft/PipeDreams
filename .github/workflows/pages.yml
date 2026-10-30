@@ -18,9 +18,9 @@ jobs:
   verifica:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -37,14 +37,16 @@ jobs:
     needs: verifica
     if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
+    # I permessi del job sostituiscono quelli globali: contents serve al checkout (repo privato)
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Il sito contiene solo i file del gioco e dell'editor, non gli strumenti di sviluppo
       - name: Prepara il sito
