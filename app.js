@@ -156,6 +156,8 @@ function showHint() {
     let consoleBox = document.getElementById("console");
     consoleBox.innerHTML = "";
     logToConsole(`> [SUGGERIMENTO] ${lvl.hint}`, "log-hint");
+    // Gli indizi lunghi superano l'altezza della console: si legge dall'inizio
+    consoleBox.scrollTop = 0;
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

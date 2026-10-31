@@ -210,7 +210,7 @@ const levels = [
         mission: "Nel file di configurazione le password sono in chiaro: sostituiscile con <code>***</code> usando <code>sed -E 's/regex/sostituzione/'</code>, senza toccare i nomi utente.",
         stdin: ["user=mario2 pass=1234", "user=anna pass=98765", "user=luca7 pass=42"],
         target: ["user=mario2 pass=***", "user=anna pass=***", "user=luca7 pass=***"],
-        hint: "Una regex troppo generica come [0-9]+ colpisce anche i numeri nei nomi utente: aggancia la sostituzione a 'pass='.",
+        hint: "Piano: basta un solo sed. Attenzione: [0-9]+ colpisce anche i numeri nei nomi utente (mario2, luca7), e [0-9] con g trasforma ogni cifra in un asterisco separato. Scegli la sostituzione che ha 'pass=' nella regex: così cambia solo le password.",
         allowedCommands: [
             { cmd: "sed", args: { pattern: "[0-9]+", replacement: "***", global: true }, desc: "Ogni numero \u2192 ***" },
             { cmd: "sed", args: { pattern: "[0-9]", replacement: "*", global: true }, desc: "Ogni cifra \u2192 *" },
@@ -227,7 +227,7 @@ const levels = [
         mission: "Ordina i colori dal pi\u00f9 votato al meno votato, mostrando solo il nome. <code>awk '{print $2}'</code> stampa il secondo campo, separando sui gruppi di spazi.",
         stdin: ["rosso", "blu", "rosso", "verde", "blu", "rosso", "blu", "giallo", "blu"],
         target: ["blu", "rosso", "verde", "giallo"],
-        hint: "Dopo 'uniq -c' le righe iniziano con molti spazi: per cut ogni spazio separa un campo (vuoto), per awk no.",
+        hint: "Piano in 4 passi: 1) raggruppa i voti uguali (sort), 2) contali (uniq -c), 3) ordina dal più votato (sort -rn), 4) tieni solo il nome. Attenzione: dopo uniq -c ogni riga inizia con molti spazi ('      4 blu'): per cut ogni spazio separa un campo e il campo 2 è vuoto; awk invece salta gli spazi e il nome è il campo $2.",
         allowedCommands: [
             { cmd: "sort", desc: "Ordine alfabetico" },
             { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
@@ -244,7 +244,7 @@ const levels = [
         mission: "Metti i log in ordine cronologico e riscrivi le date come giorno/mese/anno. In <code>sed -E</code> le parentesi catturano gruppi, che riusi con <code>\\1</code>, <code>\\2</code>...",
         stdin: ["2024-03-15 backup", "2023-12-01 aggiornamento", "2024-01-20 riavvio"],
         target: ["01/12/2023 aggiornamento", "20/01/2024 riavvio", "15/03/2024 backup"],
-        hint: "Le date AAAA-MM-GG in ordine alfabetico sono anche in ordine cronologico; le GG/MM/AAAA no. Ordina prima di riscriverle.",
+        hint: "Piano in 2 passi: prima ordina, poi riscrivi. Le date AAAA-MM-GG in ordine alfabetico sono già in ordine cronologico, le GG/MM/AAAA no. I tre gruppi della regex catturano anno, mese e giorno, in quest'ordine: per scrivere giorno/mese/anno la sostituzione deve essere \\3/\\2/\\1.",
         allowedCommands: [
             { cmd: "sed", args: { pattern: "([0-9]+)-([0-9]+)-([0-9]+)", replacement: "\\1/\\2/\\3" }, desc: "Riscrivi come \\1/\\2/\\3" },
             { cmd: "sed", args: { pattern: "([0-9]+)-([0-9]+)-([0-9]+)", replacement: "\\3/\\2/\\1" }, desc: "Riscrivi come \\3/\\2/\\1" },
@@ -259,7 +259,7 @@ const levels = [
         mission: "Crea una riga CSV con gli utenti che usano bash, in ordine alfabetico. <code>paste -sd','</code> unisce tutte le righe in una, separate da virgole.",
         stdin: ["mario2:1003:/bin/bash", "daemon:1:/usr/sbin/nologin", "anna:1001:/bin/bash", "mario:1000:/bin/bash", "www:33:/usr/sbin/nologin", "luca:1002:/bin/bash"],
         target: ["anna,luca,mario,mario2"],
-        hint: "awk -F':' sceglie il separatore dei campi. Ordina i nomi, non le righe intere: nell'ordine dei byte 'mario2:' viene prima di 'mario:'.",
+        hint: "Piano in 4 passi: 1) tieni solo le righe con bash, finché la shell è ancora sulla riga, 2) estrai il nome con awk -F':' (campo 1), 3) ordina i nomi, 4) uniscili in una riga con paste. Attenzione all'ordine fra 2 e 3: nell'ordine dei byte 'mario2:' viene prima di 'mario:', quindi ordinare le righe intere non dà l'ordine dei nomi.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "bash" }, desc: "Tieni le righe con 'bash'" },
             { cmd: "awk", args: { field: 1, separator: ":" }, desc: "Campo 1: utente" },
@@ -277,7 +277,7 @@ const levels = [
         mission: "Dal log del server ricava una riga riassuntiva <code>pagina=richieste</code>, separate da virgole, dalla pagina pi\u00f9 richiesta alla meno richiesta.",
         stdin: ["10:02  GET  /home      200", "10:05  GET  /prodotti  404", "10:07  GET  /home      304", "10:11  GET  /about     200", "10:16  GET  /prodotti  200", "10:20  GET  /home      200"],
         target: ["home=3,prodotti=2,about=1"],
-        hint: "Colonne allineate con pi\u00f9 spazi: serve awk. Poi la ricetta della classifica; infine sed trasforma '      3 /home' in 'home=3' e paste unisce le righe.",
+        hint: "Piano in 6 passi: 1) estrai la pagina: le colonne sono allineate con più spazi, quindi cut non funziona e serve awk (la pagina è il campo $3); 2-4) la ricetta della classifica: sort, uniq -c, sort -rn; 5) riscrivi '3 /home' come 'home=3' con il sed che mette prima il nome (\\2) e poi il numero (\\1); 6) unisci le righe con paste.",
         allowedCommands: [
             { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
             { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },

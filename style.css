@@ -145,6 +145,8 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
     height: 140px;
     text-align: left;
     overflow-y: auto;
+    /* Conserva gli spazi multipli (uniq -c, colonne allineate) e va a capo sulle righe lunghe */
+    white-space: pre-wrap;
     font-size: 14px;
     color: #c9d1d9;
     border-radius: 6px;
