@@ -21,6 +21,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `levels.js` | I livelli |
 | `solver.js` | Ricerca in ampiezza delle soluzioni ottimali |
 | `shell.js` | Traduzione della pipeline in una riga bash |
+| `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
 | `tools/` | Verifiche da riga di comando (Node.js) |
@@ -31,7 +32,7 @@ Basta aprire `index.html` nel browser: non servono build né server.
 
 ```bash
 node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzioni ottimali
-node tools/check-shell.js 100   # la simulazione coincide con bash? (Linux, GNU coreutils)
+node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
 ```
 
 Per aggiungere un livello: componilo nell'editor, provalo con **PROVA NEL GIOCO**, copia il codice

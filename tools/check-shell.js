@@ -1,5 +1,6 @@
 // Verifica che la simulazione coincida con la shell reale: per ogni livello esegue in bash
-// la soluzione ottimale e N pipeline casuali, confrontando stdout e stderr con il gioco.
+// la soluzione ottimale e N pipeline casuali, confrontando stdout e stderr con il gioco;
+// poi fa lo stesso con ogni esempio del manuale.
 // Richiede bash e GNU coreutils (Linux). Uso: node tools/check-shell.js [N=100]
 const fs = require("fs");
 const path = require("path");
@@ -8,7 +9,7 @@ const { spawnSync } = require("child_process");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({});
-for (const file of ["commands.js", "levels.js", "solver.js", "shell.js"]) {
+for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "manual.js"]) {
     vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, { filename: file });
 }
 
@@ -45,5 +46,24 @@ for (let index = 0; index < levelCount; index++) {
     }
 }
 
-console.log(`${total - failures}/${total} pipeline identiche a bash`);
+// Esempi del manuale
+const examples = vm.runInContext(`MANUAL.flatMap(entry => entry.examples.map(example => {
+    const result = executePipeline(example.input, example.steps);
+    return { name: entry.id + " / " + example.title, line: buildShellLine(example.input, example.steps),
+             output: result.output, stderr: result.stderr };
+}))`, context);
+for (const sim of examples) {
+    const real = spawnSync("bash", ["-c", sim.line], { env: { PATH: process.env.PATH } });
+    const output = toLines(real.stdout.toString());
+    const stderr = toLines(real.stderr.toString());
+    total++;
+    if (JSON.stringify(output) !== JSON.stringify(sim.output) || JSON.stringify(stderr) !== JSON.stringify(sim.stderr)) {
+        failures++;
+        console.log(`Manuale, ${sim.name}: ${sim.line}`);
+        console.log(`  gioco: ${JSON.stringify(sim.output)} stderr ${JSON.stringify(sim.stderr)}`);
+        console.log(`  bash:  ${JSON.stringify(output)} stderr ${JSON.stringify(stderr)}`);
+    }
+}
+
+console.log(`${total - failures}/${total} pipeline identiche a bash (${examples.length} esempi del manuale)`);
 if (failures) process.exit(1);

@@ -57,6 +57,7 @@
         <div class="action-buttons">
             <button class="btn-hint" id="btn-menu" onclick="openMenu()">☰ LIVELLI</button>
             <button class="btn-hint" onclick="showHint()">? AIUTO</button>
+            <button class="btn-hint" onclick="openManual()">📖 MANUALE</button>
             <button class="btn-run" id="btn-run" onclick="runPipeline()">ESEGUI ( ▶ )</button>
         </div>
 
@@ -70,28 +71,11 @@
 
         <div id="console">> Pronto. Tocca una cella e premi Esegui.</div>
 
-        <!-- MANUALE UNIX -->
+        <!-- MANUALE DEI COMANDI -->
         <div class="manual-box">
-            <h3>📖 MINI-MANUALE UNIX</h3>
-            <div class="manual-grid">
-                <div class="manual-item"><code>grep -v 'X'</code><p>Scarta le righe contenenti X.</p></div>
-                <div class="manual-item"><code>grep 'X'</code><p>Tiene solo le righe contenenti X (distingue maiuscole/minuscole).</p></div>
-                <div class="manual-item"><code>sort</code><p>Riordina alfabeticamente (le maiuscole vengono prima). Con <code>-r</code> in ordine inverso.</p></div>
-                <div class="manual-item"><code>uniq</code><p>Rimuove duplicati adiacenti.</p></div>
-                <div class="manual-item"><code>head -n N</code> / <code>tail -n N</code><p>Tiene le prime / ultime N righe.</p></div>
-                <div class="manual-item"><code>wc -l</code><p>Conta le righe del flusso.</p></div>
-                <div class="manual-item"><code>cut -d':' -f2</code><p>Divide ogni riga sul delimitatore e tiene il campo indicato.</p></div>
-                <div class="manual-item"><code>tr 'a' 'b'</code> / <code>tr -d 'a'</code><p>Sostituisce o elimina caratteri; con <code>'\n'</code> spezza le righe.</p></div>
-                <div class="manual-item"><code>uniq -c</code><p>Come uniq, ma antepone quante volte si ripeteva ogni riga.</p></div>
-                <div class="manual-item"><code>sort -n</code> / <code>sort -rn</code><p>Ordina per valore numerico (crescente / decrescente).</p></div>
-                <div class="manual-item"><code>sed -E 's/RE/SOST/g'</code><p>Sostituisce ciò che corrisponde alla regex RE (con <code>g</code> tutte le volte). <code>(...)</code> cattura un gruppo, che riusi con <code>\1</code>; <code>&amp;</code> è l'intera corrispondenza.</p></div>
-                <div class="manual-item"><code>awk '{print $N}'</code><p>Stampa il campo N, separando sui gruppi di spazi; <code>-F':'</code> cambia separatore.</p></div>
-                <div class="manual-item"><code>paste -sd','</code><p>Unisce tutte le righe in una sola, separate dal carattere indicato.</p></div>
-                <div class="manual-item"><code>2&gt;/dev/null</code><p>Cestina lo stderr del comando a cui è attaccato.</p></div>
-                <div class="manual-item"><code>2&gt;&amp;1</code><p>Unisce lo stderr allo stdout, così gli errori entrano nella pipe.</p></div>
-                <div class="manual-item"><code>|</code><p>Passa solo lo stdout al comando successivo: lo stderr va dritto al terminale.</p></div>
-                <div class="manual-item"><code>sed 's/.*/\U&/'</code><p>Converti tutto in maiuscolo.</p></div>
-            </div>
+            <h3>📖 MANUALE DEI COMANDI</h3>
+            <p class="manual-hint">Tocca un comando per aprire la scheda con gli esempi.</p>
+            <div class="manual-grid" id="manual-index"></div>
         </div>
 
     </div>
@@ -109,12 +93,26 @@
         </div>
     </div>
 
+    <!-- MANUALE -->
+    <div class="menu-overlay" id="manual-overlay" hidden onclick="if (event.target === this) closeManual()">
+        <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="manual-title">
+            <div class="menu-header">
+                <button class="menu-back" id="manual-back" onclick="openManual()" hidden>← Elenco</button>
+                <h2 id="manual-title">📖 MANUALE</h2>
+                <button class="menu-close" onclick="closeManual()" aria-label="Chiudi">✕</button>
+            </div>
+            <div id="manual-body"></div>
+        </div>
+    </div>
+
     <script src="commands.js"></script>
     <script src="levels.js"></script>
     <script src="solver.js"></script>
     <script src="progress.js"></script>
     <script src="shell.js"></script>
     <script src="render.js"></script>
+    <script src="manual.js"></script>
     <script src="app.js"></script>
+    <script src="manual-view.js"></script>
 </body>
 </html>

@@ -379,7 +379,10 @@ function startLevelIndex() {
 }
 
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape") closeMenu();
+    if (event.key === "Escape") {
+        closeMenu();
+        closeManual();
+    }
 });
 
 function logToConsole(text, className = "") {
