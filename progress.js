@@ -77,3 +77,24 @@ function loadTestLevel() {
         return null;
     }
 }
+
+// Preferenze del giocatore (es. velocità dell'animazione), separate dai progressi
+const SETTINGS_KEY = "pipedreams.settings.v1";
+
+function loadSettings() {
+    try {
+        const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (data && typeof data === "object") return data;
+    } catch (e) {
+        // impostazioni corrotte o storage non accessibile: valori predefiniti
+    }
+    return {};
+}
+
+function saveSettings(settings) {
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (e) {
+        // senza storage la preferenza vale solo per questa visita
+    }
+}

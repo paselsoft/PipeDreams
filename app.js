@@ -1,5 +1,10 @@
-// Durata di ogni passo dell'animazione della pipeline
-const STEP_DELAY = 600;
+// Durata di ogni passo dell'animazione della pipeline, per velocità
+const SPEEDS = {
+    lenta: { label: "Lenta", delay: 1000 },
+    normale: { label: "Normale", delay: 600 },
+    veloce: { label: "Veloce", delay: 250 },
+    istantanea: { label: "Istantanea", delay: 0 }
+};
 
 let currentLevelIndex = 0;
 let gridState = [];
@@ -8,17 +13,27 @@ let isBusy = false;
 let transitionTimer = null;
 // Incrementato a ogni caricamento: un'animazione in corso si interrompe se il livello cambia
 let runId = 0;
+// Animazione in corso: ESEGUI diventa SALTA, che completa subito i passi rimanenti
+let isAnimating = false;
+let skipRequested = false;
+let wakeUp = null;
 // Risultato del solver per il livello corrente (par = numero minimo di comandi)
 let currentSolution = null;
 let progress = loadProgress();
 // index.html?test: gioca il livello di prova dell'editor senza toccare i progressi salvati
 const TEST_MODE = new URLSearchParams(location.search).has("test");
+let settings = loadSettings();
+// Senza una scelta salvata, chi ha chiesto al sistema di ridurre il movimento parte senza animazione
+if (!SPEEDS[settings.speed]) {
+    settings.speed = matchMedia("(prefers-reduced-motion: reduce)").matches ? "istantanea" : "normale";
+}
 
 function loadLevel(index) {
     currentLevelIndex = index;
     gridState = new Array(levelSlots(levels[index])).fill(0);
     clearTimeout(transitionTimer);
     runId++;
+    stopAnimation();
     setBusy(false);
 
     const lvl = levels[index];
@@ -63,7 +78,52 @@ function buildGrid() {
 
 function setBusy(busy) {
     isBusy = busy;
-    document.getElementById("btn-run").disabled = busy;
+    setRunButton(busy ? "disabled" : "run");
+}
+
+// "run": ESEGUI attivo, "skip": SALTA durante l'animazione, "disabled": in attesa del livello successivo
+function setRunButton(mode) {
+    const button = document.getElementById("btn-run");
+    button.disabled = mode === "disabled";
+    button.textContent = mode === "skip" ? "SALTA ( ⏭ )" : "ESEGUI ( ▶ )";
+}
+
+function setSpeed(speed) {
+    if (!SPEEDS[speed]) return;
+    settings.speed = speed;
+    saveSettings(settings);
+    renderSpeedControl();
+}
+
+function renderSpeedControl() {
+    document.querySelectorAll("#speed-control button").forEach(button => {
+        const active = button.dataset.speed === settings.speed;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
+}
+
+// Attende un passo dell'animazione; SALTA o un cambio di livello la interrompono subito
+function waitStep(ms) {
+    if (skipRequested || ms === 0) return Promise.resolve();
+    return new Promise(resolve => {
+        const timer = setTimeout(resolve, ms);
+        wakeUp = () => {
+            clearTimeout(timer);
+            resolve();
+        };
+    });
+}
+
+function skipAnimation() {
+    skipRequested = true;
+    if (wakeUp) wakeUp();
+}
+
+function stopAnimation() {
+    skipAnimation();
+    isAnimating = false;
+    wakeUp = null;
 }
 
 function currentSteps() {
@@ -160,8 +220,6 @@ function showHint() {
     consoleBox.scrollTop = 0;
 }
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 function describeLines(lines) {
     const out = lines.filter(line => line.fd === 1).map(line => line.text);
     const err = lines.filter(line => line.fd === 2).map(line => line.text);
@@ -169,9 +227,17 @@ function describeLines(lines) {
 }
 
 async function runPipeline() {
+    if (isAnimating) {
+        skipAnimation();
+        return;
+    }
     if (isBusy) return;
     setBusy(true);
+    isAnimating = true;
+    skipRequested = false;
+    setRunButton("skip");
     const myRun = runId;
+    const delay = SPEEDS[settings.speed].delay;
 
     const lvl = levels[currentLevelIndex];
     document.getElementById("console").innerHTML = "";
@@ -184,7 +250,7 @@ async function runPipeline() {
     for (let i = 0; i < steps.length; i++) {
         const cell = document.getElementById(`c${i}`);
         cell.classList.add("running");
-        await sleep(STEP_DELAY);
+        await waitStep(delay);
         cell.classList.remove("running");
         if (myRun !== runId) return;
 
@@ -195,8 +261,11 @@ async function runPipeline() {
         logToConsole(`[Slot ${i+1}] ${label} -> ${describeLines(lines)}`, "log-step");
     }
 
-    await sleep(STEP_DELAY / 2);
+    await waitStep(delay / 2);
     if (myRun !== runId) return;
+    isAnimating = false;
+    wakeUp = null;
+    setRunButton("disabled");
     showResult(lvl, result);
 }
 
@@ -338,5 +407,10 @@ if (TEST_MODE) {
         document.getElementById("test-banner-text").innerText = "Nessun livello di prova valido: torna all'editor e premi PROVA NEL GIOCO.";
     }
 }
+
+document.querySelectorAll("#speed-control button").forEach(button => {
+    button.onclick = () => setSpeed(button.dataset.speed);
+});
+renderSpeedControl();
 
 loadLevel(TEST_MODE ? 0 : startLevelIndex());

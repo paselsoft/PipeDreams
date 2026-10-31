@@ -313,7 +313,9 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
 #score-display { white-space: nowrap; margin-left: 8px; }
 @media (max-width: 420px) {
     .btn-hint { padding: 12px 6px; font-size: 13px; }
+    .btn-run { padding: 12px 6px; font-size: 15px; }
 }
+.btn-run { white-space: nowrap; }
 
 .chip.blank { font-style: italic; opacity: 0.6; }
 .menu-act {
@@ -380,3 +382,35 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
 .test-banner[hidden] { display: none; }
 .test-banner a, p.subtitle a { color: #58a6ff; }
 .btn-hint[hidden] { display: none; }
+
+/* Selettore della velocità dell'animazione */
+.speed-control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #8b949e;
+}
+.speed-control button {
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 5px 9px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.speed-control button.active {
+    color: #00ff66;
+    border-color: #00ff66;
+    background: #0f2b1d;
+    font-weight: bold;
+}
+@media (max-width: 480px) {
+    .speed-control span { flex-basis: 100%; }
+    .speed-control button { flex: 1; padding: 6px 2px; font-size: 12px; }
+}
