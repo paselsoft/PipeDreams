@@ -573,3 +573,7 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
 }
 .lab-final { border-color: #238636; }
 .lab-warning { color: #f85149; font-size: 13px; margin: 0; }
+.shell-actions { display: flex; gap: 6px; }
+.lab-verdict { margin: 2px 0 0 0; font-size: 13px; font-weight: bold; }
+.lab-verdict.ok { color: #3fb950; }
+.lab-verdict.bad { color: #f85149; }

@@ -32,7 +32,8 @@ function openManual(entryId) {
 let manualBackTarget = null;
 
 function manualBack() {
-    openManual(manualBackTarget);
+    if (manualBackTarget === LAB_BACK_TO_LEVEL) closeManual();
+    else openManual(manualBackTarget);
 }
 
 function closeManual() {

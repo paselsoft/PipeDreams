@@ -5,20 +5,33 @@
 let lab = null;
 
 const LAB_SAMPLE = { input: ["pera", "mela", "pera"], steps: [{ cmd: "sort" }] };
+// backTarget speciale: "← Indietro" chiude il pannello e torna al livello
+const LAB_BACK_TO_LEVEL = "livello";
 
-// Apre il laboratorio con un esempio (input + steps); backTarget è la scheda a cui tornare
-function openLab(example = LAB_SAMPLE, backTarget = null) {
+// Apre il laboratorio con un esempio (input + steps); backTarget è la scheda a cui tornare.
+// goal, se presente ({ target, targetStderr } di un livello), aggiunge il confronto con lo stdout atteso.
+function openLab(example = LAB_SAMPLE, backTarget = null, goal = null) {
     lab = {
         inputText: stdinToText(example.input),
-        commands: example.steps.map(step => ({ cmd: step.cmd, args: argsFromStep(step) }))
+        commands: example.steps.map(step => ({ cmd: step.cmd, args: argsFromStep(step) })),
+        goal
     };
     renderLab(backTarget);
     document.getElementById("manual-overlay").hidden = false;
 }
 
+// Porta nel laboratorio l'input del livello e i comandi delle celle (gli slot vuoti si saltano)
+function openLevelInLab() {
+    const lvl = levels[currentLevelIndex];
+    const steps = currentSteps().filter(step => step.cmd !== null);
+    openLab({ input: lvl.stdin, steps }, LAB_BACK_TO_LEVEL, { target: lvl.target, targetStderr: lvl.targetStderr });
+}
+
 function renderLab(backTarget) {
     const root = el("div", "form-ui lab");
-    root.appendChild(el("p", "manual-description", "Cambia l'input e i comandi: il risultato si aggiorna mentre scrivi."));
+    root.appendChild(el("p", "manual-description", lab.goal
+        ? "Questa è la pipeline delle tue celle: modificala liberamente e confronta l'output con lo stdout atteso. Le celle del livello non cambiano."
+        : "Cambia l'input e i comandi: il risultato si aggiorna mentre scrivi."));
 
     const inputLabel = el("label", "lab-label", "Input: una riga per riga, inizia con \"2> \" per lo stderr");
     const input = el("textarea", "lab-input");
@@ -134,11 +147,42 @@ function refreshLab() {
         const final = el("div", "lab-stage lab-final");
         final.appendChild(el("div", "manual-row-label", "output finale"));
         const chips = el("span", "chips");
-        renderChips(chips, result.output.map(text => ({ text, fd: 1 })));
+        const target = lab.goal ? lab.goal.target : null;
+        // Con un obiettivo, l'output è colorato riga per riga come nel confronto finale del gioco
+        const lines = result.output.map(text => ({ text, fd: 1 }));
+        const states = target ? result.output.map((text, i) => text === target[i] ? "ok" : "bad") : [];
+        for (let i = result.output.length; target && i < target.length; i++) {
+            lines.push({ text: "?", fd: 1 });
+            states.push("missing");
+        }
+        renderChips(chips, lines, states);
         final.appendChild(chips);
         if (result.stderr.length) {
             final.appendChild(el("div", "stream-terminal", `⚠ Sul terminale (stderr): ${result.stderr.join(", ")}`));
         }
         container.appendChild(final);
+        if (lab.goal) container.appendChild(renderGoal(result));
     }
+}
+
+function renderGoal(result) {
+    const box = el("div", "lab-stage");
+    box.appendChild(el("div", "manual-row-label", "stdout atteso"));
+    const chips = el("span", "chips");
+    renderChips(chips, lab.goal.target.map(text => ({ text, fd: 1 })));
+    box.appendChild(chips);
+
+    let verdict;
+    if (isSolved(lab.goal, result)) {
+        verdict = el("p", "lab-verdict ok", "✓ Coincide con lo stdout atteso: componi questi comandi nelle celle per risolvere il livello.");
+    } else if (streamsEqual(result.output, lab.goal.target)) {
+        verdict = el("p", "lab-verdict bad", "✗ L'output è giusto, ma degli errori finiscono sul terminale.");
+    } else {
+        const missing = lab.goal.target.length - result.output.length;
+        verdict = el("p", "lab-verdict bad", missing > 0
+            ? `✗ Diverso dallo stdout atteso: mancano ${missing} righe.`
+            : "✗ Diverso dallo stdout atteso: le righe rosse sono quelle sbagliate.");
+    }
+    box.appendChild(verdict);
+    return box;
 }
