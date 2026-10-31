@@ -97,7 +97,7 @@
     <div class="menu-overlay" id="manual-overlay" hidden onclick="if (event.target === this) closeManual()">
         <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="manual-title">
             <div class="menu-header">
-                <button class="menu-back" id="manual-back" onclick="openManual()" hidden>← Elenco</button>
+                <button class="menu-back" id="manual-back" onclick="manualBack()" hidden>← Indietro</button>
                 <h2 id="manual-title">📖 MANUALE</h2>
                 <button class="menu-close" onclick="closeManual()" aria-label="Chiudi">✕</button>
             </div>
@@ -112,7 +112,9 @@
     <script src="shell.js"></script>
     <script src="render.js"></script>
     <script src="manual.js"></script>
+    <script src="command-form.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
+    <script src="lab.js"></script>
 </body>
 </html>

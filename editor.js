@@ -3,25 +3,10 @@
 
 const DRAFT_KEY = "pipedreams.editor.draft";
 
-// Nome mostrato nel menu a tendina dei comandi
-const COMMAND_NAMES = {
-    grep: "grep", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
-    wc: "wc -l", cut: "cut", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
-    devnull: "2>/dev/null", merge: "2>&1"
-};
-
 // Bozza corrente. solution contiene, per ogni slot, l'indice del comando scelto (-1 = vuoto).
 let draft = null;
 
 const nextLevelId = () => Math.max(0, ...levels.map(lvl => lvl.id)) + 1;
-
-function defaultArgs(cmd) {
-    const args = {};
-    for (const param of COMMANDS[cmd].params) {
-        args[param.key] = param.type === "flag" ? false : param.default ?? "";
-    }
-    return args;
-}
 
 function blankDraft() {
     return {
@@ -37,47 +22,9 @@ function blankDraft() {
     };
 }
 
-// --- Conversioni tra il testo dell'editor e il formato dei livelli ---
-
-function parseStdin(text) {
-    const lines = text.split("\n");
-    if (lines[lines.length - 1] === "") lines.pop();
-    return lines.map(line => line.startsWith("2> ") ? { err: line.slice(3) } : line);
-}
-
-const stdinToText = stdin => stdin.map(line => typeof line === "string" ? line : `2> ${line.err}`).join("\n");
-
-// Negli insiemi di tr l'utente scrive \n per l'a capo
-const decodeSet = text => text.replace(/\\n/g, "\n");
-const encodeSet = text => text.replace(/\n/g, "\\n");
-
-// Argomenti effettivi del comando: solo le opzioni attive, e per tr una sola delle due forme
-function cleanArgs(command) {
-    const args = {};
-    for (const param of COMMANDS[command.cmd].params) {
-        const value = command.args[param.key];
-        if (param.type === "flag" ? value : value !== "" && value !== undefined) args[param.key] = value;
-    }
-    if (command.cmd === "tr" && args.delete) return { delete: args.delete };
-    if (command.cmd === "tr") delete args.delete;
-    return args;
-}
-
 function commandError(command) {
-    for (const param of COMMANDS[command.cmd].params) {
-        const value = command.args[param.key];
-        if (typeof value === "string" && value.includes("'")) return `${param.label}: l'apice ' non è supportato`;
-        if (param.optional && value === "") continue;
-        if (param.type === "number" && !(Number.isInteger(value) && value >= 1)) return `${param.label}: serve un intero ≥ 1`;
-        if (param.type === "char" && [...value].length !== 1) return `${param.label}: serve un solo carattere`;
-        if (param.type === "text" && value === "") return `${param.label}: obbligatorio`;
-    }
-    if (command.cmd === "tr" && !command.args.delete && (!command.args.from || !command.args.to)) {
-        return "tr: compila 'da' e 'a', oppure solo '-d'";
-    }
-    const validate = COMMANDS[command.cmd].validate;
-    const invalid = validate && validate(cleanArgs(command));
-    if (invalid) return invalid;
+    const error = argsError(command);
+    if (error) return error;
     if (!command.desc.trim()) return "manca la descrizione";
     return null;
 }
@@ -169,16 +116,10 @@ function renderCommands() {
         const row = document.createElement("div");
         row.className = "ed-cmd";
 
-        const select = document.createElement("select");
-        for (const cmd of Object.keys(COMMANDS)) {
-            select.add(new Option(COMMAND_NAMES[cmd] || cmd, cmd, false, cmd === command.cmd));
-        }
-        select.onchange = () => {
-            command.cmd = select.value;
-            command.args = defaultArgs(select.value);
+        const select = commandSelect(command, () => {
             renderCommands();
             refresh();
-        };
+        });
 
         const label = document.createElement("span");
         label.className = "ed-label";
@@ -193,30 +134,10 @@ function renderCommands() {
         };
 
         row.append(label, select);
-        for (const param of COMMANDS[command.cmd].params) {
-            const wrapper = document.createElement("label");
-            wrapper.className = "ed-param";
-            const input = document.createElement("input");
-            if (param.type === "flag") {
-                input.type = "checkbox";
-                input.checked = Boolean(command.args[param.key]);
-                input.onchange = () => { command.args[param.key] = input.checked; updateRow(); refresh(); };
-                wrapper.append(input, param.label);
-            } else {
-                input.type = param.type === "number" ? "number" : "text";
-                if (param.type === "number") input.min = 1;
-                input.value = param.type === "set" ? encodeSet(command.args[param.key] || "") : command.args[param.key];
-                input.oninput = () => {
-                    const raw = input.value;
-                    command.args[param.key] = param.type === "number" ? Number(raw)
-                        : param.type === "set" ? decodeSet(raw) : raw;
-                    updateRow();
-                    refresh();
-                };
-                wrapper.append(param.label, input);
-            }
-            row.appendChild(wrapper);
-        }
+        paramFields(command, () => {
+            updateRow();
+            refresh();
+        }).forEach(field => row.appendChild(field));
 
         const desc = document.createElement("input");
         desc.type = "text";
@@ -366,8 +287,7 @@ function loadFromLevel(id) {
         hint: lvl.hint,
         stdinText: stdinToText(lvl.stdin),
         commands: lvl.allowedCommands.map(step => {
-            const args = { ...defaultArgs(step.cmd), ...(step.args || {}) };
-            return { cmd: step.cmd, args, desc: step.desc };
+            return { cmd: step.cmd, args: argsFromStep(step), desc: step.desc };
         }),
         solution: Array.from({ length: slots }, (_, i) => solution[i] ?? -1)
     };

@@ -28,11 +28,19 @@ function openManual(entryId) {
     document.getElementById("manual-overlay").hidden = false;
 }
 
+// Scheda a cui riporta "← Indietro" (null = elenco)
+let manualBackTarget = null;
+
+function manualBack() {
+    openManual(manualBackTarget);
+}
+
 function closeManual() {
     document.getElementById("manual-overlay").hidden = true;
 }
 
-function setManualContent(title, nodes, showBack) {
+function setManualContent(title, nodes, showBack, backTarget = null) {
+    manualBackTarget = backTarget;
     document.getElementById("manual-title").textContent = title;
     document.getElementById("manual-back").hidden = !showBack;
     const body = document.getElementById("manual-body");
@@ -45,6 +53,10 @@ function renderManualList() {
     const lvl = levels[currentLevelIndex];
     const forLevel = manualEntriesForLevel(lvl);
     const nodes = [];
+    const labLink = el("button", "manual-link lab-link");
+    labLink.append(el("code", "", "🧪 Laboratorio"), el("span", "", "Prova i comandi su dati tuoi e guarda il risultato passo per passo."));
+    labLink.onclick = () => openLab();
+    nodes.push(labLink);
     if (forLevel.length) {
         nodes.push(el("h3", "manual-section", "Comandi di questo livello"));
         forLevel.forEach(entry => nodes.push(manualEntryButton(entry)));
@@ -54,7 +66,7 @@ function renderManualList() {
     setManualContent("📖 MANUALE", nodes, false);
 }
 
-function renderExample(example) {
+function renderExample(example, entry) {
     const box = el("div", "manual-example");
     box.appendChild(el("div", "manual-example-title", example.title));
 
@@ -76,6 +88,9 @@ function renderExample(example) {
         box.appendChild(el("div", "stream-terminal", `⚠ Finito sul terminale (stderr): ${result.stderr.join(", ")}`));
     }
     if (example.note) box.appendChild(el("p", "manual-note", example.note));
+    const tryIt = el("button", "manual-try", "🧪 Prova nel laboratorio");
+    tryIt.onclick = () => openLab(example, entry.id);
+    box.appendChild(tryIt);
     return box;
 }
 
@@ -96,7 +111,7 @@ function renderManualEntry(entry) {
     }
 
     nodes.push(el("h3", "manual-section", "Esempi"));
-    entry.examples.forEach(example => nodes.push(renderExample(example)));
+    entry.examples.forEach(example => nodes.push(renderExample(example, entry)));
 
     if (entry.traps && entry.traps.length) {
         nodes.push(el("h3", "manual-section", "Trappole comuni"));
