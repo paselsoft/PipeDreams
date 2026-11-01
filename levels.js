@@ -290,5 +290,118 @@ const levels = [
             { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" },
             { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" }
         ]
+    },
+    {
+        id: 18,
+        act: 4,
+        title: "Rubrica",
+        mission: "La rubrica esportata dal telefono ha righe <code>cognome,nome,telefono</code>. Elenca i contatti come <code>Nome Cognome</code>, in ordine di cognome.",
+        stdin: ["Verdi,Anna,333111", "# esportato dal telefono", "Bianchi,Luca,333222", "Rossi,Mario,333333"],
+        target: ["Luca Bianchi", "Mario Rossi", "Anna Verdi"],
+        hint: "Piano in 3 passi: 1) scarta la riga di commento (#), 2) ordina, 3) riscrivi ogni riga con sed. Attenzione: dopo il sed la riga inizia con il nome, quindi ordinando dopo otterresti l'ordine dei nomi (Anna, Luca, Mario). Ordina mentre il cognome è ancora in testa. Nella sostituzione \\2 è il nome e \\1 il cognome.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "#", invert: true }, desc: "Scarta le righe con '#'" },
+            { cmd: "sort", desc: "Ordine crescente" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
+            { cmd: "sed", args: { pattern: "([^,]+),([^,]+),.*", replacement: "\\2 \\1" }, desc: "Riscrivi come \\2 \\1" },
+            { cmd: "sed", args: { pattern: "([^,]+),([^,]+),.*", replacement: "\\1 \\2" }, desc: "Riscrivi come \\1 \\2" },
+            { cmd: "cut", args: { delim: ",", field: 2 }, desc: "Campo 2 (virgola)" }
+        ]
+    },
+    {
+        id: 19,
+        act: 4,
+        title: "Il Più Grande",
+        mission: "Ogni riga è <code>nome punteggio</code>. Trova il punteggio più alto.",
+        stdin: ["anna 45", "bruno 300", "eva 8", "dario 120"],
+        target: ["300"],
+        hint: "Piano in 3 passi: 1) estrai il punteggio (awk, campo 2), 2) ordinalo per valore numerico, 3) prendi l'ultimo. Attenzione: senza -n i numeri si ordinano come testo, e '8' finisce dopo '300'. Ordinare le righe intere invece le mette in ordine di nome.",
+        allowedCommands: [
+            { cmd: "awk", args: { field: 1 }, desc: "Campo 1: nome" },
+            { cmd: "awk", args: { field: 2 }, desc: "Campo 2: punteggio" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { numeric: true }, desc: "Ordine numerico" },
+            { cmd: "head", args: { n: 1 }, desc: "Prendi il primo" },
+            { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultimo" }
+        ]
+    },
+    {
+        id: 20,
+        act: 4,
+        title: "Normalizzare",
+        slots: 5,
+        mission: "Quanti indirizzi email diversi ci sono? Maiuscole e spazi non contano: <code>Anna@Mail.it</code> e <code>anna@mail.it</code> con uno spazio davanti sono lo stesso indirizzo.",
+        stdin: ["Anna@Mail.it", "luca@mail.it ", " anna@mail.it", "LUCA@MAIL.IT", "eva@mail.it"],
+        target: ["3"],
+        hint: "Piano in 5 passi: 1) tutto in minuscolo (tr 'A-Z' 'a-z'), 2) togli gli spazi (tr -d ' '), 3) ordina, 4) togli i doppioni, 5) conta. Attenzione: uniq confronta le righe carattere per carattere, quindi finché restano differenze di maiuscole o spazi due indirizzi uguali sembrano diversi.",
+        allowedCommands: [
+            { cmd: "tr", args: { from: "A-Z", to: "a-z" }, desc: "Maiuscole → minuscole" },
+            { cmd: "tr", args: { delete: " " }, desc: "Elimina gli spazi" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "wc", desc: "Conta le righe" },
+            { cmd: "head", args: { n: 1 }, desc: "Prendi la prima" }
+        ]
+    },
+    {
+        id: 21,
+        act: 4,
+        title: "Errori per Tipo",
+        slots: 7,
+        mission: "Il server scrive gli errori su stderr, nel formato <code>ora ERR tipo</code>. Fai la classifica dei tipi di errore, dal più frequente, con il numero di volte.",
+        stdin: ["10:00 avvio", { err: "10:02 ERR memoria" }, "10:03 job ok", { err: "10:05 ERR rete" }, { err: "10:06 ERR memoria" }, "10:08 job ok", { err: "10:09 ERR disco" }, { err: "10:11 ERR rete" }, { err: "10:12 ERR memoria" }, "10:15 fine"],
+        target: ["      3 memoria", "      2 rete", "      1 disco"],
+        hint: "Piano in 6 passi: 1) porta gli errori nella pipe (2>&1), 2) tieni le righe ERR, 3) estrai il tipo (campo 3), 4-6) la ricetta della classifica: sort, uniq -c, sort -rn. Attenzione: ogni riga inizia con l'orario, quindi ordinare le righe intere le mette in ordine di tempo: estrai il tipo prima di raggruppare.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "grep", args: { pattern: "ERR", invert: true }, desc: "Scarta le righe con 'ERR'" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
+        ]
+    },
+    {
+        id: 22,
+        act: 4,
+        title: "Elenco Pulito",
+        slots: 5,
+        mission: "Le liste usano il punto e virgola. Crea un'unica riga con tutti i frutti, senza doppioni, in ordine alfabetico e separati da virgole.",
+        stdin: ["pere;mele", "uva", "kiwi;pere", "mele;uva"],
+        target: ["kiwi,mele,pere,uva"],
+        hint: "Piano in 4 passi: 1) un frutto per riga (tr ';' '\\n'), 2) ordina, 3) togli i doppioni, 4) unisci con paste -sd','. Attenzione: tr ';' ',' cambia solo il separatore e i doppioni restano dentro le righe; dopo paste resta una riga sola, quindi sort e uniq vanno prima.",
+        allowedCommands: [
+            { cmd: "tr", args: { from: ";", to: "\n" }, desc: "Punto e virgola → a capo" },
+            { cmd: "tr", args: { from: ";", to: "," }, desc: "Punto e virgola → virgola" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" },
+            { cmd: "paste", args: { delim: ";" }, desc: "Unisci con punto e virgola" }
+        ]
+    },
+    {
+        id: 23,
+        act: 4,
+        title: "Boss Atto IV",
+        slots: 7,
+        mission: "Dal log del server ricava le pagine che hanno risposto <code>404</code> (non trovata): senza ripetizioni, in ordine alfabetico, in un'unica riga separata da virgole. Gli avvisi su stderr non devono comparire.",
+        stdin: ["10:01  GET  /home      200", { err: "WARN cache lenta" }, "10:03  GET  /vecchia   404", "10:04  GET  /prodotti  200", "10:06  GET  /foto      404", { err: "WARN 404 su /favicon.ico" }, "10:09  GET  /vecchia   404", "10:12  GET  /api       404"],
+        target: ["/api,/foto,/vecchia"],
+        hint: "Piano in 6 passi: 1) cestina gli avvisi (2>/dev/null), 2) tieni le righe con 404, 3) estrai la pagina con awk (campo 3: le colonne sono allineate con più spazi), 4) ordina, 5) togli i doppioni, 6) unisci con paste. Attenzione: anche un avviso contiene '404': se unisci lo stderr con 2>&1, grep lo tiene.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "404" }, desc: "Tieni le righe con '404'" },
+            { cmd: "grep", args: { pattern: "404", invert: true }, desc: "Scarta le righe con '404'" },
+            { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+            { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" }
+        ]
     }
 ];
