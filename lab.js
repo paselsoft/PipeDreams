@@ -22,6 +22,8 @@ function openLab(example = LAB_SAMPLE, backTarget = null, goal = null) {
 
 // Porta nel laboratorio l'input del livello e i comandi delle celle (gli slot vuoti si saltano)
 function openLevelInLab() {
+    bumpStat("labOpens");
+    unlockAchievement("scienziato");
     const lvl = levels[currentLevelIndex];
     const steps = currentSteps().filter(step => step.cmd !== null);
     openLab({ input: lvl.stdin, steps }, LAB_BACK_TO_LEVEL, { target: lvl.target, targetStderr: lvl.targetStderr });

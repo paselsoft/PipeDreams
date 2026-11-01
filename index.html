@@ -95,6 +95,7 @@
                 <h2 id="menu-title">SELEZIONA LIVELLO</h2>
                 <button class="menu-close" onclick="closeMenu()" aria-label="Chiudi">✕</button>
             </div>
+            <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
             <button class="menu-reset" onclick="resetProgress()">Azzera progressi</button>
@@ -110,6 +111,19 @@
             <button class="btn-run" onclick="closeActIntro()" id="act-button">INIZIA ( ▶ )</button>
         </div>
     </div>
+
+    <!-- OBIETTIVI E STATISTICHE -->
+    <div class="menu-overlay" id="stats-overlay" hidden onclick="if (event.target === this) closeAchievements()">
+        <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+            <div class="menu-header">
+                <h2 id="stats-title">🏆 OBIETTIVI</h2>
+                <button class="menu-close" onclick="closeAchievements()" aria-label="Chiudi">✕</button>
+            </div>
+            <div id="stats-body"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- MANUALE -->
     <div class="menu-overlay" id="manual-overlay" hidden onclick="if (event.target === this) closeManual()">
@@ -132,6 +146,7 @@
     <script src="story.js"></script>
     <script src="manual.js"></script>
     <script src="command-form.js"></script>
+    <script src="achievements.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>

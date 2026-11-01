@@ -21,6 +21,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `levels.js` | I livelli |
 | `solver.js` | Ricerca in ampiezza delle soluzioni ottimali |
 | `shell.js` | Traduzione della pipeline in una riga bash |
+| `achievements.js` | Obiettivi, statistiche e notifiche |
 | `story.js` | Storia: introduzioni degli atti, messaggi dei personaggi, epilogo |
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |

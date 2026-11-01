@@ -605,3 +605,56 @@ button.menu-act {
     cursor: pointer;
     font-family: 'Courier New', Courier, monospace;
 }
+
+/* Obiettivi e statistiche */
+.menu-stats {
+    width: 100%;
+    margin-top: 10px;
+    background: #2b2111;
+    border: 1px solid #9e6a03;
+    color: #e3b341;
+    border-radius: 6px;
+    padding: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.stats-table { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; }
+.stats-label { color: #8b949e; }
+.stats-value { color: #00ff66; font-weight: bold; text-align: right; }
+.achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.achievement {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13px;
+    color: #6e7681;
+}
+.achievement.unlocked { border-color: #9e6a03; color: #c9d1d9; }
+.achievement.unlocked strong { color: #e3b341; }
+.achievement-icon { font-size: 22px; }
+.achievement-desc { font-size: 12px; }
+.achievement-date { font-size: 11px; color: #8b949e; }
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    background: #2b2111;
+    border: 1px solid #e3b341;
+    color: #e3b341;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: bold;
+    z-index: 20;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+}
+.toast[hidden] { display: none; }

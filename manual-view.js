@@ -96,6 +96,7 @@ function renderExample(example, entry) {
 }
 
 function renderManualEntry(entry) {
+    noteManualRead(entry.id);
     const nodes = [];
     nodes.push(el("code", "manual-syntax", entry.syntax));
     nodes.push(el("p", "manual-description", entry.description));

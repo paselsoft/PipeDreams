@@ -38,6 +38,7 @@ function loadLevel(index) {
 
     const lvl = levels[index];
     currentSolution = solveLevel(lvl);
+    startLevelSession();
     progress.lastLevel = index;
     persistProgress();
     document.getElementById("level-title").innerText = `LIVELLO ${index + 1}/${levels.length}: ${lvl.title}`;
@@ -179,6 +180,10 @@ async function copyShellLine() {
     }
     const button = document.getElementById("btn-copy");
     button.textContent = copied ? "COPIATA ✓" : "SELEZIONA E COPIA";
+    if (copied) {
+        bumpStat("copies");
+        unlockAchievement("terminale");
+    }
     setTimeout(() => { button.textContent = "COPIA"; }, 1500);
 }
 
@@ -217,6 +222,8 @@ function showHint() {
     let consoleBox = document.getElementById("console");
     consoleBox.innerHTML = "";
     logToConsole(`> [SUGGERIMENTO] ${lvl.hint}`, "log-hint");
+    levelSession.hintUsed = true;
+    bumpStat("hints");
     // Gli indizi lunghi superano l'altezza della console: si legge dall'inizio
     consoleBox.scrollTop = 0;
 }
@@ -233,6 +240,8 @@ async function runPipeline() {
         return;
     }
     if (isBusy) return;
+    levelSession.attempts++;
+    bumpStat("runs");
     setBusy(true);
     isAnimating = true;
     skipRequested = false;
@@ -282,6 +291,7 @@ function showResult(lvl, result) {
         const stars = computeStars(used, currentSolution.par);
         const isRecord = recordResult(progress, lvl.id, stars, used);
         persistProgress();
+        checkWinAchievements(currentLevelIndex, currentSolution.par);
         logToConsole(`> ${rating(stars, used)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
         if (currentLevelIndex < levels.length - 1) {
             logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
@@ -292,6 +302,7 @@ function showResult(lvl, result) {
             if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI");
         }
     } else {
+        bumpStat("failures");
         if (streamsEqual(result.output, lvl.target)) {
             logToConsole(`> [FALLIMENTO] Lo stdout è giusto, ma degli errori sono finiti sul terminale.`, "log-error");
         } else {
@@ -401,7 +412,7 @@ function renderMenu() {
 }
 
 function resetProgress() {
-    if (!confirm("Vuoi davvero azzerare tutti i progressi e le stelle?")) return;
+    if (!confirm("Vuoi davvero azzerare tutti i progressi, le stelle e gli obiettivi?")) return;
     progress = emptyProgress();
     persistProgress();
     closeMenu();
@@ -419,6 +430,7 @@ document.addEventListener("keydown", event => {
         closeMenu();
         closeManual();
         closeActIntro();
+        closeAchievements();
     }
 });
 
