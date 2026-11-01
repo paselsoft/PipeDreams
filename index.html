@@ -95,6 +95,7 @@
                 <h2 id="menu-title">SELEZIONA LIVELLO</h2>
                 <button class="menu-close" onclick="closeMenu()" aria-label="Chiudi">✕</button>
             </div>
+            <button class="menu-daily" id="menu-daily" onclick="closeMenu(); loadDaily();">📅 Sfida del giorno</button>
             <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
@@ -143,6 +144,7 @@
     <script src="progress.js"></script>
     <script src="shell.js"></script>
     <script src="render.js"></script>
+    <script src="daily.js"></script>
     <script src="story.js"></script>
     <script src="manual.js"></script>
     <script src="command-form.js"></script>

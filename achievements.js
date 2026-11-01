@@ -11,7 +11,9 @@ const ACHIEVEMENTS = [
     { id: "guru", icon: "🏆", title: "Guru delle pipeline", desc: "Completa tutti i livelli." },
     { id: "rtfm", icon: "📖", title: "RTFM", desc: "Leggi 5 schede diverse del manuale." },
     { id: "scienziato", icon: "🧪", title: "Scienziato", desc: "Porta la pipeline di un livello nel laboratorio." },
-    { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." }
+    { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." },
+    { id: "abitudinario", icon: "📅", title: "Abitudinario", desc: "Risolvi la sfida del giorno." },
+    { id: "serie", icon: "🔥", title: "In serie", desc: "Risolvi la sfida del giorno 3 giorni di fila." }
 ];
 
 const STAT_LABELS = [
@@ -48,16 +50,20 @@ function unlockAchievement(id) {
 // Un boss è l'ultimo livello del suo atto
 const isBossLevel = index => index === levels.length - 1 || levels[index + 1].act !== levels[index].act;
 
-function checkWinAchievements(index, par) {
-    const lvl = levels[index];
+// Obiettivi legati al singolo tentativo: valgono anche per la sfida del giorno
+function checkSessionAchievements(par) {
     const seconds = (Date.now() - levelSession.start) / 1000;
     if (levelSession.attempts === 1) bumpStat("firstTry");
-
-    if (index === 0) unlockAchievement("hello");
     if (levelSession.attempts === 1 && par >= 3) unlockAchievement("primo-colpo");
-    if (isBossLevel(index) && !levelSession.hintUsed) unlockAchievement("senza-rete");
     if (levelSession.attempts >= 6) unlockAchievement("testardo");
     if (par >= 4 && seconds < 60) unlockAchievement("fulmine");
+}
+
+function checkWinAchievements(index, par) {
+    const lvl = levels[index];
+    checkSessionAchievements(par);
+    if (index === 0) unlockAchievement("hello");
+    if (isBossLevel(index) && !levelSession.hintUsed) unlockAchievement("senza-rete");
     const actLevels = levels.filter(other => other.act === lvl.act);
     if (actLevels.every(other => levelStars(progress, other.id) === 3)) unlockAchievement("perfezionista");
     if (levels.every(other => progress.levels[other.id])) unlockAchievement("guru");
@@ -106,6 +112,8 @@ function openAchievements() {
         ["Livelli risolti", `${solved}/${levels.length}`],
         ["Stelle", `${totalStars(progress, levels)}/${levels.length * 3}`],
         ["Obiettivi", `${unlocked}/${ACHIEVEMENTS.length}`],
+        ["Sfide del giorno risolte", String(Object.keys(progress.daily).length)],
+        ["Serie attuale", `${dailyStreak(progress.daily)} giorni`],
         ...STAT_LABELS.map(([key, label]) => [label, String(progress.stats[key] || 0)]),
         ["Schede del manuale lette", String((progress.stats.manualRead || []).length)]
     ];

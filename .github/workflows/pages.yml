@@ -33,6 +33,9 @@ jobs:
       - name: La simulazione coincide con bash e GNU coreutils
         run: node tools/check-shell.js 100
 
+      - name: Le sfide del giorno del prossimo anno sono valide
+        run: node tools/check-daily.js 366
+
   pubblica:
     needs: verifica
     if: github.ref_name == github.event.repository.default_branch

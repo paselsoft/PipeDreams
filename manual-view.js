@@ -51,7 +51,7 @@ function setManualContent(title, nodes, showBack, backTarget = null) {
 }
 
 function renderManualList() {
-    const lvl = levels[currentLevelIndex];
+    const lvl = currentLevel();
     const forLevel = manualEntriesForLevel(lvl);
     const nodes = [];
     const labLink = el("button", "manual-link lab-link");

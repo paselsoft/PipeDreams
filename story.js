@@ -49,4 +49,4 @@ const STORY = {
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Lunedì mattina Giulia ti chiama nel suo ufficio. «Venerdì hai salvato la rubrica, la newsletter, la posta e il sito. Da oggi il guru delle pipeline sei tu.» Marco, appena rientrato e abbronzatissimo, sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.»";
+const EPILOGUE = "Lunedì mattina Giulia ti chiama nel suo ufficio. «Venerdì hai salvato la rubrica, la newsletter, la posta e il sito. Da oggi il guru delle pipeline sei tu.» Marco, appena rientrato e abbronzatissimo, sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, nel menu LIVELLI.";

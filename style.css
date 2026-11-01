@@ -658,3 +658,19 @@ button.menu-act {
     box-sizing: border-box;
 }
 .toast[hidden] { display: none; }
+
+/* Sfida del giorno */
+.menu-daily {
+    width: 100%;
+    margin-top: 10px;
+    background: #0f2b1d;
+    border: 1px solid #238636;
+    color: #00ff66;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.act-text { white-space: pre-wrap; }

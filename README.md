@@ -10,6 +10,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - la simulazione segue GNU coreutils e bash: per ogni pipeline il gioco mostra la riga di shell
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
+- una storia in 4 atti, 12 obiettivi e una **sfida del giorno** generata automaticamente
 - i progressi restano salvati nel browser (`localStorage`)
 
 ## Struttura
@@ -22,6 +23,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `solver.js` | Ricerca in ampiezza delle soluzioni ottimali |
 | `shell.js` | Traduzione della pipeline in una riga bash |
 | `achievements.js` | Obiettivi, statistiche e notifiche |
+| `daily.js` | Sfida del giorno: generatore deterministico basato sulla data |
 | `story.js` | Storia: introduzioni degli atti, messaggi dei personaggi, epilogo |
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
@@ -37,6 +39,7 @@ Basta aprire `index.html` nel browser: non servono build né server.
 ```bash
 node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzioni ottimali
 node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
+node tools/check-daily.js 366   # le sfide del giorno dei prossimi 366 giorni sono valide?
 ```
 
 Per aggiungere un livello: componilo nell'editor, provalo con **PROVA NEL GIOCO**, copia il codice

@@ -24,7 +24,7 @@ function openLab(example = LAB_SAMPLE, backTarget = null, goal = null) {
 function openLevelInLab() {
     bumpStat("labOpens");
     unlockAchievement("scienziato");
-    const lvl = levels[currentLevelIndex];
+    const lvl = currentLevel();
     const steps = currentSteps().filter(step => step.cmd !== null);
     openLab({ input: lvl.stdin, steps }, LAB_BACK_TO_LEVEL, { target: lvl.target, targetStderr: lvl.targetStderr });
 }

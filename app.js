@@ -19,6 +19,8 @@ let skipRequested = false;
 let wakeUp = null;
 // Risultato del solver per il livello corrente (par = numero minimo di comandi)
 let currentSolution = null;
+// Livello della sfida del giorno, se attiva (altrimenti si gioca levels[currentLevelIndex])
+let dailyLevel = null;
 let progress = loadProgress();
 // index.html?test: gioca il livello di prova dell'editor senza toccare i progressi salvati
 const TEST_MODE = new URLSearchParams(location.search).has("test");
@@ -28,20 +30,46 @@ if (!SPEEDS[settings.speed]) {
     settings.speed = matchMedia("(prefers-reduced-motion: reduce)").matches ? "istantanea" : "normale";
 }
 
+const currentLevel = () => dailyLevel || levels[currentLevelIndex];
+
 function loadLevel(index) {
+    dailyLevel = null;
     currentLevelIndex = index;
-    gridState = new Array(levelSlots(levels[index])).fill(0);
+    progress.lastLevel = index;
+    persistProgress();
+    const lvl = levels[index];
+    showLevel(lvl, `LIVELLO ${index + 1}/${levels.length}: ${lvl.title}`);
+    logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
+    const record = progress.levels[lvl.id];
+    if (record) {
+        logToConsole(`> Record personale: ${starString(record.stars)} (${commandCount(record.best)})`, "log-hint");
+    }
+}
+
+function loadDaily() {
+    const key = dateKey();
+    dailyLevel = generateDaily(key);
+    showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
+    logToConsole(`> Sfida del giorno: ${dailyLevel.title}. Ogni giorno una nuova, uguale per tutti.`);
+    const record = progress.daily[key];
+    if (record) {
+        logToConsole(`> Già risolta oggi: ${starString(record.stars)} (${commandCount(record.used)}). Puoi rigiocarla.`, "log-hint");
+    }
+}
+
+const formatDate = key => key.split("-").reverse().join("/");
+
+// Parte comune a livelli della campagna e sfida del giorno
+function showLevel(lvl, titleText) {
+    gridState = new Array(levelSlots(lvl)).fill(0);
     clearTimeout(transitionTimer);
     runId++;
     stopAnimation();
     setBusy(false);
 
-    const lvl = levels[index];
     currentSolution = solveLevel(lvl);
     startLevelSession();
-    progress.lastLevel = index;
-    persistProgress();
-    document.getElementById("level-title").innerText = `LIVELLO ${index + 1}/${levels.length}: ${lvl.title}`;
+    document.getElementById("level-title").innerText = titleText;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${lvl.mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     renderChips(document.getElementById("txt-target"), lvl.target.map(text => ({ text, fd: 1 })));
@@ -52,11 +80,6 @@ function loadLevel(index) {
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
     renderStory(lvl);
     document.getElementById("console").innerHTML = "";
-    logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
-    const record = progress.levels[lvl.id];
-    if (record) {
-        logToConsole(`> Record personale: ${starString(record.stars)} (${commandCount(record.best)})`, "log-hint");
-    }
 }
 
 // Crea una cella per ogni slot del livello
@@ -129,13 +152,13 @@ function stopAnimation() {
 }
 
 function currentSteps() {
-    const options = slotOptions(levels[currentLevelIndex]);
+    const options = slotOptions(currentLevel());
     return gridState.map(idx => options[idx]);
 }
 
 function cycleCell(index) {
     if (isBusy) return;
-    const maxCmds = slotOptions(levels[currentLevelIndex]).length;
+    const maxCmds = slotOptions(currentLevel()).length;
     gridState[index] = (gridState[index] + 1) % maxCmds;
     updateCellUI(index);
     updateSlotCounter();
@@ -144,7 +167,7 @@ function cycleCell(index) {
 
 function updateCellUI(index) {
     const cellElem = document.getElementById(`c${index}`);
-    const step = slotOptions(levels[currentLevelIndex])[gridState[index]];
+    const step = slotOptions(currentLevel())[gridState[index]];
 
     cellElem.querySelector('.cmd-name').innerText = stepLabel(step);
     cellElem.querySelector('.cmd-desc').innerText = step.desc;
@@ -158,15 +181,14 @@ function updateCellUI(index) {
 
 function updateShellLine() {
     document.getElementById("shell-line").textContent =
-        buildShellLine(levels[currentLevelIndex].stdin, currentSteps(), " |\n  ");
+        buildShellLine(currentLevel().stdin, currentSteps(), " |\n  ");
 }
 
-async function copyShellLine() {
-    const text = document.getElementById("shell-line").textContent;
-    let copied = false;
+// Copia negli appunti; restituisce true se è riuscito
+async function copyText(text) {
     try {
         await navigator.clipboard.writeText(text);
-        copied = true;
+        return true;
     } catch (e) {
         // API negata o non disponibile (es. alcuni browser con file://): metodo classico
         const area = document.createElement("textarea");
@@ -175,9 +197,15 @@ async function copyShellLine() {
         area.style.opacity = "0";
         document.body.appendChild(area);
         area.select();
+        let copied = false;
         try { copied = document.execCommand("copy"); } catch (err) { copied = false; }
         area.remove();
+        return copied;
     }
+}
+
+async function copyShellLine() {
+    const copied = await copyText(document.getElementById("shell-line").textContent);
     const button = document.getElementById("btn-copy");
     button.textContent = copied ? "COPIATA ✓" : "SELEZIONA E COPIA";
     if (copied) {
@@ -218,7 +246,7 @@ function renderDiff(output, target, terminal) {
 }
 
 function showHint() {
-    const lvl = levels[currentLevelIndex];
+    const lvl = currentLevel();
     let consoleBox = document.getElementById("console");
     consoleBox.innerHTML = "";
     logToConsole(`> [SUGGERIMENTO] ${lvl.hint}`, "log-hint");
@@ -249,7 +277,7 @@ async function runPipeline() {
     const myRun = runId;
     const delay = SPEEDS[settings.speed].delay;
 
-    const lvl = levels[currentLevelIndex];
+    const lvl = currentLevel();
     document.getElementById("console").innerHTML = "";
     logToConsole(`> Avvio esecuzione...`, "log-stdin");
 
@@ -286,7 +314,9 @@ function showResult(lvl, result) {
         logToConsole(`> stderr sul terminale: [${result.stderr.join(", ")}]`, "log-error");
     }
 
-    if (isSolved(lvl, result)) {
+    if (isSolved(lvl, result) && lvl.daily) {
+        finishDaily(lvl, usedSlots());
+    } else if (isSolved(lvl, result)) {
         const used = usedSlots();
         const stars = computeStars(used, currentSolution.par);
         const isRecord = recordResult(progress, lvl.id, stars, used);
@@ -331,15 +361,49 @@ function rating(stars, used) {
     return `${starString(stars)} ${count} (par ${par})`;
 }
 
+// Sfida del giorno vinta: salva il risultato migliore e mostra il riepilogo da condividere
+function finishDaily(lvl, used) {
+    const par = currentSolution.par;
+    const stars = computeStars(used, par);
+    const seconds = Math.round((Date.now() - levelSession.start) / 1000);
+    const key = lvl.daily.key;
+    const previous = progress.daily[key];
+    if (!previous || stars > previous.stars || (stars === previous.stars && used < previous.used)) {
+        progress.daily[key] = { stars, used, attempts: levelSession.attempts, seconds };
+    }
+    persistProgress();
+    const streak = dailyStreak(progress.daily, key);
+    checkSessionAchievements(par);
+    unlockAchievement("abitudinario");
+    if (streak >= 3) unlockAchievement("serie");
+
+    logToConsole(`> ${rating(stars, used)}`, "log-success");
+    logToConsole(`> [SFIDA COMPLETATA] Torna domani per una nuova sfida.`, "log-success");
+    setBusy(false);
+
+    const attempts = levelSession.attempts;
+    const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+    const url = location.protocol.startsWith("http") ? location.origin + location.pathname : "https://paselsoft.github.io/PipeDreams/";
+    const share = [
+        `Pipe Dreams · Sfida del ${formatDate(key)} (${lvl.daily.difficulty})`,
+        `${starString(stars)} ${commandCount(used)}, par ${par}`,
+        `🎯 ${attempts} ${attempts === 1 ? "tentativo" : "tentativi"} · ⏱ ${time}` + (streak > 1 ? ` · 🔥 ${streak} giorni di fila` : ""),
+        `${url}?sfida`
+    ].join("\n");
+    showStoryScreen("SFIDA DEL GIORNO", "Risolta! 🎉", share, "📋 COPIA RISULTATO", async () => {
+        if (await copyText(share)) showToast("📋 Risultato copiato: incollalo dove vuoi!");
+    });
+}
+
 // Messaggio del personaggio sopra l'obiettivo e, la prima volta, l'introduzione dell'atto
 function renderStory(lvl) {
-    const message = TEST_MODE ? null : STORY[lvl.id];
+    const message = TEST_MODE ? null : (lvl.story || STORY[lvl.id]);
     document.getElementById("story-box").hidden = !message;
     if (message) {
         document.getElementById("story-from").textContent = `📨 ${message.from}:`;
         document.getElementById("story-text").textContent = message.text;
     }
-    if (!TEST_MODE && ACTS[lvl.act] && !progress.seenActs.includes(lvl.act)) {
+    if (!TEST_MODE && !lvl.daily && ACTS[lvl.act] && !progress.seenActs.includes(lvl.act)) {
         progress.seenActs.push(lvl.act);
         persistProgress();
         showActIntro(lvl.act);
@@ -350,11 +414,17 @@ function showActIntro(act) {
     showStoryScreen(`ATTO ${ROMAN[act] || act}`, ACTS[act].title, ACTS[act].intro, "INIZIA ( ▶ )");
 }
 
-function showStoryScreen(label, title, text, buttonText) {
+// onButton, se presente, viene eseguito alla chiusura con il pulsante principale
+function showStoryScreen(label, title, text, buttonText, onButton) {
     document.getElementById("act-label").textContent = label;
     document.getElementById("act-title").textContent = title;
     document.getElementById("act-text").textContent = text;
-    document.getElementById("act-button").textContent = buttonText;
+    const button = document.getElementById("act-button");
+    button.textContent = buttonText;
+    button.onclick = () => {
+        closeActIntro();
+        if (onButton) onButton();
+    };
     document.getElementById("act-overlay").hidden = false;
 }
 
@@ -377,7 +447,16 @@ function closeMenu() {
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
+function renderDailyButton() {
+    const button = document.getElementById("menu-daily");
+    const key = dateKey();
+    const done = progress.daily[key];
+    const streak = dailyStreak(progress.daily, key);
+    button.textContent = `📅 Sfida del giorno` + (done ? ` ✓ ${starString(done.stars)}` : "") + (streak > 1 ? ` · 🔥 ${streak}` : "");
+}
+
 function renderMenu() {
+    renderDailyButton();
     document.getElementById("menu-total").innerText =
         `Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`;
     const list = document.getElementById("menu-list");
@@ -393,7 +472,7 @@ function renderMenu() {
         }
         const unlocked = isUnlocked(progress, levels, i);
         const item = document.createElement("button");
-        item.className = "menu-level" + (i === currentLevelIndex ? " current" : "");
+        item.className = "menu-level" + (!dailyLevel && i === currentLevelIndex ? " current" : "");
         item.disabled = !unlocked;
 
         const name = document.createElement("span");
@@ -465,4 +544,6 @@ document.querySelectorAll("#speed-control button").forEach(button => {
 });
 renderSpeedControl();
 
-loadLevel(TEST_MODE ? 0 : startLevelIndex());
+// index.html?sfida apre direttamente la sfida del giorno (è il link del risultato condiviso)
+if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
+else loadLevel(TEST_MODE ? 0 : startLevelIndex());
