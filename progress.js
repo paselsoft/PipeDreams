@@ -3,15 +3,27 @@
 // Se localStorage non è disponibile (navigazione privata, file bloccati) il gioco funziona senza salvare.
 const PROGRESS_KEY = "pipedreams.progress.v1";
 
+// seenActs: atti di cui è già stata mostrata l'introduzione; stats e achievements: obiettivi;
+// daily: risultati della sfida del giorno, per data (AAAA-MM-GG)
 function emptyProgress() {
-    return { levels: {}, lastLevel: 0 };
+    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {} };
 }
+
+const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
 
 function loadProgress() {
     try {
         const data = JSON.parse(localStorage.getItem(PROGRESS_KEY));
-        if (data && typeof data.levels === "object" && data.levels !== null) {
-            return { levels: data.levels, lastLevel: Number(data.lastLevel) || 0 };
+        if (data && isPlainObject(data.levels)) {
+            // I salvataggi precedenti non hanno i campi nuovi: si completano con i valori vuoti
+            return {
+                levels: data.levels,
+                lastLevel: Number(data.lastLevel) || 0,
+                seenActs: Array.isArray(data.seenActs) ? data.seenActs : [],
+                stats: isPlainObject(data.stats) ? data.stats : {},
+                achievements: isPlainObject(data.achievements) ? data.achievements : {},
+                daily: isPlainObject(data.daily) ? data.daily : {}
+            };
         }
     } catch (e) {
         // dati corrotti o storage non accessibile: si riparte da zero

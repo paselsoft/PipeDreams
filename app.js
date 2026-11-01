@@ -49,6 +49,7 @@ function loadLevel(index) {
     updateShellLine();
     updateSlotCounter();
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
+    renderStory(lvl);
     document.getElementById("console").innerHTML = "";
     logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
     const record = progress.levels[lvl.id];
@@ -288,6 +289,7 @@ function showResult(lvl, result) {
         } else {
             logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
             setBusy(false);
+            if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI");
         }
     } else {
         if (streamsEqual(result.output, lvl.target)) {
@@ -318,6 +320,37 @@ function rating(stars, used) {
     return `${starString(stars)} ${count} (par ${par})`;
 }
 
+// Messaggio del personaggio sopra l'obiettivo e, la prima volta, l'introduzione dell'atto
+function renderStory(lvl) {
+    const message = TEST_MODE ? null : STORY[lvl.id];
+    document.getElementById("story-box").hidden = !message;
+    if (message) {
+        document.getElementById("story-from").textContent = `📨 ${message.from}:`;
+        document.getElementById("story-text").textContent = message.text;
+    }
+    if (!TEST_MODE && ACTS[lvl.act] && !progress.seenActs.includes(lvl.act)) {
+        progress.seenActs.push(lvl.act);
+        persistProgress();
+        showActIntro(lvl.act);
+    }
+}
+
+function showActIntro(act) {
+    showStoryScreen(`ATTO ${ROMAN[act] || act}`, ACTS[act].title, ACTS[act].intro, "INIZIA ( ▶ )");
+}
+
+function showStoryScreen(label, title, text, buttonText) {
+    document.getElementById("act-label").textContent = label;
+    document.getElementById("act-title").textContent = title;
+    document.getElementById("act-text").textContent = text;
+    document.getElementById("act-button").textContent = buttonText;
+    document.getElementById("act-overlay").hidden = false;
+}
+
+function closeActIntro() {
+    document.getElementById("act-overlay").hidden = true;
+}
+
 function persistProgress() {
     if (!TEST_MODE) saveProgress(progress);
 }
@@ -340,9 +373,11 @@ function renderMenu() {
     list.innerHTML = "";
     levels.forEach((lvl, i) => {
         if (i === 0 || lvl.act !== levels[i - 1].act) {
-            const heading = document.createElement("div");
+            // Il titolo dell'atto riapre la sua introduzione
+            const heading = document.createElement(ACTS[lvl.act] ? "button" : "div");
             heading.className = "menu-act";
-            heading.textContent = `ATTO ${ROMAN[lvl.act] || lvl.act}`;
+            heading.textContent = `ATTO ${ROMAN[lvl.act] || lvl.act}` + (ACTS[lvl.act] ? ` · ${ACTS[lvl.act].title}` : "");
+            if (ACTS[lvl.act]) heading.onclick = () => showActIntro(lvl.act);
             list.appendChild(heading);
         }
         const unlocked = isUnlocked(progress, levels, i);
@@ -383,6 +418,7 @@ document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
         closeMenu();
         closeManual();
+        closeActIntro();
     }
 });
 

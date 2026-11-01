@@ -25,6 +25,11 @@
             <div id="score-display" style="color: #8b949e;">Slot: 0/4</div>
         </div>
 
+        <div class="story-box" id="story-box" hidden>
+            <span class="story-from" id="story-from"></span>
+            <span id="story-text"></span>
+        </div>
+
         <div class="mission-box" id="mission-desc">
             <!-- Caricato via JS -->
         </div>
@@ -96,6 +101,16 @@
         </div>
     </div>
 
+    <!-- INTRODUZIONE DEGLI ATTI ED EPILOGO -->
+    <div class="menu-overlay" id="act-overlay" hidden onclick="if (event.target === this) closeActIntro()">
+        <div class="menu-panel act-panel" role="dialog" aria-modal="true" aria-labelledby="act-title">
+            <div class="act-label" id="act-label"></div>
+            <h2 id="act-title"></h2>
+            <p class="act-text" id="act-text"></p>
+            <button class="btn-run" onclick="closeActIntro()" id="act-button">INIZIA ( ▶ )</button>
+        </div>
+    </div>
+
     <!-- MANUALE -->
     <div class="menu-overlay" id="manual-overlay" hidden onclick="if (event.target === this) closeManual()">
         <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="manual-title">
@@ -114,6 +129,7 @@
     <script src="progress.js"></script>
     <script src="shell.js"></script>
     <script src="render.js"></script>
+    <script src="story.js"></script>
     <script src="manual.js"></script>
     <script src="command-form.js"></script>
     <script src="app.js"></script>
