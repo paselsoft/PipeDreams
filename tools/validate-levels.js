@@ -13,7 +13,7 @@ for (const file of ["commands.js", "levels.js", "solver.js", "manual.js"]) {
 
 const report = vm.runInContext("validateLevels(levels)", context);
 console.table(report);
-const broken = report.filter(r => r.par === null);
+const broken = report.filter(r => r.avvisi.includes("IRRISOLVIBILE") || r.avvisi.includes("già corretta"));
 if (broken.length) {
     console.error(`Livelli irrisolvibili: ${broken.map(r => r.livello).join(", ")}`);
     process.exit(1);

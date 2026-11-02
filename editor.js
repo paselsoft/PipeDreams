@@ -347,7 +347,10 @@ function loadDraft() {
 function setupForm() {
     const load = document.getElementById("ed-load");
     load.add(new Option("— bozza corrente / nuovo livello —", ""));
-    levels.forEach((lvl, i) => load.add(new Option(`Livello ${i + 1}: ${lvl.title}`, lvl.id)));
+    // L'editor compone solo livelli normali: quiz, debug e celle bloccate si scrivono in levels.js
+    levels.forEach((lvl, i) => {
+        if (!lvl.type && !lvl.locked) load.add(new Option(`Livello ${i + 1}: ${lvl.title}`, lvl.id));
+    });
     load.onchange = () => {
         if (load.value === "") return;
         if (confirm("Caricare questo livello? La bozza attuale verrà sostituita.")) {

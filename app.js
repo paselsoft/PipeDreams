@@ -42,7 +42,7 @@ function loadLevel(index) {
     logToConsole(`> Caricato livello ${index + 1}: ${lvl.title}.`);
     const record = progress.levels[lvl.id];
     if (record) {
-        logToConsole(`> Record personale: ${starString(record.stars)} (${commandCount(record.best)})`, "log-hint");
+        logToConsole(`> Record personale: ${starString(record.stars)} (${isSpecialLevel(lvl) ? attemptCount(record.best) : commandCount(record.best)})`, "log-hint");
     }
 }
 
@@ -60,19 +60,35 @@ function loadDaily() {
 const formatDate = key => key.split("-").reverse().join("/");
 
 // Parte comune a livelli della campagna e sfida del giorno
+// Quiz e debug si valutano sui tentativi, non sul numero di comandi
+const isSpecialLevel = lvl => lvl.type === "quiz" || lvl.type === "debug";
+
+// Testo sopra la griglia, per tipo di livello
+function gridHint(lvl) {
+    if (lvl.type === "quiz") return "La pipeline di Tommaso: cosa stampa?";
+    if (lvl.type === "debug") return `Puoi cambiare al massimo ${lvl.maxChanges || 1} ${(lvl.maxChanges || 1) === 1 ? "cella" : "celle"}:`;
+    if (lvl.locked) return "Tocca le celle libere (🔒 = bloccata):";
+    return "Tocca le celle per cambiare comando:";
+}
+
 function showLevel(lvl, titleText) {
-    gridState = new Array(levelSlots(lvl)).fill(0);
+    gridState = lvl.start ? [...lvl.start] : new Array(levelSlots(lvl)).fill(0);
+    for (const [slot, choice] of Object.entries(lvl.locked || {})) gridState[slot] = choice;
+    document.body.dataset.levelType = lvl.type || (lvl.locked ? "locked" : "compose");
+    document.getElementById("grid-hint").textContent = gridHint(lvl);
     clearTimeout(transitionTimer);
     runId++;
     stopAnimation();
     setBusy(false);
 
-    currentSolution = solveLevel(lvl);
+    currentSolution = analyzeLevel(lvl);
     startLevelSession();
     document.getElementById("level-title").innerText = titleText;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${lvl.mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
-    renderChips(document.getElementById("txt-target"), lvl.target.map(text => ({ text, fd: 1 })));
+    // Nel quiz lo stdout è proprio la domanda
+    renderChips(document.getElementById("txt-target"), lvl.type === "quiz" ? [{ text: "?", fd: 1 }] : lvl.target.map(text => ({ text, fd: 1 })));
+    renderQuiz(lvl);
 
     buildGrid();
     updateShellLine();
@@ -88,7 +104,10 @@ function buildGrid() {
     grid.innerHTML = "";
     gridState.forEach((_, i) => {
         const cell = document.createElement("div");
-        cell.className = "cell";
+        const lvl = currentLevel();
+        cell.className = "cell"
+            + (lvl.locked && lvl.locked[i] !== undefined ? " locked" : "")
+            + (lvl.type === "quiz" ? " static" : "");
         cell.id = `c${i}`;
         cell.onclick = () => cycleCell(i);
         const name = document.createElement("span");
@@ -158,7 +177,21 @@ function currentSteps() {
 
 function cycleCell(index) {
     if (isBusy) return;
-    const maxCmds = slotOptions(currentLevel()).length;
+    const lvl = currentLevel();
+    if (lvl.type === "quiz") return;
+    if (lvl.locked && lvl.locked[index] !== undefined) {
+        logToConsole("> Questa cella è bloccata: lavora con le altre.", "log-hint");
+        return;
+    }
+    if (lvl.type === "debug") {
+        const max = lvl.maxChanges || 1;
+        const otherChanges = gridState.filter((choice, i) => i !== index && choice !== lvl.start[i]).length;
+        if (otherChanges >= max) {
+            logToConsole(`> Puoi cambiare al massimo ${max} ${max === 1 ? "cella" : "celle"}: riporta l'altra com'era prima.`, "log-hint");
+            return;
+        }
+    }
+    const maxCmds = slotOptions(lvl).length;
     gridState[index] = (gridState[index] + 1) % maxCmds;
     updateCellUI(index);
     updateSlotCounter();
@@ -177,6 +210,8 @@ function updateCellUI(index) {
     } else {
         cellElem.classList.add("active");
     }
+    const lvl = currentLevel();
+    cellElem.classList.toggle("changed", lvl.type === "debug" && gridState[index] !== lvl.start[index]);
 }
 
 function updateShellLine() {
@@ -215,13 +250,69 @@ async function copyShellLine() {
     setTimeout(() => { button.textContent = "COPIA"; }, 1500);
 }
 
+// Comandi scelti dal giocatore: le celle bloccate non contano
 function usedSlots() {
-    return gridState.filter(cmdIndex => cmdIndex !== 0).length;
+    const locked = currentLevel().locked || {};
+    return gridState.filter((cmdIndex, i) => cmdIndex !== 0 && locked[i] === undefined).length;
 }
 
 function updateSlotCounter() {
-    const par = currentSolution && currentSolution.par !== null ? ` · Par: ${currentSolution.par}` : "";
-    document.getElementById("score-display").innerText = `Slot: ${usedSlots()}/${gridState.length}${par}`;
+    const lvl = currentLevel();
+    const display = document.getElementById("score-display");
+    if (lvl.type === "quiz") {
+        display.innerText = "Scegli l'output";
+    } else if (lvl.type === "debug") {
+        const changes = gridState.filter((choice, i) => choice !== lvl.start[i]).length;
+        display.innerText = `Modifiche: ${changes}/${lvl.maxChanges || 1}`;
+    } else {
+        const free = gridState.length - Object.keys(lvl.locked || {}).length;
+        const par = currentSolution && currentSolution.par !== null ? ` · Par: ${currentSolution.par}` : "";
+        display.innerText = `Slot: ${usedSlots()}/${free}${par}`;
+    }
+}
+
+// Risposte del quiz in ordine fisso per livello (la giusta non è sempre la prima)
+function renderQuiz(lvl) {
+    const box = document.getElementById("quiz-box");
+    box.hidden = lvl.type !== "quiz";
+    box.innerHTML = "";
+    if (lvl.type !== "quiz") return;
+    const answers = quizAnswers(lvl);
+    const shift = Number(lvl.id) % answers.length;
+    const ordered = answers.map((_, i) => answers[(i + shift) % answers.length]);
+    ordered.forEach((answer, i) => {
+        const button = document.createElement("button");
+        button.className = "quiz-answer";
+        const letter = document.createElement("span");
+        letter.className = "quiz-letter";
+        letter.textContent = `${"ABC"[i]})`;
+        const chips = document.createElement("span");
+        chips.className = "chips";
+        renderChips(chips, answer.output.map(text => ({ text, fd: 1 })));
+        button.append(letter, chips);
+        button.onclick = () => chooseAnswer(answer, button);
+        box.appendChild(button);
+    });
+}
+
+function chooseAnswer(answer, button) {
+    if (isBusy) return;
+    levelSession.attempts++;
+    bumpStat("runs");
+    document.getElementById("console").innerHTML = "";
+    if (answer.correct) {
+        button.classList.add("right");
+        logToConsole("> ✓ Risposta giusta!", "log-success");
+        setBusy(true);
+        completeLevel(currentLevel());
+    } else {
+        button.classList.add("wrong");
+        button.disabled = true;
+        bumpStat("failures");
+        logToConsole("> ✗ Risposta sbagliata.", "log-error");
+        logToConsole(`> ${answer.why}`, "log-hint");
+        logToConsole(`> La pipeline di quell'output: ${answer.steps.map(stepLabel).join(" | ")}`, "log-step");
+    }
 }
 
 function renderStream(title, lines, terminal) {
@@ -317,20 +408,7 @@ function showResult(lvl, result) {
     if (isSolved(lvl, result) && lvl.daily) {
         finishDaily(lvl, usedSlots());
     } else if (isSolved(lvl, result)) {
-        const used = usedSlots();
-        const stars = computeStars(used, currentSolution.par);
-        const isRecord = recordResult(progress, lvl.id, stars, used);
-        persistProgress();
-        checkWinAchievements(currentLevelIndex, currentSolution.par);
-        logToConsole(`> ${rating(stars, used)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
-        if (currentLevelIndex < levels.length - 1) {
-            logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
-            transitionTimer = setTimeout(() => { loadLevel(currentLevelIndex + 1); }, 2000);
-        } else {
-            logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
-            setBusy(false);
-            if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI");
-        }
+        completeLevel(lvl);
     } else {
         bumpStat("failures");
         if (streamsEqual(result.output, lvl.target)) {
@@ -343,11 +421,43 @@ function showResult(lvl, result) {
     }
 }
 
+// Livello della campagna risolto: stelle, record, obiettivi e passaggio al successivo
+function completeLevel(lvl) {
+    const special = isSpecialLevel(lvl);
+    const score = special ? levelSession.attempts : usedSlots();
+    const stars = special ? starsByAttempts(score) : computeStars(score, currentSolution.par);
+    const isRecord = recordResult(progress, lvl.id, stars, score);
+    persistProgress();
+    checkWinAchievements(currentLevelIndex, currentSolution.par);
+    logToConsole(`> ${special ? attemptsRating(stars, score) : rating(stars, score)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
+    if (lvl.explain) logToConsole(`> 💡 ${lvl.explain}`, "log-hint");
+    if (currentLevelIndex < levels.length - 1) {
+        logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
+        transitionTimer = setTimeout(() => { loadLevel(currentLevelIndex + 1); }, 2000);
+    } else {
+        logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
+        setBusy(false);
+        if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI");
+    }
+}
+
 // Confronta i comandi usati con il par calcolato dal solver
 function computeStars(used, par) {
     if (used <= par) return 3;
     if (used === par + 1) return 2;
     return 1;
+}
+
+function starsByAttempts(attempts) {
+    return attempts <= 1 ? 3 : attempts === 2 ? 2 : 1;
+}
+
+function attemptCount(n) {
+    return `${n} ${n === 1 ? "tentativo" : "tentativi"}`;
+}
+
+function attemptsRating(stars, attempts) {
+    return `${starString(stars)} ${stars === 3 ? "Al primo tentativo" : `Risolto in ${attemptCount(attempts)}`}`;
 }
 
 function commandCount(n) {
@@ -525,7 +635,7 @@ function logToConsole(text, className = "") {
 // Verifica di tutti i livelli all'avvio: il report compare nella console del browser
 const levelReport = validateLevels(levels);
 console.table(levelReport);
-levelReport.filter(r => r.par === null).forEach(r => console.error(`Livello ${r.livello} irrisolvibile!`));
+levelReport.filter(r => r.avvisi.includes("IRRISOLVIBILE")).forEach(r => console.error(`Livello ${r.livello}: ${r.avvisi}`));
 
 if (TEST_MODE) {
     const testLevel = loadTestLevel();

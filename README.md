@@ -5,12 +5,12 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 
 **Gioca:** https://paselsoft.github.io/PipeDreams/ · **Editor livelli:** https://paselsoft.github.io/PipeDreams/editor.html
 
-- 23 livelli in 4 atti: `grep`, `sort`, `uniq`, `head`/`tail`, stdout/stderr con `2>/dev/null` e `2>&1`,
+- 29 livelli in 5 atti, con quiz ("cosa stampa?"), livelli di debug e celle bloccate: `grep`, `sort`, `uniq`, `head`/`tail`, stdout/stderr con `2>/dev/null` e `2>&1`,
   `wc`, `cut`, `tr`, `uniq -c`, `sed -E`, `awk`, `paste`
 - la simulazione segue GNU coreutils e bash: per ogni pipeline il gioco mostra la riga di shell
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
-- una storia in 4 atti, 12 obiettivi e una **sfida del giorno** generata automaticamente
+- una storia in 5 atti, 12 obiettivi e una **sfida del giorno** generata automaticamente
 - i progressi restano salvati nel browser (`localStorage`)
 
 ## Struttura

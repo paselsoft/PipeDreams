@@ -21,7 +21,7 @@ const simulate = vm.runInContext(`(index, useSolution) => {
     const lvl = levels[index];
     const options = slotOptions(lvl);
     const steps = useSolution
-        ? solveLevel(lvl).optimal[0].split(" | ").map(label => options.find(o => stepLabel(o) === label))
+        ? referenceSolution(lvl)
         : Array.from({ length: levelSlots(lvl) }, () => options[Math.floor(Math.random() * options.length)]);
     const result = executePipeline(lvl.stdin, steps);
     return { line: buildShellLine(lvl.stdin, steps), output: result.output, stderr: result.stderr };

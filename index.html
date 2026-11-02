@@ -40,9 +40,11 @@
             <div class="legend"><span class="chip">stdout</span> <span class="chip err">stderr</span></div>
         </div>
 
-        <p style="font-size: 13px; color: #8b949e; margin-bottom: 6px; text-align: center;">Tocca le celle per cambiare comando:</p>
+        <p class="grid-hint" id="grid-hint">Tocca le celle per cambiare comando:</p>
         
         <div class="grid" id="grid"></div>
+
+        <div class="quiz-box" id="quiz-box" hidden></div>
 
         <div class="stream-view" id="stream-view">
             <div class="stream-title" id="stream-title">Flusso</div>
@@ -54,7 +56,7 @@
             <div class="shell-header">
                 <span>$ riga di shell equivalente</span>
                 <span class="shell-actions">
-                    <button class="btn-copy" onclick="openLevelInLab()">🧪 LABORATORIO</button>
+                    <button class="btn-copy" id="btn-lab" onclick="openLevelInLab()">🧪 LABORATORIO</button>
                     <button class="btn-copy" id="btn-copy" onclick="copyShellLine()">COPIA</button>
                 </span>
             </div>

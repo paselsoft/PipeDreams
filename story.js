@@ -15,6 +15,10 @@ const ACTS = {
         title: "Riscrivere il testo",
         intro: "Il consiglio di amministrazione non vuole più log grezzi: vuole report presentabili. Per questo servono strumenti che non si limitano a filtrare, ma trasformano il testo: sed con le espressioni regolari, awk per le colonne e paste per ricomporre le righe."
     },
+    5: {
+        title: "Il nuovo stagista",
+        intro: "Lunedì arriva Tommaso, lo stagista, e Giulia te lo affida: «Insegnagli tutto quello che sai.» Tommaso fa domande, scrive script pieni di bug e deve fare i conti con i vecchi script aziendali, quelli che nessuno osa toccare. Stavolta non basta scrivere pipeline: devi leggerle, correggerle e rispettare dei vincoli."
+    },
     4: {
         title: "Incidente in produzione",
         intro: "Venerdì, ore 18:47. Marco è partito per le ferie, Giulia è chiusa in riunione e tutto si rompe nello stesso momento: la rubrica, la newsletter, il server di posta, il sito. Non ci sono comandi nuovi: solo tu, quello che hai imparato e pochissimo tempo."
@@ -45,8 +49,14 @@ const STORY = {
     20: { from: "Giulia", text: "La newsletter parte stasera e la lista è un disastro. Quante persone diverse dobbiamo scrivere?" },
     21: { from: "Giulia", text: "🚨 Il server di posta va a singhiozzo. Quali errori dà, e quanto spesso?" },
     22: { from: "Marco", text: "Ultima cosa, giuro: l'ordine della frutta per lunedì. Una riga sola, separata da virgole." },
-    23: { from: "Giulia", text: "🚨 I clienti trovano pagine rotte! Agli sviluppatori serve la lista delle pagine 404. Adesso." }
+    23: { from: "Giulia", text: "🚨 I clienti trovano pagine rotte! Agli sviluppatori serve la lista delle pagine 404. Adesso." },
+    24: { from: "Tommaso", text: "Ciao! Sono Tommaso, il nuovo stagista. Prima domanda: cosa stampa questa pipeline? Io avrei detto «1 pera»..." },
+    25: { from: "Tommaso", text: "Ho scritto il mio primo script! Però dà dei doppioni... Giulia dice di cambiare il meno possibile. Mi aiuti?" },
+    26: { from: "Giulia", text: "Lo script di backup è del 2009 e la prima riga non si tocca: l'ultima volta che ci hanno provato è saltato tutto." },
+    27: { from: "Tommaso", text: "Altra domanda: quante righe conta questa? Io scommetto zero." },
+    28: { from: "Marco", text: "Rientrato dalle ferie! Il monitoraggio notturno ha inizio e fine bloccati dal vecchio sistema. Riesci a contare i tipi di errore lo stesso?" },
+    29: { from: "Giulia", text: "🚨 Lo script di Tommaso va in produzione stasera, ma non stampa niente! Trova il bug cambiando il meno possibile." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Lunedì mattina Giulia ti chiama nel suo ufficio. «Venerdì hai salvato la rubrica, la newsletter, la posta e il sito. Da oggi il guru delle pipeline sei tu.» Marco, appena rientrato e abbronzatissimo, sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, nel menu LIVELLI.";
+const EPILOGUE = "Un mese dopo Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, e hai trasformato Tommaso in un sistemista vero. Da oggi il guru delle pipeline sei tu.» Marco, ancora abbronzato, sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, nel menu LIVELLI.";

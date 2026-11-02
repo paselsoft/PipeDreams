@@ -2,6 +2,8 @@
 const SLOT_COUNT = 4;
 
 // Una riga di stdin è una stringa (stdout) oppure { err: "testo" } (stderr).
+// Tipi speciali (vedi solver.js): type "quiz" e "debug" con start, wrong, maxChanges, explain;
+// locked blocca alcune celle su un comando.
 // allowedCommands elenca solo i comandi reali: lo slot vuoto viene aggiunto dal motore in prima posizione.
 // Dopo ogni modifica verifica i livelli con: node tools/validate-levels.js
 const levels = [
@@ -403,5 +405,131 @@ const levels = [
             { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
             { cmd: "paste", args: { delim: "," }, desc: "Unisci con virgole" }
         ]
+    },
+    {
+        id: 24,
+        act: 5,
+        title: "La Prima Domanda",
+        type: "quiz",
+        mission: "Tommaso chiede: cosa stampa questa pipeline? Leggi i comandi nelle celle e scegli l'output giusto tra i tre.",
+        stdin: ["pera", "mela", "pera", "kiwi", "mela", "pera"],
+        target: ["      3 pera"],
+        hint: "Simula un passo alla volta: 1) sort mette vicini i frutti uguali, 2) uniq -c li conta, 3) sort -rn mette in cima il più frequente, 4) head -n 1 tiene solo quello.",
+        explain: "Il primo sort è fondamentale: senza, uniq -c vede solo righe uguali vicine e conta tutto 1.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
+            { cmd: "head", args: { n: 1 }, desc: "Prendi il primo" }
+        ],
+        start: [1, 2, 3, 4],
+        wrong: [
+            { steps: [{ cmd: "uniq", args: { count: true } }, { cmd: "sort", args: { numeric: true, reverse: true } }, { cmd: "head", args: { n: 1 } }], why: "Questo sarebbe l'output senza il primo sort: uniq -c vede solo righe uguali vicine, quindi ogni frutto conta 1." },
+            { steps: [{ cmd: "sort" }, { cmd: "uniq", args: { count: true } }, { cmd: "sort", args: { numeric: true } }, { cmd: "head", args: { n: 1 } }], why: "Questo sarebbe l'output con sort -n invece di sort -rn: in ordine crescente in cima c'è il meno frequente." }
+        ]
+    },
+    {
+        id: 25,
+        act: 5,
+        title: "Lo Script di Tommaso",
+        type: "debug",
+        maxChanges: 1,
+        mission: "Lo script di Tommaso dovrebbe elencare i server in ordine alfabetico e senza doppioni, ma sbaglia. Puoi cambiare <strong>una sola cella</strong>.",
+        stdin: ["mela", "zebra", "mela", "cane", "zebra"],
+        target: ["cane", "mela", "zebra"],
+        hint: "Esegui lo script così com'è e guarda l'output: restano dei doppioni. uniq c'è già, ma lavora prima che le righe uguali siano vicine. Non puoi spostarlo: puoi solo cambiare o riempire una cella.",
+        explain: "uniq prima di sort non vede i doppioni lontani: ne serviva un altro dopo il sort.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
+            { cmd: "head", args: { n: 3 }, desc: "Prendi i primi 3" }
+        ],
+        start: [2, 1, 0, 0]
+    },
+    {
+        id: 26,
+        act: 5,
+        title: "Lo Script del 2009",
+        slots: 5,
+        locked: { 0: 1 },
+        mission: "Il vecchio script di backup inizia sempre con <code>sort -r</code> e quella cella è bloccata. Ottieni comunque i primi 2 nomi in ordine alfabetico, in maiuscolo.",
+        stdin: ["luca", "bruno", "Luca", "marco", "anna", "bruno"],
+        target: ["ANNA", "BRUNO"],
+        hint: "Un sort successivo annulla quello bloccato. Attenzione: 'Luca' con la maiuscola finisce prima delle minuscole, quindi uniforma il maiuscolo prima di ordinare.",
+        allowedCommands: [
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
+            { cmd: "sort", desc: "Ordine crescente" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "upper", desc: "Maiuscolo" },
+            { cmd: "head", args: { n: 2 }, desc: "Prendi i primi 2" },
+            { cmd: "tail", args: { n: 2 }, desc: "Prendi gli ultimi 2" }
+        ]
+    },
+    {
+        id: 27,
+        act: 5,
+        title: "Quante Righe?",
+        type: "quiz",
+        mission: "Tommaso chiede: quante righe conta questa pipeline? Attenzione: alcune righe sono su stderr.",
+        stdin: ["avvio", { err: "ERR: disco" }, "backup ok", { err: "ERR: rete" }, { err: "ERR: disco" }],
+        target: ["3"],
+        hint: "2>&1 porta gli errori nella pipe; grep tiene le righe con ERR; wc -l le conta.",
+        explain: "Grazie a 2>&1 le tre righe di errore entrano nella pipe e grep le può contare.",
+        allowedCommands: [
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "wc", desc: "Conta le righe" }
+        ],
+        start: [1, 2, 3],
+        wrong: [
+            { steps: [{ cmd: "grep", args: { pattern: "ERR" } }, { cmd: "wc" }], why: "Questo sarebbe l'output senza 2>&1: gli errori vanno dritti al terminale e grep non ne vede nessuno." },
+            { steps: [{ cmd: "merge" }, { cmd: "grep", args: { pattern: "ERR", invert: true } }, { cmd: "wc" }], why: "Questo sarebbe l'output con grep -v: conteresti le righe normali, non gli errori." }
+        ]
+    },
+    {
+        id: 28,
+        act: 5,
+        title: "Turno di Notte",
+        slots: 6,
+        locked: { 0: 1, 5: 6 },
+        mission: "Lo script di monitoraggio inizia con <code>2>&1</code> e finisce con <code>wc -l</code>, e quelle celle non si toccano. Usalo per contare i <strong>tipi</strong> di errore diversi.",
+        stdin: ["10:01 avvio", { err: "10:02 ERR rete" }, "10:03 ok", { err: "10:05 ERR disco" }, "10:06 ok", { err: "10:07 ERR rete" }, "10:08 ok", { err: "10:09 ERR rete" }],
+        target: ["2"],
+        hint: "Tra le due celle bloccate: tieni le righe ERR, estrai il tipo (campo 3), ordina, togli i doppioni. Attenzione: non aggiungere 2>/dev/null dopo 2>&1, perché vince l'ultimo reindirizzamento.",
+        allowedCommands: [
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+            { cmd: "sort", desc: "Riordina" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "wc", desc: "Conta le righe" },
+            { cmd: "devnull", desc: "Cestina lo stderr" }
+        ]
+    },
+    {
+        id: 29,
+        act: 5,
+        title: "Boss Atto V",
+        type: "debug",
+        maxChanges: 1,
+        slots: 6,
+        mission: "Lo script di Tommaso per la classifica degli errori va in produzione stasera, ma non stampa niente. Trova il bug: puoi cambiare <strong>una sola cella</strong>.",
+        stdin: ["10:00 avvio", { err: "10:02 ERR memoria" }, "10:03 job ok", { err: "10:05 ERR rete" }, { err: "10:06 ERR memoria" }, { err: "10:12 ERR memoria" }, "10:15 fine"],
+        target: ["      3 memoria", "      1 rete"],
+        hint: "Esegui lo script e guarda dove finiscono gli errori: sul terminale, invece che nella pipe. È il primo comando a decidere la sorte dello stderr.",
+        explain: "2>/dev/null buttava via proprio gli errori da contare: serviva 2>&1 per portarli nella pipe.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "grep", args: { pattern: "ERR", invert: true }, desc: "Scarta le righe con 'ERR'" },
+            { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" }
+        ],
+        start: [1, 3, 5, 7, 8, 9]
     }
 ];
