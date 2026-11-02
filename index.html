@@ -78,6 +78,11 @@
             <button data-speed="veloce">Veloce</button>
             <button data-speed="istantanea">Istantanea</button>
         </div>
+        <div class="speed-control fx-control" role="group" aria-label="Effetti">
+            <span>Effetti:</span>
+            <button id="btn-sound" onclick="toggleSetting('sound')">🔊 Suoni</button>
+            <button id="btn-crt" onclick="toggleSetting('crt')">📺 CRT</button>
+        </div>
 
         <div id="console">> Pronto. Tocca una cella e premi Esegui.</div>
 
@@ -150,6 +155,7 @@
     <script src="story.js"></script>
     <script src="manual.js"></script>
     <script src="command-form.js"></script>
+    <script src="fx.js"></script>
     <script src="achievements.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>

@@ -29,6 +29,9 @@ let settings = loadSettings();
 if (!SPEEDS[settings.speed]) {
     settings.speed = matchMedia("(prefers-reduced-motion: reduce)").matches ? "istantanea" : "normale";
 }
+// Suoni attivi e CRT spento finché il giocatore non sceglie diversamente
+if (typeof settings.sound !== "boolean") settings.sound = true;
+if (typeof settings.crt !== "boolean") settings.crt = false;
 
 const currentLevel = () => dailyLevel || levels[currentLevelIndex];
 
@@ -139,6 +142,24 @@ function setSpeed(speed) {
     renderSpeedControl();
 }
 
+function toggleSetting(key) {
+    settings[key] = !settings[key];
+    saveSettings(settings);
+    renderFxControl();
+    applyCrt();
+    if (key === "sound" && settings.sound) playClick();
+}
+
+function renderFxControl() {
+    const sound = document.getElementById("btn-sound");
+    sound.textContent = settings.sound ? "🔊 Suoni" : "🔇 Suoni";
+    sound.setAttribute("aria-pressed", String(settings.sound));
+    sound.classList.toggle("active", settings.sound);
+    const crt = document.getElementById("btn-crt");
+    crt.setAttribute("aria-pressed", String(settings.crt));
+    crt.classList.toggle("active", settings.crt);
+}
+
 function renderSpeedControl() {
     document.querySelectorAll("#speed-control button").forEach(button => {
         const active = button.dataset.speed === settings.speed;
@@ -193,6 +214,7 @@ function cycleCell(index) {
     }
     const maxCmds = slotOptions(lvl).length;
     gridState[index] = (gridState[index] + 1) % maxCmds;
+    playClick();
     updateCellUI(index);
     updateSlotCounter();
     updateShellLine();
@@ -309,6 +331,7 @@ function chooseAnswer(answer, button) {
         button.classList.add("wrong");
         button.disabled = true;
         bumpStat("failures");
+        playFail();
         logToConsole("> ✗ Risposta sbagliata.", "log-error");
         logToConsole(`> ${answer.why}`, "log-hint");
         logToConsole(`> La pipeline di quell'output: ${answer.steps.map(stepLabel).join(" | ")}`, "log-step");
@@ -376,18 +399,19 @@ async function runPipeline() {
     const result = executePipeline(lvl.stdin, steps);
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
 
+    // Ogni slot si illumina mentre i dati lo attraversano e si trasformano
     for (let i = 0; i < steps.length; i++) {
         const cell = document.getElementById(`c${i}`);
-        cell.classList.add("running");
-        await waitStep(delay);
-        cell.classList.remove("running");
-        if (myRun !== runId) return;
-
         const step = steps[i];
         const { lines, terminal } = result.trace[i];
         const label = step.cmd === null ? "Pipe (|)" : stepLabel(step);
-        renderStream(`Dopo slot ${i + 1}: ${label}`, lines, terminal);
+        cell.classList.add("running");
+        if (step.cmd !== null && !skipRequested) playStep(i);
+        animateStream(`Dopo slot ${i + 1}: ${label}`, lines, terminal, delay);
         logToConsole(`[Slot ${i+1}] ${label} -> ${describeLines(lines)}`, "log-step");
+        await waitStep(delay);
+        cell.classList.remove("running");
+        if (myRun !== runId) return;
     }
 
     await waitStep(delay / 2);
@@ -411,6 +435,7 @@ function showResult(lvl, result) {
         completeLevel(lvl);
     } else {
         bumpStat("failures");
+        playFail();
         if (streamsEqual(result.output, lvl.target)) {
             logToConsole(`> [FALLIMENTO] Lo stdout è giusto, ma degli errori sono finiti sul terminale.`, "log-error");
         } else {
@@ -431,6 +456,8 @@ function completeLevel(lvl) {
     checkWinAchievements(currentLevelIndex, currentSolution.par);
     logToConsole(`> ${special ? attemptsRating(stars, score) : rating(stars, score)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
     if (lvl.explain) logToConsole(`> 💡 ${lvl.explain}`, "log-hint");
+    playWin();
+    celebrate(stars);
     if (currentLevelIndex < levels.length - 1) {
         logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
         transitionTimer = setTimeout(() => { loadLevel(currentLevelIndex + 1); }, 2000);
@@ -482,6 +509,8 @@ function finishDaily(lvl, used) {
         progress.daily[key] = { stars, used, attempts: levelSession.attempts, seconds };
     }
     persistProgress();
+    playWin();
+    celebrate(stars);
     const streak = dailyStreak(progress.daily, key);
     checkSessionAchievements(par);
     unlockAchievement("abitudinario");
@@ -653,6 +682,8 @@ document.querySelectorAll("#speed-control button").forEach(button => {
     button.onclick = () => setSpeed(button.dataset.speed);
 });
 renderSpeedControl();
+renderFxControl();
+applyCrt();
 
 // index.html?sfida apre direttamente la sfida del giorno (è il link del risultato condiviso)
 if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
