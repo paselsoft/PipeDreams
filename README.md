@@ -11,6 +11,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
 - una storia in 5 atti, 12 obiettivi e una **sfida del giorno** generata automaticamente
+- modalità terminale: finito un atto, i suoi livelli si risolvono anche scrivendo la pipeline
+- dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
 - i progressi restano salvati nel browser (`localStorage`)
 
 ## Struttura
@@ -22,6 +24,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `levels.js` | I livelli |
 | `solver.js` | Ricerca in ampiezza delle soluzioni ottimali |
 | `shell.js` | Traduzione della pipeline in una riga bash |
+| `terminal.js` | Modalità terminale: interprete della pipeline scritta come in bash |
 | `fx.js` | Effetti: dati che scorrono, suoni Web Audio, coriandoli, schermo CRT |
 | `achievements.js` | Obiettivi, statistiche e notifiche |
 | `daily.js` | Sfida del giorno: generatore deterministico basato sulla data |
@@ -41,6 +44,7 @@ Basta aprire `index.html` nel browser: non servono build né server.
 node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzioni ottimali
 node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
 node tools/check-daily.js 366   # le sfide del giorno dei prossimi 366 giorni sono valide?
+node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
 ```
 
 Per aggiungere un livello: componilo nell'editor, provalo con **PROVA NEL GIOCO**, copia il codice

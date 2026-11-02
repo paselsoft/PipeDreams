@@ -12,6 +12,7 @@ const ACHIEVEMENTS = [
     { id: "rtfm", icon: "📖", title: "RTFM", desc: "Leggi 5 schede diverse del manuale." },
     { id: "scienziato", icon: "🧪", title: "Scienziato", desc: "Porta la pipeline di un livello nel laboratorio." },
     { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." },
+    { id: "terminalista", icon: "⌨️", title: "Terminalista", desc: "Risolvi un livello in modalità terminale, scrivendo la pipeline." },
     { id: "abitudinario", icon: "📅", title: "Abitudinario", desc: "Risolvi la sfida del giorno." },
     { id: "serie", icon: "🔥", title: "In serie", desc: "Risolvi la sfida del giorno 3 giorni di fila." }
 ];

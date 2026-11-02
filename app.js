@@ -99,6 +99,8 @@ function showLevel(lvl, titleText) {
     renderStream("Input del programma", normalizeInput(lvl.stdin), []);
     renderStory(lvl);
     document.getElementById("console").innerHTML = "";
+    document.getElementById("terminal-input").value = "";
+    applyInputMode();
 }
 
 // Crea una cella per ogni slot del livello
@@ -192,8 +194,78 @@ function stopAnimation() {
 }
 
 function currentSteps() {
+    if (terminalActive()) return parsePipeline(terminalText()).steps || [];
     const options = slotOptions(currentLevel());
     return gridState.map(idx => options[idx]);
+}
+
+// --- Modalità terminale: si sblocca per i livelli "componi" di un atto completato ---
+const terminalText = () => document.getElementById("terminal-input").value;
+const actCompleted = act => levels.filter(lvl => lvl.act === act).every(lvl => progress.levels[lvl.id]);
+const terminalAvailable = lvl => !TEST_MODE && !lvl.daily && !lvl.type && !lvl.locked && actCompleted(lvl.act);
+const terminalActive = () => settings.inputMode === "terminal" && terminalAvailable(currentLevel());
+
+function setInputMode(mode) {
+    const lvl = currentLevel();
+    if (mode === "terminal" && !terminalAvailable(lvl)) {
+        logToConsole(`> ⌨️ La modalità terminale si sblocca risolvendo tutti i livelli dell'Atto ${ROMAN[lvl.act] || lvl.act}.`, "log-hint");
+        return;
+    }
+    settings.inputMode = mode;
+    saveSettings(settings);
+    applyInputMode();
+    if (mode === "terminal") document.getElementById("terminal-input").focus();
+}
+
+function applyInputMode() {
+    const lvl = currentLevel();
+    const offer = !TEST_MODE && !lvl.daily && !lvl.type && !lvl.locked;
+    const terminal = terminalActive();
+    document.getElementById("mode-toggle").hidden = !offer;
+    document.body.dataset.input = terminal ? "terminal" : "cells";
+    document.querySelectorAll("#mode-toggle button").forEach(button => {
+        const active = (button.dataset.mode === "terminal") === terminal;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
+    const lockedButton = document.querySelector('#mode-toggle [data-mode="terminal"]');
+    lockedButton.textContent = terminalAvailable(lvl) ? "⌨️ Terminale" : "⌨️ Terminale 🔒";
+    renderTerminalSuggestions(lvl);
+    refreshTerminal();
+}
+
+// I comandi del livello come suggerimenti: toccandone uno si aggiunge alla pipeline
+function renderTerminalSuggestions(lvl) {
+    const box = document.getElementById("terminal-suggest");
+    box.innerHTML = "";
+    for (const step of lvl.allowedCommands) {
+        const chip = document.createElement("button");
+        chip.className = "terminal-chip";
+        chip.textContent = stepLabel(step);
+        chip.onclick = () => {
+            const input = document.getElementById("terminal-input");
+            const current = input.value.trim();
+            const label = stepLabel(step);
+            input.value = !current ? label : COMMANDS[step.cmd].redirect ? `${current} ${label}` : `${current} | ${label}`;
+            refreshTerminal();
+            input.focus();
+        };
+        box.appendChild(chip);
+    }
+}
+
+// Errore di sintassi mostrato mentre si scrive, come farebbe bash all'invio
+function refreshTerminal() {
+    if (!terminalActive()) {
+        updateShellLine();
+        updateSlotCounter();
+        return;
+    }
+    const text = terminalText();
+    const result = text.trim() ? parsePipeline(text) : { steps: [] };
+    document.getElementById("terminal-error").textContent = result.error || "";
+    updateShellLine();
+    updateSlotCounter();
 }
 
 function cycleCell(index) {
@@ -274,6 +346,7 @@ async function copyShellLine() {
 
 // Comandi scelti dal giocatore: le celle bloccate non contano
 function usedSlots() {
+    if (terminalActive()) return currentSteps().length;
     const locked = currentLevel().locked || {};
     return gridState.filter((cmdIndex, i) => cmdIndex !== 0 && locked[i] === undefined).length;
 }
@@ -283,6 +356,9 @@ function updateSlotCounter() {
     const display = document.getElementById("score-display");
     if (lvl.type === "quiz") {
         display.innerText = "Scegli l'output";
+    } else if (terminalActive()) {
+        const par = currentSolution && currentSolution.par !== null ? ` · Par: ${currentSolution.par}` : "";
+        display.innerText = `⌨️ Comandi: ${usedSlots()}${par}`;
     } else if (lvl.type === "debug") {
         const changes = gridState.filter((choice, i) => choice !== lvl.start[i]).length;
         display.innerText = `Modifiche: ${changes}/${lvl.maxChanges || 1}`;
@@ -382,6 +458,19 @@ async function runPipeline() {
         return;
     }
     if (isBusy) return;
+    if (terminalActive()) {
+        const parsed = parsePipeline(terminalText());
+        if (parsed.error) {
+            levelSession.attempts++;
+            bumpStat("runs");
+            bumpStat("failures");
+            playFail();
+            document.getElementById("console").innerHTML = "";
+            logToConsole(`$ programma ${terminalText().trim()}`, "log-stdin");
+            logToConsole(parsed.error, "log-error");
+            return;
+        }
+    }
     levelSession.attempts++;
     bumpStat("runs");
     setBusy(true);
@@ -393,7 +482,7 @@ async function runPipeline() {
 
     const lvl = currentLevel();
     document.getElementById("console").innerHTML = "";
-    logToConsole(`> Avvio esecuzione...`, "log-stdin");
+    logToConsole(terminalActive() ? `$ programma ${terminalText().trim()}` : `> Avvio esecuzione...`, "log-stdin");
 
     const steps = currentSteps();
     const result = executePipeline(lvl.stdin, steps);
@@ -401,7 +490,8 @@ async function runPipeline() {
 
     // Ogni slot si illumina mentre i dati lo attraversano e si trasformano
     for (let i = 0; i < steps.length; i++) {
-        const cell = document.getElementById(`c${i}`);
+        // In modalità terminale non ci sono celle da illuminare
+        const cell = document.getElementById(`c${i}`) || document.createElement("div");
         const step = steps[i];
         const { lines, terminal } = result.trace[i];
         const label = step.cmd === null ? "Pipe (|)" : stepLabel(step);
@@ -448,6 +538,11 @@ function showResult(lvl, result) {
 
 // Livello della campagna risolto: stelle, record, obiettivi e passaggio al successivo
 function completeLevel(lvl) {
+    const wasCompleted = actCompleted(lvl.act);
+    if (terminalActive()) {
+        progress.terminal[lvl.id] = true;
+        unlockAchievement("terminalista");
+    }
     const special = isSpecialLevel(lvl);
     const score = special ? levelSession.attempts : usedSlots();
     const stars = special ? starsByAttempts(score) : computeStars(score, currentSolution.par);
@@ -456,6 +551,9 @@ function completeLevel(lvl) {
     checkWinAchievements(currentLevelIndex, currentSolution.par);
     logToConsole(`> ${special ? attemptsRating(stars, score) : rating(stars, score)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
     if (lvl.explain) logToConsole(`> 💡 ${lvl.explain}`, "log-hint");
+    if (!wasCompleted && actCompleted(lvl.act) && !TEST_MODE) {
+        showToast(`⌨️ Modalità terminale sbloccata per l'Atto ${ROMAN[lvl.act] || lvl.act}!`);
+    }
     playWin();
     celebrate(stars);
     if (currentLevelIndex < levels.length - 1) {
@@ -619,6 +717,7 @@ function renderMenu() {
         const stars = document.createElement("span");
         stars.className = "stars";
         stars.textContent = unlocked ? (progress.levels[lvl.id] ? starString(levelStars(progress, lvl.id)) : "nuovo") : "🔒";
+        if (progress.terminal[lvl.id]) stars.textContent += " ⌨️";
         item.append(name, stars);
 
         item.onclick = () => {
@@ -680,6 +779,13 @@ if (TEST_MODE) {
 
 document.querySelectorAll("#speed-control button").forEach(button => {
     button.onclick = () => setSpeed(button.dataset.speed);
+});
+document.getElementById("terminal-input").addEventListener("input", refreshTerminal);
+document.getElementById("terminal-input").addEventListener("keydown", event => {
+    if (event.key === "Enter") runPipeline();
+});
+document.querySelectorAll("#mode-toggle button").forEach(button => {
+    button.onclick = () => setInputMode(button.dataset.mode);
 });
 renderSpeedControl();
 renderFxControl();

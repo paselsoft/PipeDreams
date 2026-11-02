@@ -40,11 +40,24 @@
             <div class="legend"><span class="chip">stdout</span> <span class="chip err">stderr</span></div>
         </div>
 
+        <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Modo di inserimento" hidden>
+            <button data-mode="cells">🧩 Celle</button>
+            <button data-mode="terminal">⌨️ Terminale</button>
+        </div>
         <p class="grid-hint" id="grid-hint">Tocca le celle per cambiare comando:</p>
         
         <div class="grid" id="grid"></div>
 
         <div class="quiz-box" id="quiz-box" hidden></div>
+
+        <div class="terminal-box" id="terminal-box">
+            <label class="terminal-prompt" for="terminal-input">$ programma</label>
+            <input id="terminal-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                   placeholder="2>&1 | grep 'ERR' | sort | uniq">
+            <div class="terminal-error" id="terminal-error" role="alert"></div>
+            <div class="terminal-help">Invio per eseguire. Comandi del livello (tocca per aggiungere):</div>
+            <div class="terminal-suggest" id="terminal-suggest"></div>
+        </div>
 
         <div class="stream-view" id="stream-view">
             <div class="stream-title" id="stream-title">Flusso</div>
@@ -153,6 +166,7 @@
     <script src="render.js"></script>
     <script src="daily.js"></script>
     <script src="story.js"></script>
+    <script src="terminal.js"></script>
     <script src="manual.js"></script>
     <script src="command-form.js"></script>
     <script src="fx.js"></script>
