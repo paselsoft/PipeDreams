@@ -87,9 +87,14 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
+      # Un nome diverso per ogni tentativo: con "Re-run jobs" GitHub troverebbe due archivi
+      # "github-pages" nello stesso run e la pubblicazione fallirebbe
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+          name: github-pages-${{ github.run_attempt }}
 
       - id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
