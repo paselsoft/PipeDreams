@@ -864,8 +864,28 @@ if (TEST_MODE) {
 }
 
 // Gioco installabile e offline (solo da http/https, non aprendo il file dal disco)
+// Ogni pubblicazione cambia sw.js: il browser installa la nuova versione e il gioco lo segnala
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    let hadController = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (hadController) document.getElementById("update-banner").hidden = false;
+        hadController = true;
+    });
+    navigator.serviceWorker.register("sw.js").then(registration => {
+        // Un'app installata può restare aperta per giorni: si controlla quando torna in primo piano
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") registration.update().catch(() => {});
+        });
+    }).catch(() => {});
+}
+
+// Dopo un aggiornamento, un avviso porta alle novità (non al primo avvio di un giocatore nuovo)
+function noteVersion() {
+    if (TEST_MODE || settings.lastVersion === APP_VERSION) return;
+    const returning = settings.lastVersion || Object.keys(progress.levels).length > 0;
+    settings.lastVersion = APP_VERSION;
+    saveSettings(settings);
+    if (returning) showToast(`🆕 Pipe Dreams v${APP_VERSION}: tocca la versione in fondo alla pagina per le novità.`);
 }
 
 document.querySelectorAll("#speed-control button").forEach(button => {
@@ -887,3 +907,4 @@ if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily()
 else loadLevel(TEST_MODE ? 0 : startLevelIndex());
 if (!TEST_MODE && new URLSearchParams(location.search).has("maratona")) startMarathon();
 if (sharedLink && sharedLink.error) showToast(`🔗 ${sharedLink.error}`);
+noteVersion();

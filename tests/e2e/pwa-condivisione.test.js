@@ -92,7 +92,7 @@ module.exports = {
         await open(page);
         const version = await page.evaluate(() => APP_VERSION);
         assert.match(version, /^\d+\.\d+\.\d+$/);
-        assert.equal(await page.textContent("#app-version"), `Pipe Dreams v${version} · versione di sviluppo`);
+        assert.equal(await page.textContent("#app-version"), `Pipe Dreams v${version} · versione di sviluppo · novità`);
         await page.click("#btn-menu");
         assert.equal(await page.isVisible(".menu-version"), true);
         assert.match(await page.textContent(".menu-version"), new RegExp(`v${version.replace(/\./g, "\\.")}`));

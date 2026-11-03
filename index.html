@@ -133,6 +133,7 @@
             <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
+            <button class="menu-stats menu-backup" onclick="openBackup()">💾 Backup progressi</button>
             <button class="menu-reset" onclick="resetProgress()">Azzera progressi</button>
             <div class="app-version menu-version"></div>
         </div>
@@ -157,6 +158,39 @@
             </div>
             <div id="stats-body"></div>
         </div>
+    </div>
+
+    <!-- BACKUP DEI PROGRESSI -->
+    <div class="menu-overlay" id="backup-overlay" hidden onclick="if (event.target === this) closeBackup()">
+        <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="backup-title">
+            <div class="menu-header">
+                <h2 id="backup-title">💾 BACKUP PROGRESSI</h2>
+                <button class="menu-close" onclick="closeBackup()" aria-label="Chiudi">✕</button>
+            </div>
+            <h3 class="manual-section">Salva</h3>
+            <p class="manual-hint">I progressi restano in questo browser. Copia il codice o scarica il file per portarli su un altro dispositivo.</p>
+            <p class="backup-summary" id="backup-summary"></p>
+            <textarea class="backup-text" id="backup-code" readonly rows="3" aria-label="Codice di backup" onfocus="this.select()"></textarea>
+            <div class="backup-buttons">
+                <button class="btn-hint" onclick="copyBackupCode()">📋 COPIA CODICE</button>
+                <button class="btn-hint" onclick="downloadBackup()">⬇ SCARICA FILE</button>
+            </div>
+            <h3 class="manual-section">Ripristina</h3>
+            <p class="manual-hint">Incolla un codice di backup o scegli un file. UNISCI tiene il risultato migliore di ogni livello; SOSTITUISCI cancella i progressi attuali.</p>
+            <textarea class="backup-text" id="backup-input" rows="3" aria-label="Codice da ripristinare" placeholder="PIPEDREAMS1:..."></textarea>
+            <div class="backup-buttons">
+                <label class="btn-hint backup-file">📂 SCEGLI FILE<input type="file" id="backup-file" accept=".json,application/json,text/plain" onchange="loadBackupFile(this)" hidden></label>
+                <button class="btn-hint" id="backup-merge" onclick="restoreBackup('merge')">UNISCI</button>
+                <button class="btn-hint backup-replace" id="backup-replace" onclick="restoreBackup('replace')">SOSTITUISCI</button>
+            </div>
+            <p class="backup-message" id="backup-message" role="status"></p>
+        </div>
+    </div>
+
+    <!-- NUOVA VERSIONE PRONTA -->
+    <div class="update-banner" id="update-banner" role="status" hidden>
+        <span>🔄 È pronta una nuova versione del gioco.</span>
+        <button class="btn-copy" onclick="location.reload()">AGGIORNA</button>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -189,6 +223,7 @@
     <script src="fx.js"></script>
     <script src="achievements.js"></script>
     <script src="marathon.js"></script>
+    <script src="backup.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>

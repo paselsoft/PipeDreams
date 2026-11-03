@@ -841,3 +841,51 @@ body[data-input="terminal"] #grid-hint { display: none; }
 
 .app-version { text-align: center; color: #6e7681; font-size: 12px; margin: 18px 0 4px; }
 .menu-version { margin-top: 10px; }
+
+.app-version[role=button] { cursor: pointer; text-decoration: underline dotted; }
+.app-version[role=button]:hover { color: #8b949e; }
+.changelog-list { margin: 0 0 8px; padding-left: 20px; font-size: 14px; line-height: 1.5; color: #c9d1d9; }
+
+/* Backup dei progressi */
+.menu-backup { background: #0c2d6b; border-color: #1f6feb; color: #79c0ff; }
+.backup-summary { color: #00ff66; font-size: 14px; margin: 6px 0; }
+.backup-text {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0d1117;
+    color: #79c0ff;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    resize: vertical;
+    word-break: break-all;
+}
+.backup-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.backup-buttons .btn-hint { flex: 1 1 120px; text-align: center; }
+.backup-file { display: inline-block; cursor: pointer; box-sizing: border-box; }
+.backup-replace { border-color: #da3633; color: #f85149; }
+.backup-message { color: #e3b341; font-size: 14px; min-height: 1em; }
+
+/* Nuova versione pronta */
+.update-banner {
+    position: fixed;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    width: min(520px, calc(100% - 24px));
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #0c2d6b;
+    border: 1px solid #1f6feb;
+    color: #c9d1d9;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    z-index: 60;
+}
+.update-banner[hidden] { display: none; }

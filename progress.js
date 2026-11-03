@@ -12,22 +12,26 @@ function emptyProgress() {
 
 const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
 
+// Progressi letti da una fonte esterna (localStorage o backup): null se non sono progressi.
+// I salvataggi precedenti non hanno i campi nuovi: si completano con i valori vuoti.
+function normalizeProgress(data) {
+    if (!isPlainObject(data) || !isPlainObject(data.levels)) return null;
+    return {
+        levels: data.levels,
+        lastLevel: Number(data.lastLevel) || 0,
+        seenActs: Array.isArray(data.seenActs) ? data.seenActs : [],
+        stats: isPlainObject(data.stats) ? data.stats : {},
+        achievements: isPlainObject(data.achievements) ? data.achievements : {},
+        daily: isPlainObject(data.daily) ? data.daily : {},
+        terminal: isPlainObject(data.terminal) ? data.terminal : {},
+        marathon: isPlainObject(data.marathon) ? data.marathon : {}
+    };
+}
+
 function loadProgress() {
     try {
-        const data = JSON.parse(localStorage.getItem(PROGRESS_KEY));
-        if (data && isPlainObject(data.levels)) {
-            // I salvataggi precedenti non hanno i campi nuovi: si completano con i valori vuoti
-            return {
-                levels: data.levels,
-                lastLevel: Number(data.lastLevel) || 0,
-                seenActs: Array.isArray(data.seenActs) ? data.seenActs : [],
-                stats: isPlainObject(data.stats) ? data.stats : {},
-                achievements: isPlainObject(data.achievements) ? data.achievements : {},
-                daily: isPlainObject(data.daily) ? data.daily : {},
-                terminal: isPlainObject(data.terminal) ? data.terminal : {},
-                marathon: isPlainObject(data.marathon) ? data.marathon : {}
-            };
-        }
+        const progress = normalizeProgress(JSON.parse(localStorage.getItem(PROGRESS_KEY)));
+        if (progress) return progress;
     } catch (e) {
         // dati corrotti o storage non accessibile: si riparte da zero
     }

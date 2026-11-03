@@ -16,6 +16,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
 - i progressi restano salvati nel browser (`localStorage`)
 - si installa come app (su telefono: «Aggiungi a schermata Home») e funziona anche offline
+- **backup dei progressi** (codice o file) per passare da un dispositivo all'altro, e novità di ogni versione
 - **livelli condivisibili**: l'editor crea un link che apre il livello nel gioco, senza toccare i progressi
 
 ## Struttura
@@ -37,7 +38,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
-| `version.js` | Numero di versione; il workflow aggiunge commit e data della pubblicazione |
+| `version.js` | Versione e novità (`CHANGELOG`); il workflow aggiunge commit e data della pubblicazione |
+| `backup.js` | Backup dei progressi: esporta, unisce e ripristina |
 | `share.js` | Livelli condivisi con un link: codifica e convalida |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
@@ -72,7 +74,10 @@ qualcuno senza modificare il gioco, usa **COPIA LINK**: il livello viaggia nell'
 (`index.html#livello=...`) e il gioco lo convalida prima di aprirlo.
 
 Il service worker usa la rete per prima, quindi online si gioca sempre l'ultima versione pubblicata.
-Se aggiungi un file al gioco, aggiungilo anche all'elenco `FILES` di `sw.js`.
+Se aggiungi un file al gioco, aggiungilo anche all'elenco `FILES` di `sw.js`. A ogni pubblicazione il
+workflow cambia il nome della cache in `sw.js`: chi ha il gioco aperto vede «È pronta una nuova versione».
+
+Per una nuova versione: aumenta `APP_VERSION` in `version.js` e aggiungi una voce in cima a `CHANGELOG`.
 
 ## Pubblicazione
 

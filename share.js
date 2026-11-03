@@ -4,14 +4,15 @@
 
 const SHARE_PREFIX = "#livello=";
 
-function encodeLevel(level) {
-    const bytes = new TextEncoder().encode(JSON.stringify(level));
+// Qualsiasi dato JSON in base64url (usato anche dal codice di backup dei progressi)
+function encodeData(data) {
+    const bytes = new TextEncoder().encode(JSON.stringify(data));
     let binary = "";
     bytes.forEach(byte => { binary += String.fromCharCode(byte); });
     return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function decodeLevel(text) {
+function decodeData(text) {
     const base64 = text.replace(/-/g, "+").replace(/_/g, "/");
     const binary = atob(base64 + "===".slice((base64.length + 3) % 4));
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, c => c.charCodeAt(0))));
@@ -24,7 +25,7 @@ function shareUrl(level, base) {
         stdin: level.stdin, target: level.target, allowedCommands: level.allowedCommands
     };
     if (level.slots) shared.slots = level.slots;
-    return base + SHARE_PREFIX + encodeLevel(shared);
+    return base + SHARE_PREFIX + encodeData(shared);
 }
 
 // Testo HTML dell'obiettivo: tutto viene mostrato come testo, tranne i tag semplici ammessi
@@ -62,7 +63,7 @@ function sharedLevelFromHash(hash) {
     if (!hash.startsWith(SHARE_PREFIX)) return null;
     let data;
     try {
-        data = decodeLevel(hash.slice(SHARE_PREFIX.length));
+        data = decodeData(hash.slice(SHARE_PREFIX.length));
     } catch (e) {
         return { error: "Il link del livello è danneggiato." };
     }

@@ -80,6 +80,10 @@ jobs:
           build="$(git rev-parse --short HEAD) del $(git log -1 --format=%cd --date=format:%d/%m/%Y)"
           sed -i "s|^const APP_BUILD = \"sviluppo\";|const APP_BUILD = \"$build\";|" _site/version.js
           grep -q "const APP_BUILD = \"$build\";" _site/version.js
+          # Un sw.js diverso a ogni pubblicazione: il browser installa la nuova versione e il gioco lo segnala
+          sha=$(git rev-parse --short HEAD)
+          sed -i "s|^const CACHE = \"pipedreams-v1\";|const CACHE = \"pipedreams-$sha\";|" _site/sw.js
+          grep -q "const CACHE = \"pipedreams-$sha\";" _site/sw.js
 
       - uses: actions/configure-pages@v5
 

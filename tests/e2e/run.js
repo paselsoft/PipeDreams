@@ -46,6 +46,7 @@ const files = fs.readdirSync(__dirname).filter(name => name.endsWith(".test.js")
             if (filter && !fullName.toLowerCase().includes(filter)) continue;
             const context = await browser.newContext({ viewport: { width: 390, height: 900 } });
             const page = await context.newPage();
+            page.setDefaultTimeout(10000);
             const pageErrors = [];
             page.on("pageerror", error => pageErrors.push(error.message));
             page.on("console", message => { if (message.type() === "error") pageErrors.push(message.text()); });

@@ -1,5 +1,10 @@
 // Strumenti comuni dei test nel browser.
 const assert = require("node:assert/strict");
+const fs = require("fs");
+const path = require("path");
+
+// Versione del gioco: i test partono come chi l'ha già vista, senza l'avviso delle novità
+const APP_VERSION = fs.readFileSync(path.join(__dirname, "..", "..", "version.js"), "utf8").match(/APP_VERSION = "([^"]+)"/)[1];
 
 // Indirizzo del server avviato da run.js
 const fileUrl = name => (process.env.E2E_BASE_URL || "http://127.0.0.1:8000/") + name;
@@ -11,7 +16,7 @@ const fileUrl = name => (process.env.E2E_BASE_URL || "http://127.0.0.1:8000/") +
 // rawProgress scrive esattamente quel testo come salvataggio (per provare dati corrotti o vecchi).
 async function open(page, { file = "index.html", query = "", hash = "", progress = {}, settings = {}, seenActs = true, rawProgress } = {}) {
     const initialProgress = rawProgress ?? JSON.stringify({ levels: {}, lastLevel: 0, seenActs: seenActs ? [1, 2, 3, 4, 5] : [], ...progress });
-    const initialSettings = { speed: "istantanea", sound: false, ...settings };
+    const initialSettings = { speed: "istantanea", sound: false, lastVersion: APP_VERSION, ...settings };
     await page.addInitScript(([p, s]) => {
         if (window.name === "e2e-init") return;
         window.name = "e2e-init";
@@ -72,4 +77,4 @@ async function run(page) {
 
 const won = text => /SUCCESSO|COMPLETATO/.test(text);
 
-module.exports = { assert, open, reload, placeSolution, placeLabels, consoleText, run, won, fileUrl };
+module.exports = { APP_VERSION, assert, open, reload, placeSolution, placeLabels, consoleText, run, won, fileUrl };

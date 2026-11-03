@@ -1,10 +1,11 @@
 // Service worker: il gioco funziona anche senza connessione.
 // Strategia "prima la rete": online si riceve sempre la versione pubblicata più recente (e la
 // copia locale si aggiorna), offline si usa l'ultima copia salvata.
+// Il workflow di pubblicazione aggiunge il commit: sw.js cambia e il browser installa la nuova versione
 const CACHE = "pipedreams-v1";
 
 const FILES = [
-    "./", "index.html", "version.js", "editor.html", "style.css", "editor.css", "manifest.webmanifest", "icon-192.png", "icon-512.png",
+    "./", "index.html", "version.js", "backup.js", "editor.html", "style.css", "editor.css", "manifest.webmanifest", "icon-192.png", "icon-512.png",
     "commands.js", "levels.js", "solver.js", "progress.js", "shell.js", "render.js", "daily.js", "story.js", "terminal.js",
     "manual.js", "command-form.js", "fx.js", "achievements.js", "marathon.js", "share.js", "app.js", "manual-view.js",
     "lab.js", "editor.js"
