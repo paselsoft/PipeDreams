@@ -39,8 +39,25 @@ jobs:
       - name: L'interprete della modalità terminale rilegge ogni comando
         run: node tools/check-terminal.js
 
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Installa Playwright e Chromium
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Test nel browser (gioco, editor, manuale, laboratorio, sfida, terminale)
+        run: node tests/e2e/run.js
+
   pubblica:
-    needs: verifica
+    needs: [verifica, browser]
     if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     # I permessi del job sostituiscono quelli globali: contents serve al checkout (repo privato)

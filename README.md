@@ -35,6 +35,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
 | `tools/` | Verifiche da riga di comando (Node.js) |
+| `tests/e2e/` | Test nel browser con Playwright |
 
 ## Sviluppo
 
@@ -45,6 +46,16 @@ node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzi
 node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
 node tools/check-daily.js 366   # le sfide del giorno dei prossimi 366 giorni sono valide?
 node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
+```
+
+I test nel browser (Playwright) giocano davvero il gioco: tutti i livelli, salvataggio, storia,
+obiettivi, sfida del giorno, manuale, laboratorio, terminale, effetti, editor e impaginazione su
+schermi da 320 a 1440 px. Il runner serve i file con un piccolo server HTTP locale.
+
+```bash
+npm install --no-save playwright@1.63.0 && npx playwright install chromium   # la prima volta
+node tests/e2e/run.js            # tutti i test
+node tests/e2e/run.js terminale  # solo quelli che contengono "terminale" nel nome
 ```
 
 Per aggiungere un livello: componilo nell'editor, provalo con **PROVA NEL GIOCO**, copia il codice
