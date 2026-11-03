@@ -39,6 +39,7 @@ const currentLevel = () => dailyLevel || levels[currentLevelIndex];
 
 function loadLevel(index) {
     stopMarathon();
+    stopTraining();
     dailyLevel = null;
     currentLevelIndex = index;
     progress.lastLevel = index;
@@ -54,6 +55,7 @@ function loadLevel(index) {
 
 function loadDaily() {
     stopMarathon();
+    stopTraining();
     const key = dateKey();
     dailyLevel = generateDaily(key);
     showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
@@ -87,6 +89,7 @@ function showLevel(lvl, titleText) {
     runId++;
     stopAnimation();
     setBusy(false);
+    hideSolutionCard();
 
     currentSolution = analyzeLevel(lvl);
     startLevelSession();
@@ -598,6 +601,8 @@ function showResult(lvl, result) {
         finishDaily(lvl, usedSlots());
     } else if (isSolved(lvl, result) && lvl.marathon) {
         marathonSolved(lvl);
+    } else if (isSolved(lvl, result) && lvl.training) {
+        trainingSolved(lvl);
     } else if (isSolved(lvl, result)) {
         completeLevel(lvl);
     } else {
@@ -634,9 +639,17 @@ function completeLevel(lvl) {
     }
     playWin();
     celebrate(stars);
-    if (currentLevelIndex < levels.length - 1) {
-        logToConsole(`> [SUCCESSO] Prossimo livello tra 2s...`, "log-success");
-        transitionTimer = setTimeout(() => { loadLevel(currentLevelIndex + 1); }, 2000);
+    const isLast = currentLevelIndex === levels.length - 1;
+    const nextIndex = currentLevelIndex + 1;
+    // Soluzione più lunga del par: il gioco si ferma sul confronto con quella ottimale
+    const review = reviewSolution(lvl, currentSteps(), isLast ? {} : { next: () => loadLevel(nextIndex) });
+    if (review.stop && !isLast) {
+        logToConsole(`> [SUCCESSO] Quando vuoi, passa al prossimo livello.`, "log-success");
+        setBusy(false);
+    } else if (!isLast) {
+        const wait = review.pause ? 3500 : 2000;
+        logToConsole(`> [SUCCESSO] Prossimo livello tra ${wait / 1000}s...`, "log-success");
+        transitionTimer = setTimeout(() => { loadLevel(nextIndex); }, wait);
     } else {
         logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
         setBusy(false);
@@ -695,6 +708,7 @@ function finishDaily(lvl, used) {
 
     logToConsole(`> ${rating(stars, used)}`, "log-success");
     logToConsole(`> [SFIDA COMPLETATA] Torna domani per una nuova sfida.`, "log-success");
+    reviewSolution(lvl, currentSteps());
     setBusy(false);
 
     const attempts = levelSession.attempts;
@@ -906,5 +920,14 @@ applyCrt();
 if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
 else loadLevel(TEST_MODE ? 0 : startLevelIndex());
 if (!TEST_MODE && new URLSearchParams(location.search).has("maratona")) startMarathon();
+// index.html?allenamento=sort apre direttamente l'allenamento su un comando
+// (dopo il caricamento di tutti gli script: l'elenco degli argomenti usa manual-view.js)
+if (!TEST_MODE && new URLSearchParams(location.search).has("allenamento")) {
+    document.addEventListener("DOMContentLoaded", () => {
+        const topic = new URLSearchParams(location.search).get("allenamento");
+        if (trainingTopic(topic)) startTraining(topic);
+        else openTrainingMenu();
+    });
+}
 if (sharedLink && sharedLink.error) showToast(`🔗 ${sharedLink.error}`);
 noteVersion();

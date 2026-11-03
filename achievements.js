@@ -14,6 +14,7 @@ const ACHIEVEMENTS = [
     { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." },
     { id: "terminalista", icon: "⌨️", title: "Terminalista", desc: "Risolvi un livello in modalità terminale, scrivendo la pipeline." },
     { id: "maratoneta", icon: "🏃", title: "Maratoneta", desc: "Risolvi 5 livelli in una sola Maratona." },
+    { id: "palestra", icon: "🎯", title: "In palestra", desc: "Risolvi 10 livelli di allenamento." },
     { id: "abitudinario", icon: "📅", title: "Abitudinario", desc: "Risolvi la sfida del giorno." },
     { id: "serie", icon: "🔥", title: "In serie", desc: "Risolvi la sfida del giorno 3 giorni di fila." }
 ];
@@ -118,6 +119,7 @@ function openAchievements() {
         ["Sfide del giorno risolte", String(Object.keys(progress.daily).length)],
         ["Serie attuale", `${dailyStreak(progress.daily)} giorni`],
         ["Record Maratona", `${progress.marathon.best || 0} livelli`],
+        ["Livelli di allenamento", String(Object.values(progress.training).reduce((sum, n) => sum + n, 0))],
         ...STAT_LABELS.map(([key, label]) => [label, String(progress.stats[key] || 0)]),
         ["Schede del manuale lette", String((progress.stats.manualRead || []).length)]
     ];

@@ -36,6 +36,15 @@
             </span>
         </div>
 
+        <div class="marathon-bar training-bar" id="training-bar" hidden>
+            <span id="training-status"></span>
+            <span class="marathon-actions">
+                <button onclick="skipTrainingLevel()">⏭ Cambia</button>
+                <button onclick="openTrainingMenu()">🎯 Argomento</button>
+                <button onclick="exitTraining()">✕ Esci</button>
+            </span>
+        </div>
+
         <div class="story-box" id="story-box" hidden>
             <span class="story-from" id="story-from"></span>
             <span id="story-text"></span>
@@ -110,6 +119,8 @@
 
         <div id="console">> Pronto. Tocca una cella e premi Esegui.</div>
 
+        <div class="result-card" id="result-card" hidden></div>
+
         <!-- MANUALE DEI COMANDI -->
         <div class="manual-box">
             <h3>📖 MANUALE DEI COMANDI</h3>
@@ -130,6 +141,7 @@
             </div>
             <button class="menu-daily" id="menu-daily" onclick="closeMenu(); loadDaily();">📅 Sfida del giorno</button>
             <button class="menu-daily menu-marathon" id="menu-marathon" onclick="startMarathon()">🏃 Maratona</button>
+            <button class="menu-daily menu-training" id="menu-training" onclick="openTrainingMenu()">🎯 Allenamento</button>
             <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
@@ -157,6 +169,18 @@
                 <button class="menu-close" onclick="closeAchievements()" aria-label="Chiudi">✕</button>
             </div>
             <div id="stats-body"></div>
+        </div>
+    </div>
+
+    <!-- ALLENAMENTO: SCELTA DEL COMANDO -->
+    <div class="menu-overlay" id="training-overlay" hidden onclick="if (event.target === this) closeTrainingMenu()">
+        <div class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="training-title">
+            <div class="menu-header">
+                <h2 id="training-title">🎯 ALLENAMENTO</h2>
+                <button class="menu-close" onclick="closeTrainingMenu()" aria-label="Chiudi">✕</button>
+            </div>
+            <p class="manual-hint">Scegli un comando: livelli generati senza fine, prima brevi e poi più complessi. Niente tempo, niente fretta.</p>
+            <div class="training-list" id="training-list"></div>
         </div>
     </div>
 
@@ -224,6 +248,8 @@
     <script src="achievements.js"></script>
     <script src="marathon.js"></script>
     <script src="backup.js"></script>
+    <script src="compare.js"></script>
+    <script src="training.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>

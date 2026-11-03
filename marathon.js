@@ -18,6 +18,7 @@ const formatClock = ms => {
 
 function startMarathon() {
     stopMarathon();
+    stopTraining();
     closeMenu();
     closeActIntro();
     marathon = { seed: Date.now().toString(36), round: 0, solved: 0, deadline: Date.now() + MARATHON_START_MS, over: false };

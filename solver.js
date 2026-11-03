@@ -31,7 +31,9 @@ function solveLevel(lvl, slotCount = levelSlots(lvl)) {
                 optimalCount: solved.reduce((sum, node) => sum + node.count, 0),
                 optimal: solved.flatMap(node => node.examples)
                     .slice(0, MAX_EXAMPLES)
-                    .map(seq => seq.map(stepLabel).join(" | "))
+                    .map(seq => seq.map(stepLabel).join(" | ")),
+                // Le stesse soluzioni come elenchi di comandi (per il confronto dopo la vittoria)
+                optimalSteps: solved.flatMap(node => node.examples).slice(0, MAX_EXAMPLES)
             };
         }
 

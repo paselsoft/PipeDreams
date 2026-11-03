@@ -1,11 +1,19 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.2.0", date: "2026-11-03", items: [
+            "📊 Confronto dopo la vittoria: se la tua pipeline è più lunga del necessario, il gioco si ferma, la mette accanto a quella ottimale e ti dice quale comando non serve. Con 🧪 LABORATORIO la vedi passo per passo.",
+            "✨ Con una soluzione ottimale vedi anche le altre soluzioni ottimali.",
+            "🎯 Allenamento: scegli un comando (grep, sort, uniq, sed...) e gioca livelli generati senza fine, prima brevi e poi più complessi.",
+            "🏅 Nuovo obiettivo: In palestra."
+        ]
+    },
     {
         version: "1.1.0", date: "2026-11-03", items: [
             "💾 Backup dei progressi: un codice da copiare o un file da scaricare, per passare dal telefono al computer. Il ripristino può unire i progressi dei due dispositivi.",

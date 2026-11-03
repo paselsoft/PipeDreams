@@ -11,6 +11,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
 - una storia in 5 atti, obiettivi, una **sfida del giorno** e la **Maratona** contro il tempo
+- **allenamento** per comando: livelli generati senza fine su grep, sort, sed...
+- dopo una vittoria, il **confronto** con la soluzione ottimale spiega quali comandi non servivano
 - aiuti progressivi: spinta, piano e una cella rivelata, con le stelle che scendono
 - modalità terminale: finito un atto, i suoi livelli si risolvono anche scrivendo la pipeline
 - dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
@@ -31,8 +33,10 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `terminal.js` | Modalità terminale: interprete della pipeline scritta come in bash |
 | `fx.js` | Effetti: dati che scorrono, suoni Web Audio, coriandoli, schermo CRT |
 | `achievements.js` | Obiettivi, statistiche e notifiche |
-| `daily.js` | Sfida del giorno e livelli della Maratona: generatore deterministico |
+| `daily.js` | Sfida del giorno, Maratona e allenamento: generatore deterministico e ricette |
 | `marathon.js` | Maratona: livelli generati contro il tempo |
+| `training.js` | Allenamento: livelli generati su un comando scelto |
+| `compare.js` | Confronto della soluzione con quella ottimale |
 | `story.js` | Storia: introduzioni degli atti, messaggi dei personaggi, epilogo |
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
@@ -54,7 +58,7 @@ funzionano solo da http/https).
 ```bash
 node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzioni ottimali
 node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
-node tools/check-daily.js 366   # le sfide del giorno dei prossimi 366 giorni sono valide?
+node tools/check-daily.js 366   # sfide dei prossimi 366 giorni, Maratona e allenamento valide in bash?
 node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
 ```
 

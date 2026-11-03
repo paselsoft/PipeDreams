@@ -86,6 +86,33 @@ for (let game = 0; game < 60; game++) {
 }
 console.log(`${marathonChecked} livelli della Maratona controllati`);
 
+// Livelli dell'allenamento: ogni argomento, diversi semi e tutti i gradini di difficoltà
+const checkTraining = vm.runInContext(`(topic, seed, round) => {
+    const level = generateTrainingLevel(topic, seed, round);
+    const again = generateTrainingLevel(topic, seed, round);
+    const solution = solveLevel(level);
+    const steps = solution.optimal[0].split(" | ").map(label => level.allowedCommands.find(o => stepLabel(o) === label));
+    return { deterministic: JSON.stringify(level) === JSON.stringify(again), par: solution.par, slots: levelSlots(level),
+             line: buildShellLine(level.stdin, steps), target: level.target, title: level.title };
+}`, context);
+const topics = vm.runInContext("TRAINING_TOPICS.map(topic => topic.id)", context);
+let trainingChecked = 0;
+for (const topic of topics) {
+    for (let game = 0; game < 8; game++) {
+        for (let round = 0; round < 7; round++) {
+            const r = checkTraining(topic, `verifica${game}`, round);
+            const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
+            trainingChecked++;
+            if (!r.deterministic || r.par > r.slots || real.stderr.length || JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) {
+                failures++;
+                console.log(`allenamento ${topic} ${game}/${round} ${r.title}: non valido\n  ${r.line}`);
+            }
+        }
+    }
+}
+console.log(`${trainingChecked} livelli dell'allenamento controllati (${topics.length} argomenti)`);
+
 console.table(recipes);
-console.log(`${days + marathonChecked - failures}/${days + marathonChecked} livelli generati validi: ${days} sfide dal ${start} (generazione più lenta: ${slowest} ms) e ${marathonChecked} della Maratona`);
+const total = days + marathonChecked + trainingChecked;
+console.log(`${total - failures}/${total} livelli generati validi: ${days} sfide dal ${start} (generazione più lenta: ${slowest} ms), ${marathonChecked} della Maratona e ${trainingChecked} dell'allenamento`);
 if (failures) process.exit(1);

@@ -56,8 +56,8 @@ module.exports = {
         assert.deepEqual(saved.levels, PROGRESS.levels);
         assert.equal(saved.lastLevel, 1);
         await page.click("#test-banner-link");
-        await page.waitForFunction(() => !location.hash && document.getElementById("test-banner").hidden);
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 2\//);
+        await page.waitForFunction(() => !location.hash && document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"));
+        assert.equal(await page.isVisible("#test-banner"), false);
     },
 
     "link condiviso: l'obiettivo non può eseguire codice": async ({ page }) => {
