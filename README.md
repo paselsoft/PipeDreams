@@ -37,6 +37,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
+| `version.js` | Numero di versione; il workflow aggiunge commit e data della pubblicazione |
 | `share.js` | Livelli condivisi con un link: codifica e convalida |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |

@@ -838,3 +838,6 @@ body[data-input="terminal"] #grid-hint { display: none; }
 }
 
 #ed-share-url { display: block; color: #79c0ff; font-size: 12px; overflow-wrap: anywhere; max-height: 90px; overflow-y: auto; }
+
+.app-version { text-align: center; color: #6e7681; font-size: 12px; margin: 18px 0 4px; }
+.menu-version { margin-top: 10px; }

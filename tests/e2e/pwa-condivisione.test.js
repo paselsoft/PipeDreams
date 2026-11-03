@@ -88,6 +88,18 @@ module.exports = {
         }
     },
 
+    "versione visibile nel gioco, nel menu e nell'editor": async ({ page }) => {
+        await open(page);
+        const version = await page.evaluate(() => APP_VERSION);
+        assert.match(version, /^\d+\.\d+\.\d+$/);
+        assert.equal(await page.textContent("#app-version"), `Pipe Dreams v${version} · versione di sviluppo`);
+        await page.click("#btn-menu");
+        assert.equal(await page.isVisible(".menu-version"), true);
+        assert.match(await page.textContent(".menu-version"), new RegExp(`v${version.replace(/\./g, "\\.")}`));
+        await page.goto(fileUrl("editor.html"));
+        assert.match(await page.textContent(".app-version"), /^Pipe Dreams v/);
+    },
+
     "editor: il link del livello si apre nel gioco": async ({ page }) => {
         await open(page, { file: "editor.html" });
         await page.evaluate(() => loadFromLevel(levels[1].id));

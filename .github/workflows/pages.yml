@@ -76,6 +76,10 @@ jobs:
         run: |
           mkdir _site
           cp *.html *.css *.js *.webmanifest *.png _site/
+          # Numero di build visibile nel gioco: commit e data della pubblicazione
+          build="$(git rev-parse --short HEAD) del $(git log -1 --format=%cd --date=format:%d/%m/%Y)"
+          sed -i "s|^const APP_BUILD = \"sviluppo\";|const APP_BUILD = \"$build\";|" _site/version.js
+          grep -q "const APP_BUILD = \"$build\";" _site/version.js
 
       - uses: actions/configure-pages@v5
 

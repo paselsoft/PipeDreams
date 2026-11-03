@@ -4,7 +4,7 @@
 const CACHE = "pipedreams-v1";
 
 const FILES = [
-    "./", "index.html", "editor.html", "style.css", "editor.css", "manifest.webmanifest", "icon-192.png", "icon-512.png",
+    "./", "index.html", "version.js", "editor.html", "style.css", "editor.css", "manifest.webmanifest", "icon-192.png", "icon-512.png",
     "commands.js", "levels.js", "solver.js", "progress.js", "shell.js", "render.js", "daily.js", "story.js", "terminal.js",
     "manual.js", "command-form.js", "fx.js", "achievements.js", "marathon.js", "share.js", "app.js", "manual-view.js",
     "lab.js", "editor.js"
