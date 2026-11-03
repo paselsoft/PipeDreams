@@ -25,6 +25,14 @@
             <div id="score-display" style="color: #8b949e;">Slot: 0/4</div>
         </div>
 
+        <div class="marathon-bar" id="marathon-bar" hidden>
+            <span id="marathon-status"></span>
+            <span class="marathon-actions">
+                <button onclick="skipMarathonLevel()">⏭ Cambia (−20 s)</button>
+                <button onclick="exitMarathon()">✕ Esci</button>
+            </span>
+        </div>
+
         <div class="story-box" id="story-box" hidden>
             <span class="story-from" id="story-from"></span>
             <span id="story-text"></span>
@@ -79,7 +87,7 @@
 
         <div class="action-buttons">
             <button class="btn-hint" id="btn-menu" onclick="openMenu()">☰ LIVELLI</button>
-            <button class="btn-hint" onclick="showHint()">? AIUTO</button>
+            <button class="btn-hint" id="btn-hint" onclick="showHint()">? AIUTO 1/3</button>
             <button class="btn-hint" onclick="openManual()">📖 MANUALE</button>
             <button class="btn-run" id="btn-run" onclick="runPipeline()">ESEGUI ( ▶ )</button>
         </div>
@@ -116,6 +124,7 @@
                 <button class="menu-close" onclick="closeMenu()" aria-label="Chiudi">✕</button>
             </div>
             <button class="menu-daily" id="menu-daily" onclick="closeMenu(); loadDaily();">📅 Sfida del giorno</button>
+            <button class="menu-daily menu-marathon" id="menu-marathon" onclick="startMarathon()">🏃 Maratona</button>
             <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
@@ -171,6 +180,7 @@
     <script src="command-form.js"></script>
     <script src="fx.js"></script>
     <script src="achievements.js"></script>
+    <script src="marathon.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>

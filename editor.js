@@ -15,6 +15,7 @@ function blankDraft() {
         act: Math.max(...levels.map(lvl => lvl.act)),
         slots: SLOT_COUNT,
         mission: "Descrivi l'obiettivo. Puoi usare <code>codice</code>.",
+        nudge: "",
         hint: "",
         stdinText: "",
         commands: [{ cmd: "sort", args: defaultArgs("sort"), desc: "Riordina" }],
@@ -64,6 +65,7 @@ function buildLevel() {
         mission: draft.mission.trim(),
         stdin,
         target: result.output,
+        nudge: draft.nudge.trim(),
         hint: draft.hint.trim(),
         allowedCommands
     };
@@ -87,6 +89,7 @@ function levelToCode(level) {
         `        mission: ${q(level.mission)},`,
         `        stdin: [${level.stdin.map(formatLine).join(", ")}],`,
         `        target: [${level.target.map(q).join(", ")}],`,
+        `        nudge: ${q(level.nudge)},`,
         `        hint: ${q(level.hint)},`,
         "        allowedCommands: [",
         level.allowedCommands.map(step => `            ${formatStep(step)}`).join(",\n"),
@@ -102,6 +105,7 @@ function renderAll() {
     document.getElementById("ed-act").value = draft.act;
     document.getElementById("ed-slots").value = draft.slots;
     document.getElementById("ed-mission").value = draft.mission;
+    document.getElementById("ed-nudge").value = draft.nudge;
     document.getElementById("ed-hint").value = draft.hint;
     document.getElementById("ed-stdin").value = draft.stdinText;
     document.getElementById("ed-load").value = draft.sourceId ?? "";
@@ -284,6 +288,7 @@ function loadFromLevel(id) {
         act: lvl.act,
         slots,
         mission: lvl.mission,
+        nudge: lvl.nudge || "",
         hint: lvl.hint,
         stdinText: stdinToText(lvl.stdin),
         commands: lvl.allowedCommands.map(step => {
@@ -334,7 +339,7 @@ function loadDraft() {
     try {
         const saved = JSON.parse(localStorage.getItem(DRAFT_KEY));
         if (saved && Array.isArray(saved.commands) && saved.commands.every(c => COMMANDS[c.cmd]) && Array.isArray(saved.solution)) {
-            return saved;
+            return { nudge: "", ...saved };
         }
     } catch (e) {
         // bozza corrotta: si riparte da una vuota
@@ -365,6 +370,7 @@ function setupForm() {
     };
     bindText("ed-title", "title");
     bindText("ed-mission", "mission");
+    bindText("ed-nudge", "nudge");
     bindText("ed-hint", "hint");
     bindText("ed-stdin", "stdinText");
     document.getElementById("ed-act").oninput = event => { draft.act = Math.max(1, Number(event.target.value) || 1); refresh(); };

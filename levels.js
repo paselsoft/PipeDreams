@@ -4,6 +4,7 @@ const SLOT_COUNT = 4;
 // Una riga di stdin è una stringa (stdout) oppure { err: "testo" } (stderr).
 // Tipi speciali (vedi solver.js): type "quiz" e "debug" con start, wrong, maxChanges, explain;
 // locked blocca alcune celle su un comando.
+// nudge è il primo aiuto (dove guardare), hint il secondo (il piano).
 // allowedCommands elenca solo i comandi reali: lo slot vuoto viene aggiunto dal motore in prima posizione.
 // Dopo ogni modifica verifica i livelli con: node tools/validate-levels.js
 const levels = [
@@ -14,6 +15,7 @@ const levels = [
         mission: "Usa <code>grep</code> per isolare solo i pacchetti validi eliminando i file corrotti (<code>ERR</code>).",
         stdin: ["file1", "ERR:corrotto", "file2", "ERR:corrotto"],
         target: ["file1", "file2"],
+        nudge: "Guarda bene: le righe da eliminare hanno tutte qualcosa in comune.",
         hint: "Piano: basta un solo comando. Attenzione: grep 'ERR' tiene le righe che contengono ERR; con -v fa l'opposto e le scarta.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
@@ -27,6 +29,7 @@ const levels = [
         mission: "Pulisci il flusso rimuovendo i doppioni con <code>uniq</code> e ordinando con <code>sort</code>.",
         stdin: ["zebra", "mela", "cane", "mela"],
         target: ["cane", "mela", "zebra"],
+        nudge: "uniq vede solo i doppioni che si toccano. Le due 'mela' sono vicine?",
         hint: "Piano in 2 passi: 1) metti vicine le righe uguali (sort), 2) togli i doppioni (uniq). Attenzione: uniq elimina solo i duplicati adiacenti, e nell'input le due 'mela' non sono vicine.",
         allowedCommands: [
             { cmd: "sort", desc: "Riordina alfabeticamente" },
@@ -40,6 +43,7 @@ const levels = [
         mission: "Il programma scrive un <code>CRASH</code> su stderr, che non passa per la pipe ma sporca il terminale. Cestinalo con <code>2>/dev/null</code>, poi ottieni l'elenco ordinato, in maiuscolo e senza doppioni.",
         stdin: ["alfa", "beta", { err: "CRASH" }, "Beta", "alfa"],
         target: ["ALFA", "BETA"],
+        nudge: "Il CRASH non è una riga come le altre: è su stderr, in rosso.",
         hint: "Piano in 4 passi: 1) cestina lo stderr (2>/dev/null), 2) metti tutto in maiuscolo, 3) ordina, 4) togli i doppioni. Attenzione: 2>/dev/null vale per il comando a cui è attaccato e il CRASH nasce dal programma iniziale, quindi va per primo. E sort mette le maiuscole prima: 'Beta' e 'beta' finirebbero lontane, perciò uniforma il maiuscolo prima di ordinare.",
         allowedCommands: [
             { cmd: "devnull", desc: "Cestina lo stderr" },
@@ -55,6 +59,7 @@ const levels = [
         mission: "Ottieni i primi 2 elementi distinti in ordine alfabetico usando <code>head</code> o <code>tail</code>.",
         stdin: ["delta", "gamma", "beta", "gamma", "beta"],
         target: ["beta", "delta"],
+        nudge: "Quanti elementi diversi ci sono? E in che ordine devono essere prima di tagliare?",
         hint: "Piano in 3 passi: 1) ordina, 2) togli i doppioni, 3) tieni i primi 2 (head). Attenzione: se tagli prima di togliere i doppioni prendi due 'beta' uguali; tail prende gli ultimi, non i primi.",
         allowedCommands: [
             { cmd: "sort", desc: "Riordina" },
@@ -70,6 +75,7 @@ const levels = [
         mission: "Elimina i log di sistema (<code>WARN</code>), metti in maiuscolo, ordina e pulisci.",
         stdin: ["server2", "server1", "warn:disk", "Server2", "Server2"],
         target: ["SERVER1", "SERVER2"],
+        nudge: "grep distingue maiuscole e minuscole: come sono scritti gli avvisi nell'input?",
         hint: "Piano in 4 passi: 1) metti tutto in maiuscolo, 2) scarta i WARN, 3) ordina, 4) togli i doppioni. Attenzione: grep distingue maiuscole e minuscole: 'WARN' non trova 'warn:disk' finché il sed non lo rende maiuscolo. Anche 'Server2' e 'server2' diventano uguali solo dopo il sed.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "WARN", invert: true }, desc: "Scarta i 'WARN'" },
@@ -85,6 +91,7 @@ const levels = [
         mission: "Ti servono proprio gli errori: con <code>2>&1</code> lo stderr si unisce allo stdout ed entra nella pipe. Estrai l'elenco degli errori senza ripetizioni consecutive.",
         stdin: ["job1: ok", { err: "ERR: disco pieno" }, "job2: ok", { err: "ERR: disco pieno" }, { err: "ERR: timeout" }, "job3: ok"],
         target: ["ERR: disco pieno", "ERR: timeout"],
+        nudge: "Gli errori ti servono, ma stanno su stderr: grep da solo non li vede.",
         hint: "Piano in 3 passi: 1) porta gli errori nella pipe (2>&1), 2) tieni solo le righe con ERR, 3) togli i doppioni. Attenzione: senza 2>&1 gli errori scavalcano la pipe e grep non li vede. Fra i due 'disco pieno' c'è 'job2: ok': diventano adiacenti solo dopo il grep, quindi uniq va dopo. Non serve ordinare.",
         allowedCommands: [
             { cmd: "devnull", desc: "Cestina lo stderr" },
@@ -102,6 +109,7 @@ const levels = [
         mission: "Alcuni nodi sono andati in crash e lo segnalano su stderr. Mostra i 2 errori dei nodi con il nome più alto, in ordine decrescente e in maiuscolo. Gli slot sono solo 4: non tutti i comandi servono.",
         stdin: ["avvio ok", { err: "fatal: nodeb" }, "backup ok", { err: "FATAL: nodeC" }, "avvio ok", { err: "fatal: nodea" }],
         target: ["FATAL: NODEC", "FATAL: NODEB"],
+        nudge: "Gli errori ti servono, quindi non buttarli. E 'fatal' e 'FATAL' non si ordinano vicini.",
         hint: "Piano in 4 passi: 1) porta gli errori nella pipe (2>&1), 2) metti tutto in maiuscolo, 3) ordina in modo decrescente (sort -r), 4) tieni i primi 2. Attenzione: gli errori ti servono, quindi non cestinarli. Prima del maiuscolo 'FATAL: nodeC' e 'fatal: nodeb' finiscono lontane nell'ordinamento; dopo, in ordine decrescente le righe FATAL vengono prima di BACKUP e AVVIO.",
         allowedCommands: [
             { cmd: "devnull", desc: "Cestina lo stderr" },
@@ -121,6 +129,7 @@ const levels = [
         mission: "Quanti login ci sono stati in totale? <code>wc -l</code> conta le righe del flusso.",
         stdin: ["login mario", "logout luca", "login anna", "login mario", "logout anna", "login luca"],
         target: ["4"],
+        nudge: "'logout' contiene 'log'... ma contiene anche 'login'?",
         hint: "Piano in 2 passi: 1) tieni solo i login, 2) contali (wc -l). Attenzione: 'logout' contiene 'log' ma non 'login', quindi grep 'log' conterebbe anche le uscite. uniq non serve: vanno contati tutti i login, anche quelli ripetuti, e usarlo costa solo uno slot.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "log" }, desc: "Tieni le righe con 'log'" },
@@ -137,6 +146,7 @@ const levels = [
         mission: "Ogni riga è <code>utente:uid:shell</code>. Elenca in ordine alfabetico gli utenti che usano bash. <code>cut</code> estrae un campo.",
         stdin: ["root:0:/bin/bash", "mario2:1001:/bin/bash", "daemon:1:/usr/sbin/nologin", "mario:1000:/bin/bash", "anna:1002:/bin/zsh"],
         target: ["mario", "mario2", "root"],
+        nudge: "Dopo aver tagliato le colonne, la shell sparisce dalla riga.",
         hint: "Piano in 3 passi: 1) tieni le righe con bash, 2) estrai il nome (cut, campo 1), 3) ordina. Attenzione: dopo il cut la shell non c'è più, quindi filtra prima. E nell'ordine dei byte '2' viene prima di ':', quindi 'mario2:' precede 'mario:': ordina i nomi, non le righe intere.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "bash" }, desc: "Tieni le righe con 'bash'" },
@@ -154,6 +164,7 @@ const levels = [
         mission: "Le liste della spesa sono separate da virgole. Ottieni un frutto per riga, in ordine e senza doppioni. <code>tr</code> sostituisce i caratteri: anche con un a capo (<code>\\n</code>).",
         stdin: ["pera,mela,kiwi", "mela,uva"],
         target: ["kiwi", "mela", "pera", "uva"],
+        nudge: "Prima di ordinare i frutti, ogni frutto deve stare su una riga sua.",
         hint: "Piano in 3 passi: 1) metti un frutto per riga (tr ',' '\\n'), 2) ordina, 3) togli i doppioni. Attenzione: se ordini prima di spezzare le righe, ordini le liste, non i frutti. tr -d ',' invece incollerebbe i nomi tra loro.",
         allowedCommands: [
             { cmd: "tr", args: { from: ",", to: "\n" }, desc: "Virgola → a capo" },
@@ -172,6 +183,7 @@ const levels = [
         mission: "Sondaggio sul colore preferito: mostra i 2 colori più votati con il numero di voti, dal più votato. <code>uniq -c</code> conta le ripetizioni.",
         stdin: ["rosso", "blu", "rosso", "verde", "blu", "rosso", "giallo"],
         target: ["      3 rosso", "      2 blu"],
+        nudge: "Per contare i voti uguali, devono prima stare vicini.",
         hint: "Piano in 4 passi: 1) raggruppa i voti uguali (sort), 2) contali (uniq -c), 3) ordina dal più votato (sort -rn), 4) tieni i primi 2 (head). Attenzione: uniq -c conta solo le righe adiacenti, quindi raggruppa prima. Dopo sort -rn i più votati sono in cima: tail prenderebbe i meno votati.",
         allowedCommands: [
             { cmd: "sort", desc: "Ordine alfabetico" },
@@ -190,6 +202,7 @@ const levels = [
         mission: "Analizza l'access log (<code>ora metodo pagina esito</code>): mostra le 2 pagine più richieste con <code>GET</code>, con il numero di richieste, dalla più richiesta.",
         stdin: ["10:02 GET /home 200", "10:03 POST /login 302", "10:05 GET /prodotti 404", "10:07 GET /home 200", "10:08 POST /login 401", "10:11 GET /about 200", "10:12 POST /login 302", "10:15 GET /home 304", "10:16 GET /zaino 200", "10:20 GET /prodotti 200"],
         target: ["      3 /home", "      2 /prodotti"],
+        nudge: "Ogni riga inizia con l'orario: cosa succede se ordini le righe intere?",
         hint: "Piano in 6 passi: 1) tieni le GET, finché il metodo è ancora sulla riga, 2) estrai la pagina (cut, campo 3: ora, metodo, pagina), 3-5) la ricetta della classifica: sort, uniq -c, sort -rn, 6) tieni le prime 2. Attenzione: ordinare le righe intere le mette in ordine di orario, non di pagina: il sort va dopo il cut.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "GET" }, desc: "Tieni le righe con 'GET'" },
@@ -212,6 +225,7 @@ const levels = [
         mission: "Nel file di configurazione le password sono in chiaro: sostituiscile con <code>***</code> usando <code>sed -E 's/regex/sostituzione/'</code>, senza toccare i nomi utente.",
         stdin: ["user=mario2 pass=1234", "user=anna pass=98765", "user=luca7 pass=42"],
         target: ["user=mario2 pass=***", "user=anna pass=***", "user=luca7 pass=***"],
+        nudge: "Quale regex colpisce solo le password, e non i numeri nei nomi utente?",
         hint: "Piano: basta un solo sed. Attenzione: [0-9]+ colpisce anche i numeri nei nomi utente (mario2, luca7), e [0-9] con g trasforma ogni cifra in un asterisco separato. Scegli la sostituzione che ha 'pass=' nella regex: così cambia solo le password.",
         allowedCommands: [
             { cmd: "sed", args: { pattern: "[0-9]+", replacement: "***", global: true }, desc: "Ogni numero \u2192 ***" },
@@ -229,6 +243,7 @@ const levels = [
         mission: "Ordina i colori dal pi\u00f9 votato al meno votato, mostrando solo il nome. <code>awk '{print $2}'</code> stampa il secondo campo, separando sui gruppi di spazi.",
         stdin: ["rosso", "blu", "rosso", "verde", "blu", "rosso", "blu", "giallo", "blu"],
         target: ["blu", "rosso", "verde", "giallo"],
+        nudge: "Guarda l'output di uniq -c: quanti spazi ci sono all'inizio della riga?",
         hint: "Piano in 4 passi: 1) raggruppa i voti uguali (sort), 2) contali (uniq -c), 3) ordina dal più votato (sort -rn), 4) tieni solo il nome. Attenzione: dopo uniq -c ogni riga inizia con molti spazi ('      4 blu'): per cut ogni spazio separa un campo e il campo 2 è vuoto; awk invece salta gli spazi e il nome è il campo $2.",
         allowedCommands: [
             { cmd: "sort", desc: "Ordine alfabetico" },
@@ -246,6 +261,7 @@ const levels = [
         mission: "Metti i log in ordine cronologico e riscrivi le date come giorno/mese/anno. In <code>sed -E</code> le parentesi catturano gruppi, che riusi con <code>\\1</code>, <code>\\2</code>...",
         stdin: ["2024-03-15 backup", "2023-12-01 aggiornamento", "2024-01-20 riavvio"],
         target: ["01/12/2023 aggiornamento", "20/01/2024 riavvio", "15/03/2024 backup"],
+        nudge: "In quale dei due formati le date si ordinano già da sole?",
         hint: "Piano in 2 passi: prima ordina, poi riscrivi. Le date AAAA-MM-GG in ordine alfabetico sono già in ordine cronologico, le GG/MM/AAAA no. I tre gruppi della regex catturano anno, mese e giorno, in quest'ordine: per scrivere giorno/mese/anno la sostituzione deve essere \\3/\\2/\\1.",
         allowedCommands: [
             { cmd: "sed", args: { pattern: "([0-9]+)-([0-9]+)-([0-9]+)", replacement: "\\1/\\2/\\3" }, desc: "Riscrivi come \\1/\\2/\\3" },
@@ -261,6 +277,7 @@ const levels = [
         mission: "Crea una riga CSV con gli utenti che usano bash, in ordine alfabetico. <code>paste -sd','</code> unisce tutte le righe in una, separate da virgole.",
         stdin: ["mario2:1003:/bin/bash", "daemon:1:/usr/sbin/nologin", "anna:1001:/bin/bash", "mario:1000:/bin/bash", "www:33:/usr/sbin/nologin", "luca:1002:/bin/bash"],
         target: ["anna,luca,mario,mario2"],
+        nudge: "Ordinare le righe intere equivale a ordinare i nomi? Confronta 'mario2:' e 'mario:'.",
         hint: "Piano in 4 passi: 1) tieni solo le righe con bash, finché la shell è ancora sulla riga, 2) estrai il nome con awk -F':' (campo 1), 3) ordina i nomi, 4) uniscili in una riga con paste. Attenzione all'ordine fra 2 e 3: nell'ordine dei byte 'mario2:' viene prima di 'mario:', quindi ordinare le righe intere non dà l'ordine dei nomi.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "bash" }, desc: "Tieni le righe con 'bash'" },
@@ -279,6 +296,7 @@ const levels = [
         mission: "Dal log del server ricava una riga riassuntiva <code>pagina=richieste</code>, separate da virgole, dalla pagina pi\u00f9 richiesta alla meno richiesta.",
         stdin: ["10:02  GET  /home      200", "10:05  GET  /prodotti  404", "10:07  GET  /home      304", "10:11  GET  /about     200", "10:16  GET  /prodotti  200", "10:20  GET  /home      200"],
         target: ["home=3,prodotti=2,about=1"],
+        nudge: "Le colonne sono allineate con più spazi: quale comando li gestisce bene?",
         hint: "Piano in 6 passi: 1) estrai la pagina: le colonne sono allineate con più spazi, quindi cut non funziona e serve awk (la pagina è il campo $3); 2-4) la ricetta della classifica: sort, uniq -c, sort -rn; 5) riscrivi '3 /home' come 'home=3' con il sed che mette prima il nome (\\2) e poi il numero (\\1); 6) unisci le righe con paste.",
         allowedCommands: [
             { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
@@ -300,6 +318,7 @@ const levels = [
         mission: "La rubrica esportata dal telefono ha righe <code>cognome,nome,telefono</code>. Elenca i contatti come <code>Nome Cognome</code>, in ordine di cognome.",
         stdin: ["Verdi,Anna,333111", "# esportato dal telefono", "Bianchi,Luca,333222", "Rossi,Mario,333333"],
         target: ["Luca Bianchi", "Mario Rossi", "Anna Verdi"],
+        nudge: "Dopo il sed, la riga inizia con il nome o con il cognome?",
         hint: "Piano in 3 passi: 1) scarta la riga di commento (#), 2) ordina, 3) riscrivi ogni riga con sed. Attenzione: dopo il sed la riga inizia con il nome, quindi ordinando dopo otterresti l'ordine dei nomi (Anna, Luca, Mario). Ordina mentre il cognome è ancora in testa. Nella sostituzione \\2 è il nome e \\1 il cognome.",
         allowedCommands: [
             { cmd: "grep", args: { pattern: "#", invert: true }, desc: "Scarta le righe con '#'" },
@@ -317,6 +336,7 @@ const levels = [
         mission: "Ogni riga è <code>nome punteggio</code>. Trova il punteggio più alto.",
         stdin: ["anna 45", "bruno 300", "eva 8", "dario 120"],
         target: ["300"],
+        nudge: "Come testo, '8' viene prima o dopo '300'?",
         hint: "Piano in 3 passi: 1) estrai il punteggio (awk, campo 2), 2) ordinalo per valore numerico, 3) prendi l'ultimo. Attenzione: senza -n i numeri si ordinano come testo, e '8' finisce dopo '300'. Ordinare le righe intere invece le mette in ordine di nome.",
         allowedCommands: [
             { cmd: "awk", args: { field: 1 }, desc: "Campo 1: nome" },
@@ -335,6 +355,7 @@ const levels = [
         mission: "Quanti indirizzi email diversi ci sono? Maiuscole e spazi non contano: <code>Anna@Mail.it</code> e <code>anna@mail.it</code> con uno spazio davanti sono lo stesso indirizzo.",
         stdin: ["Anna@Mail.it", "luca@mail.it ", " anna@mail.it", "LUCA@MAIL.IT", "eva@mail.it"],
         target: ["3"],
+        nudge: "Per uniq, 'Anna@Mail.it' e ' anna@mail.it' sono righe uguali?",
         hint: "Piano in 5 passi: 1) tutto in minuscolo (tr 'A-Z' 'a-z'), 2) togli gli spazi (tr -d ' '), 3) ordina, 4) togli i doppioni, 5) conta. Attenzione: uniq confronta le righe carattere per carattere, quindi finché restano differenze di maiuscole o spazi due indirizzi uguali sembrano diversi.",
         allowedCommands: [
             { cmd: "tr", args: { from: "A-Z", to: "a-z" }, desc: "Maiuscole → minuscole" },
@@ -353,6 +374,7 @@ const levels = [
         mission: "Il server scrive gli errori su stderr, nel formato <code>ora ERR tipo</code>. Fai la classifica dei tipi di errore, dal più frequente, con il numero di volte.",
         stdin: ["10:00 avvio", { err: "10:02 ERR memoria" }, "10:03 job ok", { err: "10:05 ERR rete" }, { err: "10:06 ERR memoria" }, "10:08 job ok", { err: "10:09 ERR disco" }, { err: "10:11 ERR rete" }, { err: "10:12 ERR memoria" }, "10:15 fine"],
         target: ["      3 memoria", "      2 rete", "      1 disco"],
+        nudge: "Gli errori sono su stderr, e ogni riga inizia con l'orario.",
         hint: "Piano in 6 passi: 1) porta gli errori nella pipe (2>&1), 2) tieni le righe ERR, 3) estrai il tipo (campo 3), 4-6) la ricetta della classifica: sort, uniq -c, sort -rn. Attenzione: ogni riga inizia con l'orario, quindi ordinare le righe intere le mette in ordine di tempo: estrai il tipo prima di raggruppare.",
         allowedCommands: [
             { cmd: "devnull", desc: "Cestina lo stderr" },
@@ -374,6 +396,7 @@ const levels = [
         mission: "Le liste usano il punto e virgola. Crea un'unica riga con tutti i frutti, senza doppioni, in ordine alfabetico e separati da virgole.",
         stdin: ["pere;mele", "uva", "kiwi;pere", "mele;uva"],
         target: ["kiwi,mele,pere,uva"],
+        nudge: "Ogni frutto deve stare su una riga sua per essere ordinato; alla fine tutto torna su una riga.",
         hint: "Piano in 4 passi: 1) un frutto per riga (tr ';' '\\n'), 2) ordina, 3) togli i doppioni, 4) unisci con paste -sd','. Attenzione: tr ';' ',' cambia solo il separatore e i doppioni restano dentro le righe; dopo paste resta una riga sola, quindi sort e uniq vanno prima.",
         allowedCommands: [
             { cmd: "tr", args: { from: ";", to: "\n" }, desc: "Punto e virgola → a capo" },
@@ -392,6 +415,7 @@ const levels = [
         mission: "Dal log del server ricava le pagine che hanno risposto <code>404</code> (non trovata): senza ripetizioni, in ordine alfabetico, in un'unica riga separata da virgole. Gli avvisi su stderr non devono comparire.",
         stdin: ["10:01  GET  /home      200", { err: "WARN cache lenta" }, "10:03  GET  /vecchia   404", "10:04  GET  /prodotti  200", "10:06  GET  /foto      404", { err: "WARN 404 su /favicon.ico" }, "10:09  GET  /vecchia   404", "10:12  GET  /api       404"],
         target: ["/api,/foto,/vecchia"],
+        nudge: "Anche un avviso su stderr contiene '404'.",
         hint: "Piano in 6 passi: 1) cestina gli avvisi (2>/dev/null), 2) tieni le righe con 404, 3) estrai la pagina con awk (campo 3: le colonne sono allineate con più spazi), 4) ordina, 5) togli i doppioni, 6) unisci con paste. Attenzione: anche un avviso contiene '404': se unisci lo stderr con 2>&1, grep lo tiene.",
         allowedCommands: [
             { cmd: "devnull", desc: "Cestina lo stderr" },
@@ -414,6 +438,7 @@ const levels = [
         mission: "Tommaso chiede: cosa stampa questa pipeline? Leggi i comandi nelle celle e scegli l'output giusto tra i tre.",
         stdin: ["pera", "mela", "pera", "kiwi", "mela", "pera"],
         target: ["      3 pera"],
+        nudge: "Esegui la pipeline nella testa, un comando alla volta: cosa riceve uniq -c?",
         hint: "Simula un passo alla volta: 1) sort mette vicini i frutti uguali, 2) uniq -c li conta, 3) sort -rn mette in cima il più frequente, 4) head -n 1 tiene solo quello.",
         explain: "Il primo sort è fondamentale: senza, uniq -c vede solo righe uguali vicine e conta tutto 1.",
         allowedCommands: [
@@ -437,6 +462,7 @@ const levels = [
         mission: "Lo script di Tommaso dovrebbe elencare i server in ordine alfabetico e senza doppioni, ma sbaglia. Puoi cambiare <strong>una sola cella</strong>.",
         stdin: ["mela", "zebra", "mela", "cane", "zebra"],
         target: ["cane", "mela", "zebra"],
+        nudge: "Esegui lo script e guarda l'output: dove sono i doppioni?",
         hint: "Esegui lo script così com'è e guarda l'output: restano dei doppioni. uniq c'è già, ma lavora prima che le righe uguali siano vicine. Non puoi spostarlo: puoi solo cambiare o riempire una cella.",
         explain: "uniq prima di sort non vede i doppioni lontani: ne serviva un altro dopo il sort.",
         allowedCommands: [
@@ -456,6 +482,7 @@ const levels = [
         mission: "Il vecchio script di backup inizia sempre con <code>sort -r</code> e quella cella è bloccata. Ottieni comunque i primi 2 nomi in ordine alfabetico, in maiuscolo.",
         stdin: ["luca", "bruno", "Luca", "marco", "anna", "bruno"],
         target: ["ANNA", "BRUNO"],
+        nudge: "La cella bloccata ordina al contrario: un altro sort dopo la annulla.",
         hint: "Un sort successivo annulla quello bloccato. Attenzione: 'Luca' con la maiuscola finisce prima delle minuscole, quindi uniforma il maiuscolo prima di ordinare.",
         allowedCommands: [
             { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
@@ -474,6 +501,7 @@ const levels = [
         mission: "Tommaso chiede: quante righe conta questa pipeline? Attenzione: alcune righe sono su stderr.",
         stdin: ["avvio", { err: "ERR: disco" }, "backup ok", { err: "ERR: rete" }, { err: "ERR: disco" }],
         target: ["3"],
+        nudge: "Gli errori sono su stderr: questa pipeline li porta nella pipe?",
         hint: "2>&1 porta gli errori nella pipe; grep tiene le righe con ERR; wc -l le conta.",
         explain: "Grazie a 2>&1 le tre righe di errore entrano nella pipe e grep le può contare.",
         allowedCommands: [
@@ -496,6 +524,7 @@ const levels = [
         mission: "Lo script di monitoraggio inizia con <code>2>&1</code> e finisce con <code>wc -l</code>, e quelle celle non si toccano. Usalo per contare i <strong>tipi</strong> di errore diversi.",
         stdin: ["10:01 avvio", { err: "10:02 ERR rete" }, "10:03 ok", { err: "10:05 ERR disco" }, "10:06 ok", { err: "10:07 ERR rete" }, "10:08 ok", { err: "10:09 ERR rete" }],
         target: ["2"],
+        nudge: "Tra le due celle bloccate devi contare i tipi di errore, non le righe.",
         hint: "Tra le due celle bloccate: tieni le righe ERR, estrai il tipo (campo 3), ordina, togli i doppioni. Attenzione: non aggiungere 2>/dev/null dopo 2>&1, perché vince l'ultimo reindirizzamento.",
         allowedCommands: [
             { cmd: "merge", desc: "Unisci stderr a stdout" },
@@ -517,6 +546,7 @@ const levels = [
         mission: "Lo script di Tommaso per la classifica degli errori va in produzione stasera, ma non stampa niente. Trova il bug: puoi cambiare <strong>una sola cella</strong>.",
         stdin: ["10:00 avvio", { err: "10:02 ERR memoria" }, "10:03 job ok", { err: "10:05 ERR rete" }, { err: "10:06 ERR memoria" }, { err: "10:12 ERR memoria" }, "10:15 fine"],
         target: ["      3 memoria", "      1 rete"],
+        nudge: "Esegui lo script: dove finiscono gli errori?",
         hint: "Esegui lo script e guarda dove finiscono gli errori: sul terminale, invece che nella pipe. È il primo comando a decidere la sorte dello stderr.",
         explain: "2>/dev/null buttava via proprio gli errori da contare: serviva 2>&1 per portarli nella pipe.",
         allowedCommands: [

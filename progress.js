@@ -5,9 +5,9 @@ const PROGRESS_KEY = "pipedreams.progress.v1";
 
 // seenActs: atti di cui è già stata mostrata l'introduzione; stats e achievements: obiettivi;
 // daily: risultati della sfida del giorno, per data (AAAA-MM-GG); terminal: livelli risolti
-// in modalità terminale
+// in modalità terminale; marathon: record e partite della Maratona
 function emptyProgress() {
-    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {} };
+    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {}, marathon: {} };
 }
 
 const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -24,7 +24,8 @@ function loadProgress() {
                 stats: isPlainObject(data.stats) ? data.stats : {},
                 achievements: isPlainObject(data.achievements) ? data.achievements : {},
                 daily: isPlainObject(data.daily) ? data.daily : {},
-                terminal: isPlainObject(data.terminal) ? data.terminal : {}
+                terminal: isPlainObject(data.terminal) ? data.terminal : {},
+                marathon: isPlainObject(data.marathon) ? data.marathon : {}
             };
         }
     } catch (e) {

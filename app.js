@@ -36,6 +36,7 @@ if (typeof settings.crt !== "boolean") settings.crt = false;
 const currentLevel = () => dailyLevel || levels[currentLevelIndex];
 
 function loadLevel(index) {
+    stopMarathon();
     dailyLevel = null;
     currentLevelIndex = index;
     progress.lastLevel = index;
@@ -50,6 +51,7 @@ function loadLevel(index) {
 }
 
 function loadDaily() {
+    stopMarathon();
     const key = dateKey();
     dailyLevel = generateDaily(key);
     showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
@@ -101,6 +103,7 @@ function showLevel(lvl, titleText) {
     document.getElementById("console").innerHTML = "";
     document.getElementById("terminal-input").value = "";
     applyInputMode();
+    updateHintButton();
 }
 
 // Crea una cella per ogni slot del livello
@@ -202,7 +205,7 @@ function currentSteps() {
 // --- Modalità terminale: si sblocca per i livelli "componi" di un atto completato ---
 const terminalText = () => document.getElementById("terminal-input").value;
 const actCompleted = act => levels.filter(lvl => lvl.act === act).every(lvl => progress.levels[lvl.id]);
-const terminalAvailable = lvl => !TEST_MODE && !lvl.daily && !lvl.type && !lvl.locked && actCompleted(lvl.act);
+const terminalAvailable = lvl => !TEST_MODE && lvl.act > 0 && !lvl.type && !lvl.locked && actCompleted(lvl.act);
 const terminalActive = () => settings.inputMode === "terminal" && terminalAvailable(currentLevel());
 
 function setInputMode(mode) {
@@ -219,7 +222,7 @@ function setInputMode(mode) {
 
 function applyInputMode() {
     const lvl = currentLevel();
-    const offer = !TEST_MODE && !lvl.daily && !lvl.type && !lvl.locked;
+    const offer = !TEST_MODE && lvl.act > 0 && !lvl.type && !lvl.locked;
     const terminal = terminalActive();
     document.getElementById("mode-toggle").hidden = !offer;
     document.body.dataset.input = terminal ? "terminal" : "cells";
@@ -388,6 +391,7 @@ function renderQuiz(lvl) {
         chips.className = "chips";
         renderChips(chips, answer.output.map(text => ({ text, fd: 1 })));
         button.append(letter, chips);
+        button.dataset.correct = String(answer.correct);
         button.onclick = () => chooseAnswer(answer, button);
         box.appendChild(button);
     });
@@ -435,15 +439,82 @@ function renderDiff(output, target, terminal) {
         terminal.length ? `⚠ Finito sul terminale (stderr): ${terminal.join(", ")}` : "";
 }
 
+// --- Aiuti progressivi: 1) spinta (gratis), 2) piano (massimo ★★), 3) una cella (massimo ★) ---
+const HINT_STEPS = [
+    { label: "SPINTA", cap: 3 },
+    { label: "PIANO", cap: 2 },
+    { label: "UNA CELLA", cap: 1 }
+];
+
+// Massimo di stelle ancora ottenibili dopo gli aiuti chiesti
+const hintStarCap = () => levelSession.hintTier ? HINT_STEPS[levelSession.hintTier - 1].cap : 3;
+
+function updateHintButton() {
+    const tier = Math.min(levelSession.hintTier + 1, HINT_STEPS.length);
+    document.getElementById("btn-hint").textContent = `? AIUTO ${tier}/${HINT_STEPS.length}`;
+}
+
 function showHint() {
     const lvl = currentLevel();
-    let consoleBox = document.getElementById("console");
-    consoleBox.innerHTML = "";
-    logToConsole(`> [SUGGERIMENTO] ${lvl.hint}`, "log-hint");
+    if (levelSession.hintTier < HINT_STEPS.length) levelSession.hintTier++;
     levelSession.hintUsed = true;
     bumpStat("hints");
-    // Gli indizi lunghi superano l'altezza della console: si legge dall'inizio
+    const consoleBox = document.getElementById("console");
+    consoleBox.innerHTML = "";
+    const tier = levelSession.hintTier;
+    if (tier >= 1) logToConsole(`> [AIUTO 1 · SPINTA] ${lvl.nudge || lvl.hint}`, "log-hint");
+    if (tier >= 2) logToConsole(`> [AIUTO 2 · PIANO] ${lvl.hint}`, "log-hint");
+    if (tier >= 3) logToConsole(`> [AIUTO 3 · UNA CELLA] ${revealHint(lvl)}`, "log-hint");
+    if (tier < HINT_STEPS.length) {
+        const next = HINT_STEPS[tier];
+        logToConsole(next.cap < 3
+            ? `> Il prossimo aiuto (${next.label.toLowerCase()}) limita le stelle a ${starString(next.cap)}.`
+            : `> Premi ancora AIUTO per il prossimo aiuto.`, "log-step");
+    }
+    updateHintButton();
+    // Gli aiuti lunghi superano l'altezza della console: si legge dall'inizio
     consoleBox.scrollTop = 0;
+}
+
+// Terzo aiuto: rivela un pezzo della soluzione calcolata dal solver, a seconda del tipo di livello
+function revealHint(lvl) {
+    if (lvl.type === "quiz") {
+        const wrong = [...document.querySelectorAll(".quiz-answer")].find(button => !button.disabled && button.dataset.correct === "false");
+        if (wrong) {
+            wrong.disabled = true;
+            wrong.classList.add("wrong");
+            return "Ho eliminato una risposta sbagliata.";
+        }
+        return "Restano solo risposte possibili: scegli quella giusta.";
+    }
+    if (lvl.type === "debug") {
+        const fix = debugFixes(lvl)[0];
+        return `La cella da cambiare è la numero ${fix.cell + 1}.`;
+    }
+    const solution = referenceSolution(lvl).filter(step => step.cmd !== null);
+    if (terminalActive()) {
+        const typed = currentSteps();
+        const k = solution.findIndex((step, i) => !typed[i] || stepLabel(typed[i]) !== stepLabel(step));
+        return k === -1 ? "La tua pipeline coincide già con la soluzione: premi Invio."
+            : `Il comando numero ${k + 1} della soluzione è: ${stepLabel(solution[k])}`;
+    }
+    const options = slotOptions(lvl);
+    // Griglia della soluzione: per le celle bloccate quella del solver, altrimenti i comandi dalla prima cella
+    const solutionGrid = lvl.locked ? solveLocked(lvl).grids[0]
+        : Array.from({ length: gridState.length }, (_, i) => solution[i] ? options.indexOf(solution[i]) : 0);
+    if (!lvl.locked) {
+        // I comandi del giocatore si compattano verso sinistra, così il confronto è cella per cella
+        const placed = gridState.filter(choice => choice !== 0);
+        gridState = Array.from({ length: gridState.length }, (_, i) => placed[i] ?? 0);
+    }
+    const cell = gridState.findIndex((choice, i) => choice !== solutionGrid[i]);
+    if (cell === -1) return "Le celle coincidono già con la soluzione: premi ESEGUI.";
+    gridState[cell] = solutionGrid[cell];
+    buildGrid();
+    document.getElementById(`c${cell}`).classList.add("revealed");
+    updateShellLine();
+    updateSlotCounter();
+    return `Cella ${cell + 1}: ${stepLabel(options[solutionGrid[cell]])}.`;
 }
 
 function describeLines(lines) {
@@ -521,6 +592,8 @@ function showResult(lvl, result) {
 
     if (isSolved(lvl, result) && lvl.daily) {
         finishDaily(lvl, usedSlots());
+    } else if (isSolved(lvl, result) && lvl.marathon) {
+        marathonSolved(lvl);
     } else if (isSolved(lvl, result)) {
         completeLevel(lvl);
     } else {
@@ -545,11 +618,12 @@ function completeLevel(lvl) {
     }
     const special = isSpecialLevel(lvl);
     const score = special ? levelSession.attempts : usedSlots();
-    const stars = special ? starsByAttempts(score) : computeStars(score, currentSolution.par);
+    const stars = Math.min(hintStarCap(), special ? starsByAttempts(score) : computeStars(score, currentSolution.par));
     const isRecord = recordResult(progress, lvl.id, stars, score);
     persistProgress();
     checkWinAchievements(currentLevelIndex, currentSolution.par);
     logToConsole(`> ${special ? attemptsRating(stars, score) : rating(stars, score)}${isRecord ? " · Nuovo record!" : ""}`, "log-success");
+    if (hintStarCap() < 3) logToConsole(`> Con gli aiuti usati il massimo era ${starString(hintStarCap())}.`, "log-step");
     if (lvl.explain) logToConsole(`> 💡 ${lvl.explain}`, "log-hint");
     if (!wasCompleted && actCompleted(lvl.act) && !TEST_MODE) {
         showToast(`⌨️ Modalità terminale sbloccata per l'Atto ${ROMAN[lvl.act] || lvl.act}!`);
@@ -592,14 +666,15 @@ function commandCount(n) {
 function rating(stars, used) {
     const par = currentSolution.par;
     const count = commandCount(used);
-    if (stars === 3) return `${starString(stars)} Soluzione ottimale (${count}, par ${par})`;
+    // "Ottimale" dipende dal par, non dalle stelle: gli aiuti possono limitarle anche a una soluzione ottimale
+    if (used <= par) return `${starString(stars)} Soluzione ottimale (${count}, par ${par})`;
     return `${starString(stars)} ${count} (par ${par})`;
 }
 
 // Sfida del giorno vinta: salva il risultato migliore e mostra il riepilogo da condividere
 function finishDaily(lvl, used) {
     const par = currentSolution.par;
-    const stars = computeStars(used, par);
+    const stars = Math.min(hintStarCap(), computeStars(used, par));
     const seconds = Math.round((Date.now() - levelSession.start) / 1000);
     const key = lvl.daily.key;
     const previous = progress.daily[key];
@@ -694,6 +769,7 @@ function renderDailyButton() {
 
 function renderMenu() {
     renderDailyButton();
+    document.getElementById("menu-marathon").textContent = `🏃 Maratona` + (progress.marathon.best ? ` · record ${progress.marathon.best}` : "");
     document.getElementById("menu-total").innerText =
         `Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`;
     const list = document.getElementById("menu-list");
@@ -794,3 +870,4 @@ applyCrt();
 // index.html?sfida apre direttamente la sfida del giorno (è il link del risultato condiviso)
 if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
 else loadLevel(TEST_MODE ? 0 : startLevelIndex());
+if (!TEST_MODE && new URLSearchParams(location.search).has("maratona")) startMarathon();

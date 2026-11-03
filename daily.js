@@ -76,6 +76,7 @@ const RECIPES = {
             title: "Pulizia", from: "Marco",
             story: `Il server di stanotte ha lasciato righe ${mark} ovunque. Dammi l'elenco pulito.`,
             mission: `Scarta le righe che contengono <code>${mark}</code> e ottieni l'elenco ordinato, senza doppioni.`,
+            nudge: `Le righe con ${mark} vanno scartate, e uniq vede solo i doppioni vicini.`,
             hint: `Piano in 3 passi: 1) scarta le righe con ${mark} (grep -v), 2) ordina, 3) togli i doppioni. Attenzione: uniq vede solo le righe uguali vicine.`,
             stdin: shuffled(rng, [...repeatAndShuffle(rng, counts), ...noise]),
             steps: [C.grep(mark, true), C.sort, C.uniq],
@@ -90,6 +91,7 @@ const RECIPES = {
             title: "I Primi della Lista", from: "Marco",
             story: `Al mercato ordiniamo solo i primi ${n} frutti dell'elenco, in ordine alfabetico.`,
             mission: `Trova i primi <code>${n}</code> frutti distinti in ordine alfabetico.`,
+            nudge: "Prima di tagliare, togli i doppioni.",
             hint: `Piano in 3 passi: 1) ordina, 2) togli i doppioni, 3) tieni i primi ${n}. Attenzione: se tagli prima di togliere i doppioni, prendi frutti uguali.`,
             stdin: repeatAndShuffle(rng, counts),
             steps: [C.sort, C.uniq, C.head(n)],
@@ -108,6 +110,7 @@ const RECIPES = {
             title: "Chi è Entrato", from: "Giulia",
             story: "Audit di sicurezza: quante persone diverse hanno fatto login oggi?",
             mission: "Conta gli utenti <strong>diversi</strong> che hanno fatto login. Le uscite non contano, e chi è entrato più volte conta una volta sola.",
+            nudge: "'logout' non contiene 'login'; e chi è entrato due volte conta una volta.",
             hint: "Piano in 4 passi: 1) tieni i login, 2) ordina, 3) togli i doppioni, 4) conta. Attenzione: 'logout' non contiene 'login'.",
             stdin: shuffled(rng, lines),
             steps: [C.grep("login"), C.sort, C.uniq, C.wc],
@@ -122,6 +125,7 @@ const RECIPES = {
             title: "Reparti", from: "Giulia",
             story: "Sto rifacendo l'organigramma: quali reparti abbiamo, in ordine alfabetico?",
             mission: "Ogni riga è <code>nome:reparto:città</code>. Elenca i reparti, in ordine alfabetico e senza ripetizioni.",
+            nudge: "Il reparto è il secondo campo della riga, separato da ':'.",
             hint: "Piano in 3 passi: 1) estrai il reparto (cut, campo 2), 2) ordina, 3) togli i doppioni. Attenzione: ordinando le righe intere le metteresti in ordine di nome.",
             stdin: shuffled(rng, lines),
             steps: [C.cut(":", 2), C.sort, C.uniq],
@@ -135,6 +139,7 @@ const RECIPES = {
             title: "Il Record", from: "Marco",
             story: "Torneo di ping pong in pausa pranzo: qual è il punteggio più alto?",
             mission: "Ogni riga è <code>nome punti</code>. Trova il punteggio più alto.",
+            nudge: "Come testo, i numeri non si ordinano per valore.",
             hint: "Piano in 3 passi: 1) estrai i punti (awk, campo 2), 2) ordinali per valore numerico, 3) prendi l'ultimo. Attenzione: senza -n i numeri si ordinano come testo.",
             stdin: players.map((name, i) => `${name} ${points[i]}`),
             steps: [C.awk(2), C.sortN, C.tail(1)],
@@ -149,6 +154,7 @@ const RECIPES = {
             title: "Maiuscole Ribelli", from: "Giulia",
             story: "Ognuno ha scritto il proprio nome a modo suo. Mi serve l'elenco uniforme, in maiuscolo.",
             mission: "Ottieni l'elenco dei nomi in maiuscolo, ordinato e senza ripetizioni: <code>Anna</code> e <code>ANNA</code> sono la stessa persona.",
+            nudge: "Per uniq 'Anna' e 'ANNA' sono diverse finché non le uniformi.",
             hint: "Piano in 3 passi: 1) tutto in maiuscolo (tr 'a-z' 'A-Z'), 2) ordina, 3) togli i doppioni. Attenzione: prima di uniformare, 'Anna' e 'ANNA' sono righe diverse.",
             stdin: shuffled(rng, lines),
             steps: [C.tr("a-z", "A-Z", "Minuscole → maiuscole"), C.sort, C.uniq],
@@ -163,6 +169,7 @@ const RECIPES = {
             title: "Sondaggio Lampo", from: "Giulia",
             story: `Nuovo sondaggio sul colore delle tazze aziendali: mi servono i ${n} più votati, con i voti.`,
             mission: `Mostra i <code>${n}</code> colori più votati con il numero di voti, dal più votato.`,
+            nudge: "Per contare i voti uguali, devono prima stare vicini.",
             hint: `Piano in 4 passi: 1) raggruppa i voti (sort), 2) contali (uniq -c), 3) ordina dal più votato (sort -rn), 4) tieni i primi ${n}. Attenzione: tail prenderebbe i meno votati.`,
             stdin: repeatAndShuffle(rng, counts),
             steps: [C.sort, C.uniqC, C.sortRN, C.head(n)],
@@ -177,6 +184,7 @@ const RECIPES = {
             title: "La Spesa", from: "Marco",
             story: "Le liste della spesa dell'ufficio sono un disastro. Facciamone una sola.",
             mission: "Le liste usano il punto e virgola. Crea un'unica riga con tutti i frutti, senza doppioni, in ordine alfabetico e separati da virgole.",
+            nudge: "Ogni frutto deve stare su una riga sua per essere ordinato.",
             hint: "Piano in 4 passi: 1) un frutto per riga (tr ';' '\\n'), 2) ordina, 3) togli i doppioni, 4) unisci con paste. Attenzione: dopo paste resta una riga sola.",
             stdin: lists,
             steps: [C.tr(";", "\n", "Punto e virgola → a capo"), C.sort, C.uniq, C.paste(",")],
@@ -195,6 +203,7 @@ const RECIPES = {
             title: "Diagnosi", from: "Giulia",
             story: "🚨 Il server è instabile. Quali errori scrive su stderr, e quanto spesso?",
             mission: "Gli errori sono su stderr nel formato <code>ora ERR tipo</code>. Fai la classifica dei tipi di errore con il numero di volte, dal più frequente.",
+            nudge: "Gli errori sono su stderr, e ogni riga inizia con l'orario.",
             hint: "Piano in 6 passi: 1) porta gli errori nella pipe (2>&1), 2) tieni le righe ERR, 3) estrai il tipo (campo 3), 4-6) sort, uniq -c, sort -rn. Attenzione: le righe iniziano con l'orario.",
             stdin: shuffled(rng, lines),
             steps: [C.merge, C.grep("ERR"), C.cut(" ", 3), C.sort, C.uniqC, C.sortRN],
@@ -218,6 +227,7 @@ const RECIPES = {
             title: "Pagine Rotte", from: "Giulia",
             story: `🚨 Alcune pagine rispondono ${code}. Agli sviluppatori serve l'elenco, in una riga.`,
             mission: `Ricava le pagine che hanno risposto <code>${code}</code>: senza ripetizioni, in ordine alfabetico, in un'unica riga separata da virgole. Gli avvisi su stderr non devono comparire.`,
+            nudge: `Anche un avviso su stderr contiene ${code}.`,
             hint: `Piano in 6 passi: 1) cestina gli avvisi (2>/dev/null), 2) tieni le righe con ${code}, 3) estrai la pagina con awk (campo 3), 4) ordina, 5) togli i doppioni, 6) unisci con paste. Attenzione: un avviso contiene ${code}.`,
             stdin: shuffled(rng, lines),
             steps: [C.devnull, C.grep(code), C.awk(3), C.sort, C.uniq, C.paste(",")],
@@ -240,20 +250,21 @@ const DAILY_POOLS = [
 
 // Un candidato è accettato se la soluzione della ricetta è anche quella ottimale (niente scorciatoie)
 // e le soluzioni ottimali sono al più 3 (es. un filtro che può stare in più punti)
-function buildCandidate(recipe, rng, key, difficulty) {
+// identity: campi che distinguono il livello generato (id e, per la sfida, il campo daily)
+function buildCandidate(recipe, rng, identity) {
     const data = recipe(rng);
     const result = executePipeline(data.stdin, data.steps);
     if (result.stderr.length || result.output.length === 0) return null;
     if (streamsEqual(result.output, normalizeInput(data.stdin).map(line => line.text))) return null;
     const level = {
-        id: `sfida-${key}`,
+        ...identity,
         act: 0,
-        daily: { key, difficulty },
         title: data.title,
         story: { from: data.from, text: data.story },
         mission: data.mission,
         stdin: data.stdin,
         target: result.output,
+        nudge: data.nudge,
         hint: data.hint,
         allowedCommands: shuffled(rng, [...data.steps, ...data.distractors])
     };
@@ -263,20 +274,36 @@ function buildCandidate(recipe, rng, key, difficulty) {
     return level;
 }
 
-function generateDaily(key) {
-    const rng = seededRandom(`pipedreams:${key}`);
-    const [year, month, day] = key.split("-").map(Number);
-    const pool = DAILY_POOLS[new Date(year, month - 1, day).getDay()];
+// Genera un livello da una delle ricette indicate, in modo deterministico rispetto al seme
+function generateFromRecipes(seed, recipeNames, identity) {
+    const rng = seededRandom(seed);
     for (let attempt = 0; attempt < 200; attempt++) {
-        const name = pick(rng, pool.recipes);
-        const level = buildCandidate(RECIPES[name], rng, key, pool.label);
+        const level = buildCandidate(RECIPES[pick(rng, recipeNames)], rng, identity);
         if (level) return level;
     }
     // Non dovrebbe mai servire: la ricetta più semplice trova sempre un candidato valido
     for (;;) {
-        const level = buildCandidate(RECIPES.primi, rng, key, "facile");
+        const level = buildCandidate(RECIPES.primi, rng, identity);
         if (level) return level;
     }
+}
+
+function generateDaily(key) {
+    const [year, month, day] = key.split("-").map(Number);
+    const pool = DAILY_POOLS[new Date(year, month - 1, day).getDay()];
+    return generateFromRecipes(`pipedreams:${key}`, pool.recipes, { id: `sfida-${key}`, daily: { key, difficulty: pool.label } });
+}
+
+// Ricette per difficoltà, usate dalla Maratona
+const RECIPES_BY_DIFFICULTY = {
+    facile: ["pulizia", "primi"],
+    media: ["accessi", "reparti", "punteggio", "maiuscole"],
+    difficile: ["classifica", "spesa", "errori", "pagine"]
+};
+
+function generateMarathonLevel(seed, round, difficulty) {
+    return generateFromRecipes(`maratona:${seed}:${round}`, RECIPES_BY_DIFFICULTY[difficulty],
+        { id: `maratona-${seed}-${round}`, marathon: { round, difficulty } });
 }
 
 // Giorni consecutivi risolti, contando all'indietro da oggi (o da ieri, se oggi non è ancora risolta)

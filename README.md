@@ -10,7 +10,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - la simulazione segue GNU coreutils e bash: per ogni pipeline il gioco mostra la riga di shell
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
-- una storia in 5 atti, 12 obiettivi e una **sfida del giorno** generata automaticamente
+- una storia in 5 atti, obiettivi, una **sfida del giorno** e la **Maratona** contro il tempo
+- aiuti progressivi: spinta, piano e una cella rivelata, con le stelle che scendono
 - modalità terminale: finito un atto, i suoi livelli si risolvono anche scrivendo la pipeline
 - dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
 - i progressi restano salvati nel browser (`localStorage`)
@@ -27,7 +28,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `terminal.js` | Modalità terminale: interprete della pipeline scritta come in bash |
 | `fx.js` | Effetti: dati che scorrono, suoni Web Audio, coriandoli, schermo CRT |
 | `achievements.js` | Obiettivi, statistiche e notifiche |
-| `daily.js` | Sfida del giorno: generatore deterministico basato sulla data |
+| `daily.js` | Sfida del giorno e livelli della Maratona: generatore deterministico |
+| `marathon.js` | Maratona: livelli generati contro il tempo |
 | `story.js` | Storia: introduzioni degli atti, messaggi dei personaggi, epilogo |
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |

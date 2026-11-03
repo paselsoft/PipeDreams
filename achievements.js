@@ -13,6 +13,7 @@ const ACHIEVEMENTS = [
     { id: "scienziato", icon: "🧪", title: "Scienziato", desc: "Porta la pipeline di un livello nel laboratorio." },
     { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." },
     { id: "terminalista", icon: "⌨️", title: "Terminalista", desc: "Risolvi un livello in modalità terminale, scrivendo la pipeline." },
+    { id: "maratoneta", icon: "🏃", title: "Maratoneta", desc: "Risolvi 5 livelli in una sola Maratona." },
     { id: "abitudinario", icon: "📅", title: "Abitudinario", desc: "Risolvi la sfida del giorno." },
     { id: "serie", icon: "🔥", title: "In serie", desc: "Risolvi la sfida del giorno 3 giorni di fila." }
 ];
@@ -27,10 +28,11 @@ const STAT_LABELS = [
 ];
 
 // Stato del livello in corso, azzerato a ogni caricamento
-let levelSession = { attempts: 0, hintUsed: false, start: Date.now() };
+// hintTier: quanti aiuti progressivi sono stati chiesti (0-3)
+let levelSession = { attempts: 0, hintUsed: false, hintTier: 0, start: Date.now() };
 
 function startLevelSession() {
-    levelSession = { attempts: 0, hintUsed: false, start: Date.now() };
+    levelSession = { attempts: 0, hintUsed: false, hintTier: 0, start: Date.now() };
 }
 
 function bumpStat(key) {
@@ -115,6 +117,7 @@ function openAchievements() {
         ["Obiettivi", `${unlocked}/${ACHIEVEMENTS.length}`],
         ["Sfide del giorno risolte", String(Object.keys(progress.daily).length)],
         ["Serie attuale", `${dailyStreak(progress.daily)} giorni`],
+        ["Record Maratona", `${progress.marathon.best || 0} livelli`],
         ...STAT_LABELS.map(([key, label]) => [label, String(progress.stats[key] || 0)]),
         ["Schede del manuale lette", String((progress.stats.manualRead || []).length)]
     ];

@@ -1,5 +1,5 @@
-// Verifica la sfida del giorno su un intervallo di date: ogni giorno genera un livello
-// deterministico, senza scorciatoie, la cui soluzione dà in bash lo stdout atteso.
+// Verifica la sfida del giorno su un intervallo di date (e un campione di livelli della Maratona):
+// ogni livello è deterministico, senza scorciatoie, e la sua soluzione dà in bash lo stdout atteso.
 // Uso: node tools/check-daily.js [giorni=366] [data iniziale AAAA-MM-GG, predefinita oggi]
 const fs = require("fs");
 const path = require("path");
@@ -63,6 +63,29 @@ for (let i = 0; i < days; i++, key = nextKey(key)) {
     }
 }
 
+// Livelli della Maratona: stesse ricette, semi casuali, ogni difficoltà
+const checkMarathon = vm.runInContext(`(seed, round, difficulty) => {
+    const level = generateMarathonLevel(seed, round, difficulty);
+    const again = generateMarathonLevel(seed, round, difficulty);
+    const solution = solveLevel(level);
+    const steps = solution.optimal[0].split(" | ").map(label => level.allowedCommands.find(o => stepLabel(o) === label));
+    return { deterministic: JSON.stringify(level) === JSON.stringify(again), par: solution.par, slots: levelSlots(level),
+             line: buildShellLine(level.stdin, steps), target: level.target, title: level.title };
+}`, context);
+let marathonChecked = 0;
+for (let game = 0; game < 60; game++) {
+    for (const difficulty of ["facile", "media", "difficile"]) {
+        const r = checkMarathon(`verifica${game}`, game, difficulty);
+        const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
+        marathonChecked++;
+        if (!r.deterministic || r.par > r.slots || JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) {
+            failures++;
+            console.log(`maratona ${game} ${difficulty} ${r.title}: non valido\n  ${r.line}`);
+        }
+    }
+}
+console.log(`${marathonChecked} livelli della Maratona controllati`);
+
 console.table(recipes);
-console.log(`${days - failures}/${days} sfide valide dal ${start} (generazione più lenta: ${slowest} ms)`);
+console.log(`${days + marathonChecked - failures}/${days + marathonChecked} livelli generati validi: ${days} sfide dal ${start} (generazione più lenta: ${slowest} ms) e ${marathonChecked} della Maratona`);
 if (failures) process.exit(1);

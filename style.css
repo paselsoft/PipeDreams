@@ -107,7 +107,8 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
 /* Tre pulsanti secondari in riga, ESEGUI a tutta larghezza sotto */
 .action-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* minmax(0, ...): le colonne restano uguali anche se un'etichetta è lunga */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 12px;
 }
@@ -796,4 +797,42 @@ body[data-input="terminal"] #grid-hint { display: none; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
     cursor: pointer;
+}
+
+/* Cella rivelata dal terzo aiuto */
+.cell.revealed { border-color: #e3b341; box-shadow: 0 0 10px #e3b341; }
+
+/* Maratona */
+.menu-marathon { background: #2b2111; border-color: #9e6a03; color: #e3b341; }
+.marathon-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: #2b2111;
+    border: 1px solid #e3b341;
+    color: #e3b341;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: bold;
+}
+.marathon-bar[hidden] { display: none; }
+.marathon-bar.hurry { border-color: #f85149; color: #f85149; background: #2d1215; }
+.marathon-actions { display: flex; gap: 6px; }
+.marathon-actions button {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+@media (max-width: 360px) {
+    .btn-hint { font-size: 12px; padding: 12px 2px; }
 }
