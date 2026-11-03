@@ -836,3 +836,5 @@ body[data-input="terminal"] #grid-hint { display: none; }
 @media (max-width: 360px) {
     .btn-hint { font-size: 12px; padding: 12px 2px; }
 }
+
+#ed-share-url { display: block; color: #79c0ff; font-size: 12px; overflow-wrap: anywhere; max-height: 90px; overflow-y: auto; }

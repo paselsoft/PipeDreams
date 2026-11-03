@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0d1117">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230d1117'/><text x='50' y='70' font-size='62' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2300ff66'>|</text></svg>">
     <title>Pipe Dreams - Editor livelli</title>
+    <link rel="manifest" href="manifest.webmanifest">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="editor.css">
 </head>
@@ -88,6 +89,13 @@
             </div>
             <div class="shell-box">
                 <div class="shell-header">
+                    <span>🔗 Link per far giocare il livello</span>
+                    <button class="btn-copy" id="ed-share" onclick="copyShareLink()">COPIA LINK</button>
+                </div>
+                <code id="ed-share-url"></code>
+            </div>
+            <div class="shell-box">
+                <div class="shell-header">
                     <span>Codice da incollare in levels.js</span>
                     <button class="btn-copy" id="ed-copy" onclick="copyCode()">COPIA</button>
                 </div>
@@ -104,6 +112,7 @@
     <script src="shell.js"></script>
     <script src="render.js"></script>
     <script src="command-form.js"></script>
+    <script src="share.js"></script>
     <script src="editor.js"></script>
 </body>
 </html>

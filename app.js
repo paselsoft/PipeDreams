@@ -23,7 +23,9 @@ let currentSolution = null;
 let dailyLevel = null;
 let progress = loadProgress();
 // index.html?test: gioca il livello di prova dell'editor senza toccare i progressi salvati
-const TEST_MODE = new URLSearchParams(location.search).has("test");
+// index.html#livello=...: un livello condiviso con un link, giocato senza toccare i progressi
+const sharedLink = sharedLevelFromHash(location.hash);
+const TEST_MODE = new URLSearchParams(location.search).has("test") || Boolean(sharedLink && sharedLink.level);
 let settings = loadSettings();
 // Senza una scelta salvata, chi ha chiesto al sistema di ridurre il movimento parte senza animazione
 if (!SPEEDS[settings.speed]) {
@@ -89,7 +91,9 @@ function showLevel(lvl, titleText) {
     currentSolution = analyzeLevel(lvl);
     startLevelSession();
     document.getElementById("level-title").innerText = titleText;
-    document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${lvl.mission}`;
+    // L'obiettivo dei livelli condivisi o di prova ammette solo tag semplici: può arrivare da chiunque
+    const mission = TEST_MODE ? safeMissionHtml(lvl.mission) : lvl.mission;
+    document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     // Nel quiz lo stdout è proprio la domanda
     renderChips(document.getElementById("txt-target"), lvl.type === "quiz" ? [{ text: "?", fd: 1 }] : lvl.target.map(text => ({ text, fd: 1 })));
@@ -842,15 +846,26 @@ console.table(levelReport);
 levelReport.filter(r => r.avvisi.includes("IRRISOLVIBILE")).forEach(r => console.error(`Livello ${r.livello}: ${r.avvisi}`));
 
 if (TEST_MODE) {
-    const testLevel = loadTestLevel();
+    const testLevel = sharedLink && sharedLink.level ? sharedLink.level : loadTestLevel();
     document.getElementById("test-banner").hidden = false;
     document.getElementById("btn-menu").hidden = true;
     progress = emptyProgress();
+    if (sharedLink && sharedLink.level) {
+        document.getElementById("test-banner-text").innerText = "🔗 LIVELLO CONDIVISO: giocalo quante volte vuoi, i tuoi progressi non cambiano.";
+        const link = document.getElementById("test-banner-link");
+        link.href = location.pathname;
+        link.textContent = "Gioca la campagna →";
+    }
     if (testLevel) {
         levels.splice(0, levels.length, testLevel);
     } else {
         document.getElementById("test-banner-text").innerText = "Nessun livello di prova valido: torna all'editor e premi PROVA NEL GIOCO.";
     }
+}
+
+// Gioco installabile e offline (solo da http/https, non aprendo il file dal disco)
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
 document.querySelectorAll("#speed-control button").forEach(button => {
@@ -871,3 +886,4 @@ applyCrt();
 if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
 else loadLevel(TEST_MODE ? 0 : startLevelIndex());
 if (!TEST_MODE && new URLSearchParams(location.search).has("maratona")) startMarathon();
+if (sharedLink && sharedLink.error) showToast(`🔗 ${sharedLink.error}`);

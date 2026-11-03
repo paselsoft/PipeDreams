@@ -248,6 +248,8 @@ function refresh() {
     const playable = renderAnalysis(level, errors, usedCount);
     document.getElementById("ed-play").disabled = !playable;
     document.getElementById("ed-code").textContent = playable ? levelToCode(level) : "// Correggi gli errori indicati nell'analisi.";
+    document.getElementById("ed-share").disabled = !playable;
+    document.getElementById("ed-share-url").textContent = playable ? currentShareUrl(level) : "Correggi gli errori indicati nell'analisi.";
     saveDraft();
 }
 
@@ -313,6 +315,22 @@ function playTest() {
         return;
     }
     location.href = "index.html?test";
+}
+
+// Il link punta al gioco nella stessa cartella dell'editor
+const currentShareUrl = level => shareUrl(level, new URL("index.html", location.href).href);
+
+async function copyShareLink() {
+    const { level, errors } = buildLevel();
+    if (errors.length) return;
+    const button = document.getElementById("ed-share");
+    try {
+        await navigator.clipboard.writeText(currentShareUrl(level));
+        button.textContent = "COPIATO ✓";
+    } catch (e) {
+        button.textContent = "SELEZIONA E COPIA";
+    }
+    setTimeout(() => { button.textContent = "COPIA LINK"; }, 1500);
 }
 
 async function copyCode() {

@@ -15,6 +15,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - modalità terminale: finito un atto, i suoi livelli si risolvono anche scrivendo la pipeline
 - dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
 - i progressi restano salvati nel browser (`localStorage`)
+- si installa come app (su telefono: «Aggiungi a schermata Home») e funziona anche offline
+- **livelli condivisibili**: l'editor crea un link che apre il livello nel gioco, senza toccare i progressi
 
 ## Struttura
 
@@ -35,13 +37,16 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
+| `share.js` | Livelli condivisi con un link: codifica e convalida |
+| `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
 | `tools/` | Verifiche da riga di comando (Node.js) |
 | `tests/e2e/` | Test nel browser con Playwright |
 
 ## Sviluppo
 
-Basta aprire `index.html` nel browser: non servono build né server.
+Basta aprire `index.html` nel browser: non servono build né server (offline e installazione
+funzionano solo da http/https).
 
 ```bash
 node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzioni ottimali
@@ -61,7 +66,12 @@ node tests/e2e/run.js terminale  # solo quelli che contengono "terminale" nel no
 ```
 
 Per aggiungere un livello: componilo nell'editor, provalo con **PROVA NEL GIOCO**, copia il codice
-generato in fondo all'array `levels` di `levels.js` e lancia le verifiche.
+generato in fondo all'array `levels` di `levels.js` e lancia le verifiche. Per farlo giocare a
+qualcuno senza modificare il gioco, usa **COPIA LINK**: il livello viaggia nell'indirizzo
+(`index.html#livello=...`) e il gioco lo convalida prima di aprirlo.
+
+Il service worker usa la rete per prima, quindi online si gioca sempre l'ultima versione pubblicata.
+Se aggiungi un file al gioco, aggiungilo anche all'elenco `FILES` di `sw.js`.
 
 ## Pubblicazione
 

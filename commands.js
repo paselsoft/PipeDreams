@@ -39,6 +39,8 @@ function sedPatternError(pattern) {
     if (pattern.includes("[:")) return "le classi [[:...:]] non sono supportate: usa [0-9], [a-z]...";
     if (/\\[A-Za-z0-9]/.test(pattern)) return "escape come \\d o \\w non esistono in sed: usa [0-9]";
     if (pattern.includes("(?")) return "costrutto (?...) non supportato";
+    // (a+)+ e simili possono bloccare il motore delle regex: non servono nel gioco
+    if (/\([^)]*[+*][^)]*\)\s*[+*{]/.test(pattern)) return "quantificatori annidati come (a+)+ non sono supportati";
     try {
         new RegExp(pattern);
     } catch (e) {
