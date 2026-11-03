@@ -27,18 +27,24 @@ const MANUAL = [
         summary: "Tiene (o con -v scarta) le righe che contengono un testo.",
         syntax: "grep [-v] 'testo'",
         description: "Legge le righe una per una e tiene solo quelle che contengono il testo indicato, in qualunque punto della riga.",
-        options: [{ flag: "-v", text: "inverte la selezione: tiene le righe che NON contengono il testo" }],
+        options: [
+            { flag: "-v", text: "inverte la selezione: tiene le righe che NON contengono il testo" },
+            { flag: "-o", text: "stampa solo il testo trovato, una riga per ogni volta che compare (anche più volte nella stessa riga)" }
+        ],
         examples: [
             { title: "Tenere le righe", input: ["gatto", "cane", "topo", "ratto"], steps: [{ cmd: "grep", args: { pattern: "at" } }] },
             { title: "Scartare le righe", input: ["gatto", "cane", "topo", "ratto"], steps: [{ cmd: "grep", args: { pattern: "at", invert: true } }] },
             { title: "Maiuscole e minuscole contano", input: ["Mario", "marco", "MARTA"], steps: [{ cmd: "grep", args: { pattern: "mar" } }],
               note: "Solo 'marco' contiene esattamente 'mar' minuscolo." },
             { title: "Basta una parte della riga", input: ["login anna", "logout anna", "blog"], steps: [{ cmd: "grep", args: { pattern: "log" } }],
-              note: "'log' è contenuto anche in 'logout' e 'blog'." }
+              note: "'log' è contenuto anche in 'logout' e 'blog'." },
+            { title: "Contare le occorrenze con -o", input: ["banana", "ananas", "kiwi"], steps: [{ cmd: "grep", args: { pattern: "an", only: true } }, { cmd: "wc" }],
+              note: "grep -o stampa 'an' per ogni volta che compare: 2 in banana, 2 in ananas. wc -l le conta tutte, non le righe." }
         ],
         traps: [
             "Distingue maiuscole e minuscole: per trovare 'warn' e 'WARN' insieme, prima uniformale.",
-            "Cerca un pezzo di testo, non una parola intera: 'log' trova anche 'logout'."
+            "Cerca un pezzo di testo, non una parola intera: 'log' trova anche 'logout'.",
+            "grep | wc -l conta le righe che contengono il testo; grep -o | wc -l conta quante volte compare."
         ]
     },
     {
@@ -46,11 +52,12 @@ const MANUAL = [
         name: "sort",
         cmds: ["sort"],
         summary: "Ordina le righe (alfabetico, numerico, crescente o decrescente).",
-        syntax: "sort [-r] [-n]",
+        syntax: "sort [-r] [-n] [-t'X' -kN,N]",
         description: "Riordina le righe. Senza opzioni confronta i caratteri uno per uno nell'ordine dei byte: le cifre vengono prima delle maiuscole, che vengono prima delle minuscole.",
         options: [
             { flag: "-r", text: "ordine inverso (decrescente)" },
-            { flag: "-n", text: "ordina per valore numerico del numero all'inizio della riga" }
+            { flag: "-n", text: "ordina per valore numerico del numero all'inizio della riga (o della chiave)" },
+            { flag: "-t'X' -kN,N", text: "ordina in base al solo campo N, con i campi separati dal carattere X" }
         ],
         examples: [
             { title: "Ordine alfabetico", input: ["pera", "banana", "mela"], steps: [{ cmd: "sort" }] },
@@ -58,9 +65,13 @@ const MANUAL = [
             { title: "Numeri ordinati come testo", input: ["10", "9", "100"], steps: [{ cmd: "sort" }],
               note: "Come testo '10' viene prima di '9', perché '1' viene prima di '9'." },
             { title: "Numeri ordinati per valore", input: ["10", "9", "100"], steps: [{ cmd: "sort", args: { numeric: true } }] },
-            { title: "Dal più grande", input: ["5 anna", "12 luca", "8 eva"], steps: [{ cmd: "sort", args: { numeric: true, reverse: true } }] }
+            { title: "Dal più grande", input: ["5 anna", "12 luca", "8 eva"], steps: [{ cmd: "sort", args: { numeric: true, reverse: true } }] },
+            { title: "Ordinare per un campo", input: ["anna,roma,30", "luca,bari,25", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 2 } }],
+              note: "Le righe restano intere, ma l'ordine dipende solo dalla città (campo 2)." },
+            { title: "Per un campo numerico", input: ["anna,roma,30", "luca,bari,5", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 3, numeric: true, reverse: true } }] }
         ],
         traps: [
+            "Con -k scrivi sempre N,N: -k2 da solo vuol dire 'dal campo 2 fino a fine riga'.",
             "Senza -n i numeri si ordinano come testo: '10' prima di '9'.",
             "Ordina la riga intera: se ti interessa un solo campo, estrailo prima (cut, awk).",
             "Mette vicine le righe uguali: è il passo che serve prima di uniq."
@@ -70,16 +81,21 @@ const MANUAL = [
         id: "uniq",
         name: "uniq",
         cmds: ["uniq"],
-        summary: "Rimuove le righe uguali consecutive; con -c le conta.",
-        syntax: "uniq [-c]",
+        summary: "Rimuove le righe uguali consecutive; con -c le conta, con -d tiene solo i doppioni.",
+        syntax: "uniq [-c] [-d]",
         description: "Quando più righe uguali sono una dopo l'altra, ne tiene una sola. Le righe uguali ma lontane non vengono toccate.",
-        options: [{ flag: "-c", text: "antepone a ogni riga quante volte si ripeteva (allineato a destra con spazi)" }],
+        options: [
+            { flag: "-c", text: "antepone a ogni riga quante volte si ripeteva (allineato a destra con spazi)" },
+            { flag: "-d", text: "tiene solo le righe ripetute, una volta ciascuna" }
+        ],
         examples: [
             { title: "Doppioni vicini", input: ["a", "a", "b", "b", "b"], steps: [{ cmd: "uniq" }] },
             { title: "Doppioni lontani: non li vede", input: ["a", "b", "a"], steps: [{ cmd: "uniq" }] },
             { title: "Prima sort, poi uniq", input: ["a", "b", "a"], steps: [{ cmd: "sort" }, { cmd: "uniq" }] },
             { title: "Contare le ripetizioni", input: ["b", "a", "b", "a", "a"], steps: [{ cmd: "sort" }, { cmd: "uniq", args: { count: true } }],
-              note: "Il numero è allineato a destra con molti spazi: conta per cut e awk." }
+              note: "Il numero è allineato a destra con molti spazi: conta per cut e awk." },
+            { title: "Solo i doppioni", input: ["luca", "anna", "luca", "eva"], steps: [{ cmd: "sort" }, { cmd: "uniq", args: { repeated: true } }],
+              note: "Solo 'luca' compare più di una volta." }
         ],
         traps: [
             "Funziona solo su righe adiacenti: quasi sempre serve un sort prima.",
@@ -105,6 +121,27 @@ const MANUAL = [
         ]
     },
     {
+        id: "tacrev",
+        name: "tac / rev",
+        cmds: ["tac", "rev"],
+        summary: "tac rovescia l'ordine delle righe, rev i caratteri di ogni riga.",
+        syntax: "tac   /   rev",
+        description: "tac (cat al contrario) restituisce le righe dall'ultima alla prima, senza ordinarle. rev lascia le righe al loro posto ma scrive ogni riga da destra a sinistra.",
+        examples: [
+            { title: "Dall'ultima alla prima", input: ["primo", "secondo", "terzo"], steps: [{ cmd: "tac" }] },
+            { title: "tac non è sort -r", input: ["b", "c", "a"], steps: [{ cmd: "tac" }],
+              note: "sort -r darebbe c, b, a: tac rovescia l'ordine di arrivo, non ordina." },
+            { title: "Ogni riga al contrario", input: ["roma", "anna"], steps: [{ cmd: "rev" }],
+              note: "'anna' è palindroma: al contrario resta uguale." },
+            { title: "L'ultimo pezzo di ogni riga", input: ["foto.vacanze.jpg", "note.txt"], steps: [{ cmd: "rev" }, { cmd: "cut", args: { delim: ".", field: 1 } }, { cmd: "rev" }],
+              note: "Trucco classico: rev, prendi il primo campo, rev di nuovo. Così ottieni l'estensione anche se i punti sono tanti." }
+        ],
+        traps: [
+            "tac rovescia l'ordine in cui le righe arrivano: se vuoi l'ordine alfabetico inverso serve sort -r.",
+            "rev rovescia i caratteri, non le parole: 'ciao mondo' diventa 'odnom oaic'."
+        ]
+    },
+    {
         id: "wc",
         name: "wc -l",
         cmds: ["wc"],
@@ -121,13 +158,14 @@ const MANUAL = [
     {
         id: "cut",
         name: "cut",
-        cmds: ["cut"],
-        summary: "Divide ogni riga su un carattere e tiene un campo.",
-        syntax: "cut -d'X' -fN",
+        cmds: ["cut", "cutc"],
+        summary: "Divide ogni riga su un carattere e tiene un campo, oppure tiene alcuni caratteri.",
+        syntax: "cut -d'X' -fN   /   cut -cN-M",
         description: "Spezza ogni riga a ogni occorrenza del delimitatore X e tiene il campo numero N (il primo è 1). Ogni singolo delimitatore separa un campo, anche se ce ne sono due di fila.",
         options: [
             { flag: "-d'X'", text: "il carattere delimitatore (uno solo)" },
-            { flag: "-fN", text: "il numero del campo da tenere" }
+            { flag: "-fN", text: "il numero del campo da tenere" },
+            { flag: "-cN-M", text: "tiene i caratteri dal numero N al numero M (il primo è 1); -cN un carattere solo" }
         ],
         examples: [
             { title: "Il primo campo", input: ["anna:30:Roma", "luca:25:Milano"], steps: [{ cmd: "cut", args: { delim: ":", field: 1 } }] },
@@ -135,10 +173,14 @@ const MANUAL = [
             { title: "Righe senza delimitatore", input: ["a:b", "solo"], steps: [{ cmd: "cut", args: { delim: ":", field: 2 } }],
               note: "Una riga senza ':' passa intera." },
             { title: "Spazi multipli: campi vuoti", input: ["10  mele", "  3 pere"], steps: [{ cmd: "cut", args: { delim: " ", field: 2 } }],
-              note: "Fra due spazi c'è un campo vuoto: per le colonne allineate usa awk." }
+              note: "Fra due spazi c'è un campo vuoto: per le colonne allineate usa awk." },
+            { title: "I primi caratteri", input: ["IT-2024-001", "FR-2023-017"], steps: [{ cmd: "cutc", args: { from: 1, to: 2 } }] },
+            { title: "Caratteri in mezzo", input: ["IT-2024-001", "FR-2023-017"], steps: [{ cmd: "cutc", args: { from: 4, to: 7 } }],
+              note: "Funziona bene quando ogni riga ha la stessa forma, come i codici." }
         ],
         traps: [
             "Con spazi ripetuti o iniziali i campi si spostano: meglio awk.",
+            "cut -c conta i caratteri: se le righe hanno lunghezze diverse, i pezzi non si allineano.",
             "Dopo il cut il resto della riga sparisce: filtra con grep prima, se ti serve."
         ]
     },

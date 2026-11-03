@@ -18,7 +18,8 @@ for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "manual
 const report = vm.runInContext(`(() => {
     const failures = [];
     // Forma canonica di un passo: solo cmd e args non vuoti
-    const canon = step => JSON.stringify(Object.keys(step.args || {}).length ? { cmd: step.cmd, args: step.args } : { cmd: step.cmd });
+    const sortedArgs = args => Object.fromEntries(Object.keys(args).sort().map(key => [key, args[key]]));
+    const canon = step => JSON.stringify(Object.keys(step.args || {}).length ? { cmd: step.cmd, args: sortedArgs(step.args) } : { cmd: step.cmd });
     const same = (a, b) => a.length === b.length && a.every((step, i) => canon(step) === canon(b[i]));
 
     // 1) ogni comando singolo
@@ -63,8 +64,16 @@ const report = vm.runInContext(`(() => {
         ["2> /dev/null | sort", [{ cmd: "devnull" }, { cmd: "sort" }]],
         ["2>&1 | grep ERR | uniq -c", [{ cmd: "merge" }, { cmd: "grep", args: { pattern: "ERR" } }, { cmd: "uniq", args: { count: true } }]],
         ["| LC_ALL=C sort | uniq", [{ cmd: "sort" }, { cmd: "uniq" }]],
-        ["sort 2>/dev/null 2>&1", [{ cmd: "sort" }, { cmd: "devnull" }, { cmd: "merge" }]]
-    ];
+        ["sort 2>/dev/null 2>&1", [{ cmd: "sort" }, { cmd: "devnull" }, { cmd: "merge" }]],
+        ["sort -t , -k 2,2 -n", [{ cmd: "sort", args: { separator: ",", key: 2, numeric: true } }]],
+        ["sort -rn -t: -k3,3", [{ cmd: "sort", args: { separator: ":", key: 3, numeric: true, reverse: true } }]],
+        ["grep -o -v x", null],
+        ["grep -o x", [{ cmd: "grep", args: { pattern: "x", only: true } }]],
+        ["uniq -c -d", [{ cmd: "uniq", args: { count: true, repeated: true } }]],
+        ["cut -c 2-4", [{ cmd: "cutc", args: { from: 2, to: 4 } }]],
+        ["cut -c3", [{ cmd: "cutc", args: { from: 3, to: 3 } }]],
+        ["tac | rev", [{ cmd: "tac" }, { cmd: "rev" }]]
+    ].filter(([, expected]) => expected);
     for (const [text, expected] of variants) {
         const result = parsePipeline(text);
         if (result.error || !same(result.steps, expected)) failures.push("variante: " + text + " → " + (result.error || JSON.stringify(result.steps)));
@@ -73,7 +82,8 @@ const report = vm.runInContext(`(() => {
     // 4) errori attesi
     const errors = ["gerp ERR", "sort -x", "sort |", "| | sort", "grep", "grep 'ERR", "wc", "cut -f2", "cut -d:: -f1",
         "sed 's/a/b/'", "sed -E 's/a|b/x/'", "sed -E 's/a/b/q'", "awk '{print $1, $2}'", "head -n zero", "paste -d,",
-        "sort > out.txt", "tr -d", "uniq -u", ""];
+        "sort > out.txt", "tr -d", "uniq -u", "", "sort -k2", "sort -t, -k2,3", "sort -k2,2", "sort -t,",
+        "grep -vo x", "cut -c", "cut -c4-2", "cut -c1-3 -d,", "tac -s x", "rev file"];
     for (const text of errors) {
         const result = parsePipeline(text);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));

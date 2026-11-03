@@ -115,25 +115,37 @@ function awkFields(line, separator) {
 
 const COMMANDS = {
     grep: {
-        params: [{ key: "pattern", type: "text", label: "testo" }, { key: "invert", type: "flag", label: "-v" }],
-        label: a => `grep${a.invert ? " -v" : ""} '${a.pattern}'`,
-        run: (s, a) => s.filter(line => line.includes(a.pattern) !== Boolean(a.invert))
+        params: [{ key: "pattern", type: "text", label: "testo" }, { key: "invert", type: "flag", label: "-v" }, { key: "only", type: "flag", label: "-o" }],
+        label: a => `grep${a.invert ? " -v" : ""}${a.only ? " -o" : ""} '${a.pattern}'`,
+        validate: a => a.invert && a.only ? "nel gioco -o e -v non vanno insieme" : null,
+        run: (s, a) => {
+            // -o: una riga per ogni occorrenza del testo (senza sovrapposizioni, da sinistra)
+            if (a.only) return s.flatMap(line => new Array(line.split(a.pattern).length - 1).fill(a.pattern));
+            return s.filter(line => line.includes(a.pattern) !== Boolean(a.invert));
+        }
     },
     sort: {
-        params: [{ key: "reverse", type: "flag", label: "-r" }, { key: "numeric", type: "flag", label: "-n" }],
-        label: a => `sort${a.reverse || a.numeric ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}`,
+        params: [
+            { key: "reverse", type: "flag", label: "-r" }, { key: "numeric", type: "flag", label: "-n" },
+            { key: "separator", type: "char", label: "-t", optional: true }, { key: "key", type: "number", label: "-k", optional: true }
+        ],
+        label: a => `sort${a.reverse || a.numeric ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}` +
+            (a.key ? ` -t'${a.separator}' -k${a.key},${a.key}` : ""),
+        // -k N,N confronta solo il campo N (separato da -t): -k N senza ",N" arriverebbe a fine riga
+        validate: a => (a.key && !a.separator) || (!a.key && a.separator) ? "nel gioco -t e -k si usano insieme, es. sort -t',' -k2,2" : null,
         run: (s, a) => {
-            // A parità di valore numerico GNU sort confronta l'intera riga
+            const keyOf = line => a.key ? (line.split(a.separator)[a.key - 1] ?? "") : line;
+            // A parità di chiave GNU sort confronta l'intera riga
             const compare = a.numeric
-                ? (x, y) => leadingNumber(x) - leadingNumber(y) || byteOrder(x, y)
-                : byteOrder;
+                ? (x, y) => leadingNumber(keyOf(x)) - leadingNumber(keyOf(y)) || byteOrder(x, y)
+                : (x, y) => byteOrder(keyOf(x), keyOf(y)) || byteOrder(x, y);
             const sorted = [...s].sort(compare);
             return a.reverse ? sorted.reverse() : sorted;
         }
     },
     uniq: {
-        params: [{ key: "count", type: "flag", label: "-c" }],
-        label: a => `uniq${a.count ? " -c" : ""}`,
+        params: [{ key: "count", type: "flag", label: "-c" }, { key: "repeated", type: "flag", label: "-d" }],
+        label: a => `uniq${a.count || a.repeated ? " -" : ""}${a.count ? "c" : ""}${a.repeated ? "d" : ""}`,
         run: (s, a) => {
             const groups = [];
             for (const line of s) {
@@ -141,9 +153,20 @@ const COMMANDS = {
                 if (last && last.line === line) last.count++;
                 else groups.push({ line, count: 1 });
             }
-            // uniq -c antepone il conteggio allineato a destra su 7 caratteri, come GNU
-            return groups.map(g => a.count ? `${String(g.count).padStart(7)} ${g.line}` : g.line);
+            // -d: solo le righe ripetute, una volta. -c antepone il conteggio su 7 caratteri, come GNU
+            return groups.filter(g => !a.repeated || g.count > 1)
+                .map(g => a.count ? `${String(g.count).padStart(7)} ${g.line}` : g.line);
         }
+    },
+    tac: {
+        params: [],
+        label: () => "tac",
+        run: s => [...s].reverse()
+    },
+    rev: {
+        params: [],
+        label: () => "rev",
+        run: s => s.map(line => [...line].reverse().join(""))
     },
     upper: {
         params: [],
@@ -170,6 +193,13 @@ const COMMANDS = {
         label: a => `cut -d'${a.delim}' -f${a.field}`,
         // Le righe senza delimitatore passano intere, come fa cut senza -s
         run: (s, a) => s.map(line => line.includes(a.delim) ? (line.split(a.delim)[a.field - 1] ?? "") : line)
+    },
+    cutc: {
+        params: [{ key: "from", type: "number", label: "-c da", default: 1 }, { key: "to", type: "number", label: "a", default: 3 }],
+        label: a => `cut -c${a.from === a.to ? a.from : `${a.from}-${a.to}`}`,
+        validate: a => a.to < a.from ? "l'ultimo carattere viene prima del primo" : null,
+        // Caratteri dal from-esimo al to-esimo (le righe più corte danno quello che c'è, anche niente)
+        run: (s, a) => s.map(line => [...line].slice(a.from - 1, a.to).join(""))
     },
     tr: {
         params: [{ key: "from", type: "set", label: "da" }, { key: "to", type: "set", label: "a" }, { key: "delete", type: "set", label: "-d" }],

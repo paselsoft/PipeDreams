@@ -65,5 +65,42 @@ for (const sim of examples) {
     }
 }
 
-console.log(`${total - failures}/${total} pipeline identiche a bash (${examples.length} esempi del manuale)`);
+// Pipeline casuali sui comandi con più casi limite (chiavi di sort, grep -o, uniq -d, cut -c,
+// tac, rev) con input casuali: campi mancanti, numeri di lunghezze diverse, righe vuote, parità
+const fuzz = vm.runInContext(`(seed) => {
+    let state = seed;
+    const rand = n => { state = (state * 1103515245 + 12345) % 2147483648; return state % n; };
+    const pickOne = list => list[rand(list.length)];
+    const words = ["anna", "luca", "b", "a", "10", "9", "100", "x,y", "1,b,3", "c,2", "z,10,a", ",", "", "a,b", "5,5", "ab ab", "abab", " 3", "-1"];
+    const pool = [
+        { cmd: "sort", args: { separator: ",", key: 1 } }, { cmd: "sort", args: { separator: ",", key: 2 } },
+        { cmd: "sort", args: { separator: ",", key: 2, numeric: true } }, { cmd: "sort", args: { separator: ",", key: 3, numeric: true, reverse: true } },
+        { cmd: "sort", args: { separator: ",", key: 2, reverse: true } }, { cmd: "sort", args: { numeric: true } }, { cmd: "sort" },
+        { cmd: "grep", args: { pattern: "ab", only: true } }, { cmd: "grep", args: { pattern: "a", only: true } }, { cmd: "grep", args: { pattern: ",", only: true } },
+        { cmd: "uniq", args: { repeated: true } }, { cmd: "uniq", args: { repeated: true, count: true } }, { cmd: "uniq" },
+        { cmd: "cutc", args: { from: 1, to: 2 } }, { cmd: "cutc", args: { from: 2, to: 2 } }, { cmd: "cutc", args: { from: 3, to: 9 } },
+        { cmd: "tac" }, { cmd: "rev" }, { cmd: "wc" }, { cmd: "head", args: { n: 2 } }
+    ];
+    const input = Array.from({ length: 1 + rand(7) }, () => pickOne(words));
+    const steps = Array.from({ length: 1 + rand(4) }, () => pickOne(pool));
+    const result = executePipeline(input, steps);
+    return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
+}`, context);
+let fuzzed = 0;
+for (let seed = 1; seed <= runs * 5; seed++) {
+    const sim = fuzz(seed);
+    const real = spawnSync("bash", ["-c", sim.line], { env: { PATH: process.env.PATH } });
+    const output = toLines(real.stdout.toString());
+    const stderr = toLines(real.stderr.toString());
+    total++;
+    fuzzed++;
+    if (JSON.stringify(output) !== JSON.stringify(sim.output) || JSON.stringify(stderr) !== JSON.stringify(sim.stderr)) {
+        failures++;
+        console.log(`Casuale ${seed}: ${sim.line}`);
+        console.log(`  gioco: ${JSON.stringify(sim.output)} stderr ${JSON.stringify(sim.stderr)}`);
+        console.log(`  bash:  ${JSON.stringify(output)} stderr ${JSON.stringify(stderr)}`);
+    }
+}
+
+console.log(`${total - failures}/${total} pipeline identiche a bash (${examples.length} esempi del manuale, ${fuzzed} pipeline casuali)`);
 if (failures) process.exit(1);

@@ -22,6 +22,10 @@ const ACTS = {
     4: {
         title: "Incidente in produzione",
         intro: "Venerdì, ore 18:47. Marco è partito per le ferie, Giulia è chiusa in riunione e tutto si rompe nello stesso momento: la rubrica, la newsletter, il server di posta, il sito. Non ci sono comandi nuovi: solo tu, quello che hai imparato e pochissimo tempo."
+    },
+    6: {
+        title: "Il grande trasloco",
+        intro: "La Pipe & Co. trasloca i server nel nuovo datacenter, e Giulia ti nomina responsabile della migrazione. I vecchi sistemi esportano dati assurdi: log al contrario, nomi scritti allo specchio, codici senza separatori. Nella cassetta degli attrezzi arrivano tac e rev, sort con le chiavi (-t -k), grep -o, uniq -d e cut -c."
     }
 };
 
@@ -55,8 +59,15 @@ const STORY = {
     26: { from: "Giulia", text: "Lo script di backup è del 2009 e la prima riga non si tocca: l'ultima volta che ci hanno provato è saltato tutto." },
     27: { from: "Tommaso", text: "Altra domanda: quante righe conta questa? Io scommetto zero." },
     28: { from: "Marco", text: "Rientrato dalle ferie! Il monitoraggio notturno ha inizio e fine bloccati dal vecchio sistema. Riesci a contare i tipi di errore lo stesso?" },
-    29: { from: "Giulia", text: "🚨 Lo script di Tommaso va in produzione stasera, ma non stampa niente! Trova il bug cambiando il meno possibile." }
+    29: { from: "Giulia", text: "🚨 Lo script di Tommaso va in produzione stasera, ma non stampa niente! Trova il bug cambiando il meno possibile." },
+    30: { from: "Marco", text: "Primo giorno di trasloco. Il vecchio server di backup scrive il log al contrario, dal fondo. Mi servono i backup, nell'ordine giusto." },
+    31: { from: "Tommaso", text: "Ho aperto l'export del gestionale del '98 e i nomi dei server sono... scritti allo specchio?! 'arbez' sarebbe zebra?" },
+    32: { from: "Giulia", text: "Prima del trasloco l'amministrazione vuole controllare le note spese più alte. Ordinale per importo, ma lasciami le righe intere." },
+    33: { from: "Marco", text: "La copia dei file ha dei buchi. Ogni ERR è un file perso: quanti ne abbiamo persi, esattamente?" },
+    34: { from: "Giulia", text: "La sicurezza del nuovo datacenter segnala badge clonati. Trovami quelli assegnati a più persone." },
+    35: { from: "Tommaso", text: "Sto etichettando gli armadi del datacenter: in quali paesi abbiamo server? I codici sono tutti attaccati, senza trattini..." },
+    36: { from: "Giulia", text: "🚨 Il vecchio server si spegne a mezzanotte e il disco va svuotato. Prima di copiare, voglio sapere quanti file abbiamo per estensione." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Un mese dopo Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, e hai trasformato Tommaso in un sistemista vero. Da oggi il guru delle pipeline sei tu.» Marco, ancora abbronzato, sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, nel menu LIVELLI.";
+const EPILOGUE = "Mezzanotte e un minuto: il vecchio server si spegne e il trasloco è finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";

@@ -1,11 +1,19 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.3.0", date: "2026-11-03", items: [
+            "🚚 Atto VI, «Il grande trasloco»: 7 nuovi livelli e un nuovo finale della storia.",
+            "🧰 Nuovi comandi: tac e rev, sort -t -k (ordinare per un campo), grep -o (contare le occorrenze), uniq -d (solo i doppioni), cut -c (tenere dei caratteri).",
+            "📖 Manuale aggiornato: nuova scheda tac / rev ed esempi per le nuove opzioni.",
+            "🎯 Allenamento: nuovo argomento «tac e rev» e nuovi livelli per sort, grep, uniq e cut."
+        ]
+    },
     {
         version: "1.2.0", date: "2026-11-03", items: [
             "📊 Confronto dopo la vittoria: se la tua pipeline è più lunga del necessario, il gioco si ferma, la mette accanto a quella ottimale e ti dice quale comando non serve. Con 🧪 LABORATORIO la vedi passo per passo.",

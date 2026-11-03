@@ -4,7 +4,7 @@
 // Nome mostrato nel menu a tendina dei comandi
 const COMMAND_NAMES = {
     grep: "grep", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
-    wc: "wc -l", cut: "cut", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
+    wc: "wc -l", cut: "cut -d -f (campo)", cutc: "cut -c (caratteri)", tac: "tac", rev: "rev", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
     devnull: "2>/dev/null", merge: "2>&1"
 };
 

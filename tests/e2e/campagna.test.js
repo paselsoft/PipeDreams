@@ -17,8 +17,10 @@ module.exports = {
         const cases = await page.evaluate(() => levels
             .map((lvl, i) => ({ i, lvl }))
             .filter(({ lvl }) => !lvl.type && !lvl.locked)
-            .map(({ i, lvl }) => ({ i, labels: referenceSolution(lvl).map(stepLabel).reverse() }))
-            .filter(({ labels }) => labels.length > 1));
+            .map(({ i, lvl }) => ({ i, lvl, labels: referenceSolution(lvl).map(stepLabel).reverse() }))
+            // Se anche l'ordine inverso è ottimale (es. grep | tac e tac | grep), l'ordine non conta
+            .filter(({ lvl, labels }) => labels.length > 1 && !solveLevel(lvl).optimal.includes(labels.join(" | ")))
+            .map(({ i, labels }) => ({ i, labels })));
         assert.ok(cases.length >= 20);
         for (const { i, labels } of cases) {
             await page.evaluate(index => { clearTimeout(transitionTimer); loadLevel(index); }, i);

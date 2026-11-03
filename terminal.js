@@ -104,22 +104,57 @@ function optionValue(words, index, letter) {
 
 const PARSERS = {
     grep: words => {
-        const { flags, operands } = shortFlags("grep", words, ["v"]);
+        const { flags, operands } = shortFlags("grep", words, ["v", "o"]);
         if (operands.length !== 1) fail("grep: serve esattamente un testo da cercare, es. grep -v 'ERR'");
-        return flags.has("v") ? { pattern: operands[0], invert: true } : { pattern: operands[0] };
+        const args = { pattern: operands[0] };
+        if (flags.has("v")) args.invert = true;
+        if (flags.has("o")) args.only = true;
+        return args;
     },
     sort: words => {
-        const { flags, operands } = shortFlags("sort", words, ["r", "n"]);
-        if (operands.length) fail(`sort: nel gioco sort legge solo dalla pipe (argomento in più: '${operands[0]}')`);
         const args = {};
-        if (flags.has("n")) args.numeric = true;
-        if (flags.has("r")) args.reverse = true;
+        for (let i = 0; i < words.length;) {
+            const word = words[i];
+            if (/^-t/.test(word)) {
+                const { value, used } = optionValue(words, i, "t");
+                if (value === undefined || [...value].length !== 1) fail("sort: il separatore -t deve essere un solo carattere");
+                args.separator = value;
+                i += used;
+            } else if (/^-k/.test(word)) {
+                const { value, used } = optionValue(words, i, "k");
+                const match = (value ?? "").match(/^([0-9]+),([0-9]+)$/);
+                if (!match || match[1] !== match[2] || Number(match[1]) < 1) {
+                    fail(`sort: nel gioco la chiave è un solo campo, es. -k2,2 (non '${value ?? ""}': -k2 da solo arriva fino a fine riga)`);
+                }
+                args.key = Number(match[1]);
+                i += used;
+            } else if (/^-[rn]+$/.test(word)) {
+                if (word.includes("n")) args.numeric = true;
+                if (word.includes("r")) args.reverse = true;
+                i++;
+            } else if (word.startsWith("-")) {
+                fail(`sort: opzione non valida '${word}' (nel gioco: -r -n -t -k)`);
+            } else {
+                fail(`sort: nel gioco sort legge solo dalla pipe (argomento in più: '${word}')`);
+            }
+        }
         return args;
     },
     uniq: words => {
-        const { flags, operands } = shortFlags("uniq", words, ["c"]);
+        const { flags, operands } = shortFlags("uniq", words, ["c", "d"]);
         if (operands.length) fail(`uniq: argomento in più: '${operands[0]}'`);
-        return flags.has("c") ? { count: true } : {};
+        const args = {};
+        if (flags.has("c")) args.count = true;
+        if (flags.has("d")) args.repeated = true;
+        return args;
+    },
+    tac: words => {
+        if (words.length) fail("tac: nel gioco tac legge solo dalla pipe, senza opzioni");
+        return {};
+    },
+    rev: words => {
+        if (words.length) fail("rev: nel gioco rev legge solo dalla pipe, senza opzioni");
+        return {};
     },
     head: words => ({ n: parseCount("head", words) }),
     tail: words => ({ n: parseCount("tail", words) }),
@@ -216,12 +251,26 @@ function parseSed(words) {
     return { cmd: "sed", args };
 }
 
+// cut -cN-M o cut -c N: i caratteri dal N-esimo al M-esimo
+function parseCutChars(words) {
+    const index = words.findIndex(word => /^-c/.test(word));
+    const { value, used } = optionValue(words, index, "c");
+    if (words.length !== used) fail("cut: nel gioco -c si usa da solo, es. cut -c1-3");
+    const match = (value ?? "").match(/^([0-9]+)(?:-([0-9]+))?$/);
+    if (!match || Number(match[1]) < 1) fail(`cut: intervallo di caratteri non valido: '${value ?? ""}' (es. cut -c1-3)`);
+    const args = { from: Number(match[1]), to: Number(match[2] ?? match[1]) };
+    const error = COMMANDS.cutc.validate(args);
+    if (error) fail(`cut: ${error}`);
+    return { cmd: "cutc", args };
+}
+
 function parseCommand(words) {
     // Le assegnazioni di variabili (es. LC_ALL=C) davanti al comando si ignorano
     while (words.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[0])) words = words.slice(1);
     if (!words.length) fail("bash: errore di sintassi vicino al token inatteso '|'");
     const [name, ...rest] = words;
     if (name === "sed") return parseSed(rest);
+    if (name === "cut" && rest.some(word => /^-c/.test(word))) return parseCutChars(rest);
     if (!PARSERS[name]) fail(`bash: ${name}: comando non trovato`);
     const args = PARSERS[name](rest);
     const validate = COMMANDS[name].validate;

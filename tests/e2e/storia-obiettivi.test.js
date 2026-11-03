@@ -1,7 +1,7 @@
 // Storia (introduzioni, messaggi, epilogo) e obiettivi.
 const { assert, open, reload, placeSolution, run } = require("./helpers");
 
-const allSolvedExceptLast = () => Object.fromEntries([...Array(28)].map((_, i) => [i + 1, { stars: 3, best: 1 }]));
+const allSolvedExceptLast = () => Object.fromEntries([...Array(35)].map((_, i) => [i + 1, { stars: 3, best: 1 }]));
 
 module.exports = {
     "introduzione dell'atto la prima volta, poi mai più": async ({ page }) => {
@@ -19,13 +19,15 @@ module.exports = {
         assert.equal(await page.evaluate(() => levels.every(lvl => STORY[lvl.id] && ACTS[lvl.act])), true);
         await page.click("#btn-menu");
         const acts = await page.$$eval(".menu-act", headings => headings.map(h => h.textContent));
-        assert.equal(acts.length, 5);
+        assert.equal(acts.length, 6);
         assert.match(acts[4], /ATTO V · Il nuovo stagista/);
+        assert.match(acts[5], /ATTO VI · Il grande trasloco/);
     },
 
     "epilogo dopo l'ultimo livello": async ({ page }) => {
-        await open(page, { progress: { levels: allSolvedExceptLast(), lastLevel: 28 } });
-        await placeSolution(page, 28);
+        const last = 35;
+        await open(page, { progress: { levels: allSolvedExceptLast(), lastLevel: last } });
+        await placeSolution(page, last);
         await page.click("#btn-run");
         await page.waitForFunction(() => /COMPLETATO/.test(document.getElementById("console").innerText));
         assert.equal(await page.textContent("#act-label"), "EPILOGO");

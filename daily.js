@@ -62,7 +62,14 @@ const C = {
     tr: (from, to, desc) => ({ cmd: "tr", args: { from, to }, desc }),
     paste: delim => ({ cmd: "paste", args: { delim }, desc: `Unisci con '${delim}'` }),
     devnull: { cmd: "devnull", desc: "Cestina lo stderr" },
-    merge: { cmd: "merge", desc: "Unisci stderr a stdout" }
+    merge: { cmd: "merge", desc: "Unisci stderr a stdout" },
+    tac: { cmd: "tac", desc: "Rovescia l'ordine delle righe" },
+    rev: { cmd: "rev", desc: "Ogni riga al contrario" },
+    grepO: pattern => ({ cmd: "grep", args: { pattern, only: true }, desc: `Ogni '${pattern}' su una riga` }),
+    uniqD: { cmd: "uniq", args: { repeated: true }, desc: "Solo le righe ripetute" },
+    sortKey: (separator, key, numeric, reverse) => ({ cmd: "sort", args: { ...(numeric ? { numeric: true } : {}), ...(reverse ? { reverse: true } : {}), separator, key },
+        desc: `Campo ${key}${numeric ? ", numerico" : ""}${reverse ? " decrescente" : ""}` }),
+    cutc: (from, to) => ({ cmd: "cutc", args: { from, to }, desc: from === to ? `Carattere ${from}` : `Caratteri ${from}-${to}` })
 };
 
 // Ogni ricetta restituisce testi, input, comandi della soluzione ed esche
@@ -266,7 +273,9 @@ function buildCandidate(recipe, rng, identity) {
         target: result.output,
         nudge: data.nudge,
         hint: data.hint,
-        allowedCommands: shuffled(rng, [...data.steps, ...data.distractors])
+        // Un comando usato due volte nella soluzione (es. rev ... rev) compare una volta sola
+        allowedCommands: shuffled(rng, [...data.steps, ...data.distractors]
+            .filter((step, i, all) => all.findIndex(other => stepLabel(other) === stepLabel(step)) === i))
     };
     if (data.slots) level.slots = data.slots;
     const solution = solveLevel(level);
@@ -687,18 +696,103 @@ const TRAINING_RECIPES = {
             steps: [C.merge, C.grep(type), C.wc],
             distractors: [C.devnull, C.grep(type, true), C.uniq]
         };
+    },
+    t_tac: rng => {
+        const times = Array.from({ length: 5 }, (_, i) => `${String(18 - i * 2).padStart(2, "0")}:${pick(rng, ["00", "15", "30", "45"])}`);
+        return {
+            title: "Dal Più Vecchio", from: "Allenamento",
+            story: "tac rovescia l'ordine delle righe: l'ultima diventa la prima.",
+            mission: "Il log parte dall'evento più recente. Rimettilo in ordine cronologico, dal più vecchio.",
+            nudge: "Non serve ordinare: le righe vanno solo rovesciate.",
+            hint: "Un solo comando: tac.",
+            stdin: times.map(time => `${time} ${pick(rng, ERRORS)}`),
+            steps: [C.tac],
+            distractors: [C.sortR, C.rev, C.tail(3)]
+        };
+    },
+    t_rev_ext: rng => {
+        const exts = sample(rng, ["txt", "pdf", "jpg", "png", "csv"], 3);
+        const files = sample(rng, [...FRUITS, ...ANIMALS], 5).map((name, i) => i % 2 ? `${name}.v${randInt(rng, 1, 9)}.${exts[i % 3]}` : `${name}.${exts[i % 3]}`);
+        return {
+            title: "Solo l'Estensione", from: "Allenamento",
+            story: "Per l'ultimo campo di una riga: rev, prendi il primo campo, rev di nuovo.",
+            mission: "Alcuni nomi di file hanno più punti. Tieni solo l'estensione (quello che c'è dopo l'ultimo punto).",
+            nudge: "Al contrario, l'estensione diventa il primo campo.",
+            hint: "Tre comandi: rev, cut -d'.' -f1, rev.",
+            stdin: files,
+            steps: [C.rev, C.cut(".", 1), C.rev],
+            distractors: [C.cut(".", 2), C.tac, C.sort]
+        };
+    },
+    t_sort_key: rng => {
+        const names = sample(rng, NAMES, 5);
+        const field = randInt(rng, 2, 3);
+        const ages = sample(rng, Array.from({ length: 50 }, (_, i) => i + 20), 5);
+        return {
+            title: "Ordina per Colonna", from: "Allenamento",
+            story: "sort -t',' -kN,N ordina guardando solo il campo N, ma tiene le righe intere.",
+            mission: `Ogni riga è <code>nome,città,età</code>. Ordina le righe per ${field === 2 ? "città, in ordine alfabetico" : "età, dalla più giovane"}.`,
+            nudge: `Il campo da confrontare è il numero ${field}${field === 3 ? ", ed è un numero" : ""}.`,
+            hint: `Un solo comando: sort${field === 3 ? " -n" : ""} -t',' -k${field},${field}.`,
+            stdin: names.map((name, i) => `${name},${pick(rng, ["roma", "milano", "torino", "bari", "napoli", "genova"])},${ages[i]}`),
+            steps: [C.sortKey(",", field, field === 3)],
+            distractors: [C.sort, C.sortKey(",", field === 2 ? 3 : 2, field !== 2), C.sortN]
+        };
+    },
+    t_grep_o: rng => {
+        const word = pick(rng, ["ERR", "WARN", "TODO"]);
+        const lines = sample(rng, NAMES, 5).map(name => [name, ...new Array(randInt(rng, 0, 3)).fill(word)].join(" "));
+        return {
+            title: "Ogni Occorrenza", from: "Allenamento",
+            story: "grep -o stampa il testo trovato una volta per ogni occorrenza, anche se ce ne sono tante nella stessa riga.",
+            mission: `Quante volte compare <code>${word}</code> in tutto (non quante righe)?`,
+            nudge: "Le righe con più occorrenze vanno contate più volte.",
+            hint: `Due comandi: grep -o '${word}', poi wc -l.`,
+            stdin: lines,
+            steps: [C.grepO(word), C.wc],
+            distractors: [C.grep(word), C.uniqC, C.sort]
+        };
+    },
+    t_uniq_d: rng => {
+        const people = sample(rng, NAMES, 5);
+        const twice = sample(rng, people, 2);
+        return {
+            title: "Chi è Ripetuto", from: "Allenamento",
+            story: "uniq -d tiene solo le righe che si ripetono (una volta ciascuna). Anche lui vede solo i doppioni vicini.",
+            mission: "Chi si è iscritto più di una volta? Elenco in ordine alfabetico.",
+            nudge: "Prima metti vicini i doppioni.",
+            hint: "Due comandi: sort, poi uniq -d.",
+            stdin: shuffled(rng, [...people, ...twice]),
+            steps: [C.sort, C.uniqD],
+            distractors: [C.uniq, C.uniqC, C.sortR]
+        };
+    },
+    t_cut_c: rng => {
+        const countries = sample(rng, ["IT", "FR", "DE", "ES", "PT"], 3);
+        const codes = Array.from({ length: 6 }, (_, i) => `${countries[i % 3]}${randInt(rng, 2015, 2024)}${String(randInt(rng, 1, 999)).padStart(3, "0")}`);
+        return {
+            title: "Primi Caratteri", from: "Allenamento",
+            story: "cut -cN-M tiene i caratteri dal N-esimo al M-esimo: utile quando non c'è un separatore.",
+            mission: "I codici sono come <code>IT2019042</code>: paese, anno, numero. Elenca i paesi, ordinati e senza ripetizioni.",
+            nudge: "Il paese occupa sempre i primi due caratteri.",
+            hint: "Tre comandi: cut -c1-2, sort, uniq.",
+            stdin: shuffled(rng, codes),
+            steps: [C.cutc(1, 2), C.sort, C.uniq],
+            distractors: [C.cutc(3, 6), C.uniqC, C.sortR]
+        };
     }
 };
 Object.assign(RECIPES, TRAINING_RECIPES);
 
 // Argomenti dell'allenamento: ricette base, avanzate e i comandi cercati nelle ricette della sfida
 const TRAINING_TOPICS = [
-    { id: "grep", label: "grep", desc: "tenere e scartare righe", base: ["t_grep_tieni", "t_grep_scarta"], advanced: ["t_grep_due", "t_wc_conta"], cmds: ["grep"] },
-    { id: "sort", label: "sort", desc: "ordine alfabetico, inverso e numerico", base: ["t_sort_alfa", "t_sort_rev", "t_sort_num"], advanced: ["t_sort_top"], cmds: ["sort"] },
-    { id: "uniq", label: "uniq", desc: "doppioni e conteggi", base: ["t_uniq_base", "t_uniq_vicini"], advanced: ["t_uniq_conta", "t_wc_distinti"], cmds: ["uniq"] },
+    { id: "grep", label: "grep", desc: "tenere e scartare righe, contare con -o", base: ["t_grep_tieni", "t_grep_scarta"], advanced: ["t_grep_due", "t_wc_conta", "t_grep_o"], cmds: ["grep"] },
+    { id: "sort", label: "sort", desc: "ordine alfabetico, inverso, numerico e per campo", base: ["t_sort_alfa", "t_sort_rev", "t_sort_num"], advanced: ["t_sort_top", "t_sort_key"], cmds: ["sort"] },
+    { id: "uniq", label: "uniq", desc: "doppioni, conteggi e solo i ripetuti", base: ["t_uniq_base", "t_uniq_vicini"], advanced: ["t_uniq_conta", "t_wc_distinti", "t_uniq_d"], cmds: ["uniq"] },
     { id: "headtail", label: "head e tail", desc: "le prime e le ultime righe", base: ["t_head", "t_tail"], advanced: ["t_middle", "t_sort_top"], cmds: ["head", "tail"] },
-    { id: "wc", label: "wc", desc: "contare le righe", base: ["t_wc_conta"], advanced: ["t_wc_distinti"], cmds: ["wc"] },
-    { id: "cut", label: "cut", desc: "estrarre un campo", base: ["t_cut_campo"], advanced: ["t_cut_csv"], cmds: ["cut"] },
+    { id: "tacrev", label: "tac e rev", desc: "righe e caratteri al contrario", base: ["t_tac"], advanced: ["t_rev_ext"], cmds: ["tac", "rev"] },
+    { id: "wc", label: "wc", desc: "contare le righe", base: ["t_wc_conta"], advanced: ["t_wc_distinti", "t_grep_o"], cmds: ["wc"] },
+    { id: "cut", label: "cut", desc: "estrarre un campo o dei caratteri", base: ["t_cut_campo"], advanced: ["t_cut_csv", "t_cut_c"], cmds: ["cut", "cutc"] },
     { id: "awk", label: "awk", desc: "colonne separate da spazi", base: ["t_awk_spazi"], advanced: ["t_awk_numeri"], cmds: ["awk"] },
     { id: "tr", label: "tr", desc: "sostituire e cancellare caratteri", base: ["t_tr_maiuscolo", "t_tr_sostituisci"], advanced: ["t_tr_cancella"], cmds: ["tr"] },
     { id: "sed", label: "sed", desc: "sostituzioni con le regex", base: ["t_sed_prefisso", "t_sed_taglia"], advanced: ["t_sed_globale"], cmds: ["sed"] },

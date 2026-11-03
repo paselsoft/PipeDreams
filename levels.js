@@ -561,5 +561,131 @@ const levels = [
             { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" }
         ],
         start: [1, 3, 5, 7, 8, 9]
+    },
+    {
+        id: 30,
+        act: 6,
+        title: "Log alla Rovescia",
+        mission: "Il vecchio server scrive il log partendo dalla riga più recente. Mostra solo le righe dei <code>backup</code>, in ordine cronologico (dalla più vecchia).",
+        stdin: ["23:10 spegnimento", "21:45 backup ok", "18:20 copia file", "14:05 backup ok", "11:30 avvio job", "08:15 backup ok", "07:00 accensione"],
+        target: ["08:15 backup ok", "14:05 backup ok", "21:45 backup ok"],
+        nudge: "Le righe sono già in ordine, solo al contrario.",
+        hint: "Piano in 2 passi: tieni le righe di backup (grep) e rovescia l'ordine (tac), in qualsiasi ordine. Attenzione: sort -r ordina, non rovescia.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "backup" }, desc: "Tieni le righe con 'backup'" },
+            { cmd: "grep", args: { pattern: "backup", invert: true }, desc: "Scarta le righe con 'backup'" },
+            { cmd: "tac", desc: "Rovescia l'ordine delle righe" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
+            { cmd: "head", args: { n: 3 }, desc: "Prendi le prime 3" }
+        ]
+    },
+    {
+        id: 31,
+        act: 6,
+        title: "Nomi allo Specchio",
+        mission: "Il gestionale del 1998 ha esportato i nomi dei server scritti al contrario. Rimettili dritti, in ordine alfabetico e senza doppioni.",
+        stdin: ["arbez", "alem", "enac", "arbez", "osro", "alem"],
+        target: ["cane", "mela", "orso", "zebra"],
+        nudge: "Ogni nome va letto da destra a sinistra; l'ordine delle righe non c'entra.",
+        hint: "Piano in 3 passi: 1) raddrizza i nomi (rev), 2) ordina, 3) togli i doppioni. Attenzione: tac rovescia l'ordine delle righe, non le lettere; e se ordini prima di rev, ordini i nomi al contrario.",
+        allowedCommands: [
+            { cmd: "rev", desc: "Ogni riga al contrario" },
+            { cmd: "tac", desc: "Rovescia l'ordine delle righe" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "uniq", args: { repeated: true }, desc: "Solo le righe ripetute" }
+        ]
+    },
+    {
+        id: 32,
+        act: 6,
+        title: "Note Spese",
+        mission: "Ogni riga è <code>nome,reparto,euro</code>. L'amministrazione vuole le <code>3</code> note spese più alte, dalla più alta, con le righe intere.",
+        stdin: ["anna,vendite,120", "luca,it,95", "eva,legale,1340", "marco,it,410", "sara,vendite,87", "dario,acquisti,560"],
+        target: ["eva,legale,1340", "dario,acquisti,560", "marco,it,410"],
+        nudge: "L'importo è il terzo campo, e va confrontato come numero.",
+        hint: "Piano in 2 passi: 1) ordina sul campo 3 come numero, dal più alto (sort -rn -t',' -k3,3), 2) tieni le prime 3. Attenzione: sort -rn sulla riga intera guarda il nome, che non è un numero.",
+        allowedCommands: [
+            { cmd: "sort", args: { numeric: true, reverse: true, separator: ",", key: 3 }, desc: "Campo 3, numerico decrescente" },
+            { cmd: "sort", args: { reverse: true, separator: ",", key: 3 }, desc: "Campo 3, testo decrescente" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Riga intera, numerico decrescente" },
+            { cmd: "sort", args: { separator: ",", key: 2 }, desc: "Per reparto" },
+            { cmd: "head", args: { n: 3 }, desc: "Prendi le prime 3" },
+            { cmd: "tail", args: { n: 3 }, desc: "Prendi le ultime 3" }
+        ]
+    },
+    {
+        id: 33,
+        act: 6,
+        title: "Quante Volte?",
+        mission: "Durante il trasloco ogni job scrive <code>ERR</code> una volta per ogni file perso, anche più volte nella stessa riga. Quanti file abbiamo perso in tutto?",
+        stdin: ["job1 ok", "job2 ERR ERR ok", "job3 ERR", "job4 ok", "job5 ERR ERR ERR ERR", "job6 ok"],
+        target: ["7"],
+        nudge: "Non ti servono le righe con un errore: ti serve ogni singolo errore.",
+        hint: "Piano in 2 passi: grep -o 'ERR' stampa una riga per ogni ERR trovato, wc -l le conta. Attenzione: grep senza -o restituisce le righe, e ne conteresti 3.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "ERR" }, desc: "Tieni le righe con 'ERR'" },
+            { cmd: "grep", args: { pattern: "ERR", only: true }, desc: "Ogni 'ERR' su una riga" },
+            { cmd: "grep", args: { pattern: "ok", invert: true }, desc: "Scarta le righe con 'ok'" },
+            { cmd: "wc", desc: "Conta le righe" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
+        ]
+    },
+    {
+        id: 34,
+        act: 6,
+        title: "Badge Doppi",
+        mission: "Nel nuovo datacenter si entra con il badge. Ogni riga è <code>badge nome</code>: trova i badge assegnati a <strong>più di una</strong> persona, in ordine alfabetico.",
+        stdin: ["B17 anna", "B03 luca", "B21 marco", "B08 eva", "B03 sara", "B17 dario", "B11 irene"],
+        target: ["B03", "B17"],
+        nudge: "Ti serve solo il badge, e i doppioni devono stare vicini.",
+        hint: "Piano in 3 passi: 1) estrai il badge (campo 1), 2) ordina, 3) tieni solo le righe ripetute (uniq -d). Attenzione: uniq senza -d tiene tutti i badge, una volta ciascuno.",
+        allowedCommands: [
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "uniq", args: { repeated: true }, desc: "Solo le righe ripetute" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
+        ]
+    },
+    {
+        id: 35,
+        act: 6,
+        title: "Codici Paese",
+        mission: "I codici dei server sono come <code>IT2019042</code>: paese (2 lettere), anno, numero. Elenca i paesi in cui abbiamo server, in ordine alfabetico e senza ripetizioni.",
+        stdin: ["IT2019042", "FR2021007", "IT2022118", "DE2018003", "FR2023051", "IT2020009"],
+        target: ["DE", "FR", "IT"],
+        nudge: "Il paese è sempre nei primi due caratteri, e non c'è un separatore.",
+        hint: "Piano in 3 passi: 1) tieni i primi due caratteri (cut -c1-2), 2) ordina, 3) togli i doppioni. Attenzione: senza separatori, cut -d non sa dove tagliare.",
+        allowedCommands: [
+            { cmd: "cutc", args: { from: 1, to: 2 }, desc: "Caratteri 1-2" },
+            { cmd: "cutc", args: { from: 3, to: 6 }, desc: "Caratteri 3-6" },
+            { cmd: "cut", args: { delim: "0", field: 1 }, desc: "Campo 1 (separatore '0')" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
+        ]
+    },
+    {
+        id: 36,
+        act: 6,
+        title: "Boss Atto VI",
+        slots: 7,
+        mission: "🚨 Il disco del vecchio server va svuotato stanotte. Quanti file ci sono per ogni estensione? Mostra <code>uniq -c</code>, dall'estensione più frequente. Attenzione: alcuni nomi hanno più di un punto.",
+        stdin: ["vacanze.mare.jpg", "bilancio.2024.pdf", "logo.png", "ferie.jpg", "contratto.v2.pdf", "foto.jpg", "icona.png", "report.finale.pdf", "cena.jpg", "scansione.jpeg"],
+        target: ["      4 jpg", "      3 pdf", "      2 png", "      1 jpeg"],
+        nudge: "L'estensione è l'ultimo pezzo dopo un punto, ma i punti non sono sempre lo stesso numero.",
+        hint: "Il trucco: rev, poi il campo 1 separato da '.', poi di nuovo rev ti dà l'ultimo pezzo. Poi sort, uniq -c, sort -rn. Attenzione: il campo 2 funziona solo con un punto, e i caratteri 1-3 tagliano 'jpeg'.",
+        allowedCommands: [
+            { cmd: "rev", desc: "Ogni riga al contrario" },
+            { cmd: "tac", desc: "Rovescia l'ordine delle righe" },
+            { cmd: "cut", args: { delim: ".", field: 1 }, desc: "Campo 1 (.)" },
+            { cmd: "cut", args: { delim: ".", field: 2 }, desc: "Campo 2 (.)" },
+            { cmd: "cutc", args: { from: 1, to: 3 }, desc: "Caratteri 1-3" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" }
+        ]
     }
 ];
