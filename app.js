@@ -40,6 +40,7 @@ const currentLevel = () => dailyLevel || levels[currentLevelIndex];
 function loadLevel(index) {
     stopMarathon();
     stopTraining();
+    stopGallery();
     dailyLevel = null;
     currentLevelIndex = index;
     progress.lastLevel = index;
@@ -56,6 +57,7 @@ function loadLevel(index) {
 function loadDaily() {
     stopMarathon();
     stopTraining();
+    stopGallery();
     const key = dateKey();
     dailyLevel = generateDaily(key);
     showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
@@ -95,7 +97,7 @@ function showLevel(lvl, titleText) {
     startLevelSession();
     document.getElementById("level-title").innerText = titleText;
     // L'obiettivo dei livelli condivisi o di prova ammette solo tag semplici: può arrivare da chiunque
-    const mission = TEST_MODE ? safeMissionHtml(lvl.mission) : lvl.mission;
+    const mission = TEST_MODE || lvl.community ? safeMissionHtml(lvl.mission) : lvl.mission;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     // Nel quiz lo stdout è proprio la domanda
@@ -627,6 +629,8 @@ function showResult(lvl, result) {
         marathonSolved(lvl);
     } else if (isSolved(lvl, result) && lvl.training) {
         trainingSolved(lvl);
+    } else if (isSolved(lvl, result) && lvl.community) {
+        communitySolved(lvl);
     } else if (isSolved(lvl, result)) {
         completeLevel(lvl);
     } else {

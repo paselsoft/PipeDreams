@@ -45,7 +45,8 @@ function cleanProgress(progress) {
         daily: pick(progress.daily, value => isResult(value) && isCount(value.used)),
         terminal: pick(progress.terminal, value => value === true),
         marathon: pick(progress.marathon, isCount),
-        training: pick(progress.training, isCount)
+        training: pick(progress.training, isCount),
+        community: pick(progress.community, value => isResult(value) && isCount(value.best))
     };
 }
 
@@ -68,7 +69,8 @@ function mergeProgress(a, b) {
         daily: mergeBy(a.daily, b.daily, (x, y) => better(x, y, "used")),
         terminal: { ...a.terminal, ...b.terminal },
         marathon: mergeBy(a.marathon, b.marathon, Math.max),
-        training: mergeBy(a.training, b.training, Math.max)
+        training: mergeBy(a.training, b.training, Math.max),
+        community: mergeBy(a.community, b.community, (x, y) => better(x, y, "best"))
     };
 }
 

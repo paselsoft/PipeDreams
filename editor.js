@@ -250,6 +250,7 @@ function refresh() {
     document.getElementById("ed-play").disabled = !playable;
     document.getElementById("ed-code").textContent = playable ? levelToCode(level) : "// Correggi gli errori indicati nell'analisi.";
     document.getElementById("ed-share").disabled = !playable;
+    document.getElementById("ed-propose").disabled = !playable;
     document.getElementById("ed-share-url").textContent = playable ? currentShareUrl(level) : "Correggi gli errori indicati nell'analisi.";
     saveDraft();
 }
@@ -320,6 +321,25 @@ function playTest() {
 
 // Il link punta al gioco nella stessa cartella dell'editor
 const currentShareUrl = level => shareUrl(level, new URL("index.html", location.href).href);
+
+const REPO_ISSUES = "https://github.com/paselsoft/PipeDreams/issues/new";
+
+// Proposta per la galleria: una issue su GitHub con titolo e link del livello già compilati
+function proposeLevel() {
+    const { level, errors } = buildLevel();
+    if (errors.length) return;
+    const body = [
+        `Propongo il livello **${level.title}** per la galleria della community.`,
+        "",
+        `Link per giocarlo: ${currentShareUrl(level)}`,
+        "",
+        "Autore (come vuoi comparire nella galleria): ",
+        "",
+        "---",
+        "_Proposto dall'editor di Pipe Dreams._"
+    ].join("\n");
+    window.open(`${REPO_ISSUES}?title=${encodeURIComponent(`Livello per la galleria: ${level.title}`)}&body=${encodeURIComponent(body)}`, "_blank", "noopener");
+}
 
 async function copyShareLink() {
     const { level, errors } = buildLevel();

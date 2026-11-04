@@ -30,6 +30,7 @@ function closeTrainingMenu() {
 function startTraining(topicId) {
     if (!trainingTopic(topicId)) return;
     stopMarathon();
+    stopGallery();
     closeMenu();
     closeTrainingMenu();
     closeActIntro();

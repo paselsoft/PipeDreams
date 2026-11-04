@@ -20,6 +20,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - tutorial guidato al primo avvio; accessibile da tastiera e con i lettori di schermo, colori per daltonici
 - si installa come app (su telefono: «Aggiungi a schermata Home») e funziona anche offline
 - **backup dei progressi** (codice o file) per passare da un dispositivo all'altro, e novità di ogni versione
+- **galleria della community**: livelli dei giocatori, proposti dall'editor e scelti per il gioco
 - **livelli condivisibili**: l'editor crea un link che apre il livello nel gioco, senza toccare i progressi
 
 ## Struttura
@@ -47,6 +48,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `backup.js` | Backup dei progressi: esporta, unisce e ripristina |
 | `tutorial.js` | Tutorial guidato del primo livello |
 | `a11y.js` | Finestre accessibili: focus, Tab, Esc |
+| `community.js`, `gallery.js` | Livelli della community e la loro galleria nel gioco |
 | `share.js` | Livelli condivisi con un link: codifica e convalida |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
@@ -63,6 +65,7 @@ node tools/validate-levels.js   # tutti i livelli sono risolvibili? par e soluzi
 node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono con bash? (Linux)
 node tools/check-daily.js 366   # sfide dei prossimi 366 giorni, Maratona e allenamento valide in bash?
 node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
+node tools/check-community.js   # i livelli della galleria sono validi e coincidono con bash?
 ```
 
 I test nel browser (Playwright) giocano davvero il gioco: tutti i livelli, salvataggio, storia,
@@ -85,6 +88,19 @@ Se aggiungi un file al gioco, aggiungilo anche all'elenco `FILES` di `sw.js`. A 
 workflow cambia il nome della cache in `sw.js`: chi ha il gioco aperto vede «È pronta una nuova versione».
 
 Per una nuova versione: aumenta `APP_VERSION` in `version.js` e aggiungi una voce in cima a `CHANGELOG`.
+
+## Galleria della community
+
+Dall'editor, **🌍 PROPONI ALLA GALLERIA** apre una issue su GitHub con il link del livello.
+Per accettarlo:
+
+```bash
+node tools/add-community-level.js '<link del livello>' 'Autore'
+node tools/check-community.js
+```
+
+Il primo comando convalida il livello come un link condiviso e lo aggiunge in cima a
+`community.js`; il secondo verifica tutti i livelli della galleria anche con bash.
 
 ## Pubblicazione
 

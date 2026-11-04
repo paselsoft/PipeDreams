@@ -988,3 +988,19 @@ body.cvd .terminal-error { color: #ffa657; }
 body.coaching { padding-bottom: 220px; }
 .coach-target { box-shadow: 0 0 0 3px #e3b341, 0 0 18px #e3b341 !important; border-radius: 6px; position: relative; z-index: 5; }
 .menu-tutorial { background: #2b2111; }
+
+/* Galleria della community */
+.menu-gallery { background: #0c2d6b; border-color: #1f6feb; color: #79c0ff; }
+.gallery-bar { background: #0c2d6b; border-color: #1f6feb; color: #79c0ff; }
+.gallery-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.gallery-item {
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px;
+}
+.gallery-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gallery-info strong { color: #79c0ff; }
+.gallery-meta { color: #8b949e; font-size: 13px; }
+.gallery-stars { color: #e3b341; font-size: 13px; }
+.gallery-play { flex: 0 0 auto; }
+.gallery-propose a { color: #58a6ff; }
+.ed-propose { margin-top: 8px; width: 100%; }

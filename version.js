@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.5.0", date: "2026-11-04", items: [
+            "🌍 Galleria della community: livelli creati dai giocatori, da giocare dal menu LIVELLI. Le stelle restano salvate (anche nel backup).",
+            "📝 Nell'editor, 🌍 PROPONI ALLA GALLERIA prepara una proposta su GitHub con il link del tuo livello.",
+            "🏅 Nuovo obiettivo: Esploratore."
+        ]
+    },
     {
         version: "1.4.0", date: "2026-11-04", items: [
             "🎓 Tutorial guidato al primo avvio: ti accompagna passo per passo nel primo livello. Si rivede dal menu LIVELLI.",

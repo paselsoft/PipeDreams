@@ -150,6 +150,8 @@ module.exports = {
         await audit("backup");
         await page.evaluate(() => { closeBackup(); openTrainingMenu(); });
         await audit("allenamento");
+        await page.evaluate(() => { closeTrainingMenu(); openGallery(); });
+        await audit("galleria");
         await page.goto(fileUrl("editor.html"));
         await audit("editor");
     }
