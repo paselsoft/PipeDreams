@@ -35,8 +35,8 @@ for (let n = 2; existing.includes(id); n++) id = `c-${slug}-${n}`;
 const entry = { id, author: author.trim().slice(0, 40), added: new Date().toISOString().slice(0, 10), level };
 
 const file = path.join(root, "community.js");
-const source = fs.readFileSync(file, "utf8");
+const original = fs.readFileSync(file, "utf8");
 const marker = "const COMMUNITY_LEVELS = [\n";
 const indented = JSON.stringify(entry, null, 4).split("\n").map(line => "    " + line).join("\n");
-fs.writeFileSync(file, source.replace(marker, `${marker}${indented},\n`));
+fs.writeFileSync(file, original.replace(marker, `${marker}${indented},\n`));
 console.log(`Aggiunto ${id} («${title}» di ${entry.author}). Ora lancia: node tools/check-community.js`);
