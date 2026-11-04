@@ -50,7 +50,7 @@ jobs:
 
       - name: Installa Playwright e Chromium
         run: |
-          npm install --no-save playwright@1.63.0
+          npm install --no-save playwright@1.63.0 axe-core@4.10.2
           npx playwright install --with-deps chromium
 
       - name: Test nel browser (gioco, editor, manuale, laboratorio, sfida, terminale)

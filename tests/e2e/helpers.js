@@ -16,7 +16,7 @@ const fileUrl = name => (process.env.E2E_BASE_URL || "http://127.0.0.1:8000/") +
 // rawProgress scrive esattamente quel testo come salvataggio (per provare dati corrotti o vecchi).
 async function open(page, { file = "index.html", query = "", hash = "", progress = {}, settings = {}, seenActs = true, rawProgress } = {}) {
     const initialProgress = rawProgress ?? JSON.stringify({ levels: {}, lastLevel: 0, seenActs: seenActs ? [1, 2, 3, 4, 5, 6] : [], ...progress });
-    const initialSettings = { speed: "istantanea", sound: false, lastVersion: APP_VERSION, ...settings };
+    const initialSettings = { speed: "istantanea", sound: false, lastVersion: APP_VERSION, tutorialDone: true, ...settings };
     await page.addInitScript(([p, s]) => {
         if (window.name === "e2e-init") return;
         window.name = "e2e-init";

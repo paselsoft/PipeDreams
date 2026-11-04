@@ -111,6 +111,7 @@ function showLevel(lvl, titleText) {
     document.getElementById("terminal-input").value = "";
     applyInputMode();
     updateHintButton();
+    tutorialEvent("level", lvl);
 }
 
 // Crea una cella per ogni slot del livello
@@ -118,13 +119,22 @@ function buildGrid() {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
     gridState.forEach((_, i) => {
-        const cell = document.createElement("div");
+        // Pulsanti: si usano anche da tastiera (Invio o Spazio = comando successivo, ↑ = precedente)
+        const cell = document.createElement("button");
+        cell.type = "button";
         const lvl = currentLevel();
         cell.className = "cell"
             + (lvl.locked && lvl.locked[i] !== undefined ? " locked" : "")
             + (lvl.type === "quiz" ? " static" : "");
         cell.id = `c${i}`;
         cell.onclick = () => cycleCell(i);
+        cell.onkeydown = event => {
+            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                cycleCell(i, event.key === "ArrowUp" ? -1 : 1);
+            }
+        };
+        if (lvl.type === "quiz") cell.tabIndex = -1;
         const name = document.createElement("span");
         name.className = "cmd-name";
         const desc = document.createElement("span");
@@ -159,6 +169,7 @@ function toggleSetting(key) {
     saveSettings(settings);
     renderFxControl();
     applyCrt();
+    applyColorMode();
     if (key === "sound" && settings.sound) playClick();
 }
 
@@ -170,6 +181,14 @@ function renderFxControl() {
     const crt = document.getElementById("btn-crt");
     crt.setAttribute("aria-pressed", String(settings.crt));
     crt.classList.toggle("active", settings.crt);
+    const cvd = document.getElementById("btn-cvd");
+    cvd.setAttribute("aria-pressed", String(Boolean(settings.cvd)));
+    cvd.classList.toggle("active", Boolean(settings.cvd));
+}
+
+// Colori per daltonici: blu e arancione al posto di verde e rosso
+function applyColorMode() {
+    document.body.classList.toggle("cvd", Boolean(settings.cvd));
 }
 
 function renderSpeedControl() {
@@ -278,7 +297,7 @@ function refreshTerminal() {
     updateSlotCounter();
 }
 
-function cycleCell(index) {
+function cycleCell(index, direction = 1) {
     if (isBusy) return;
     const lvl = currentLevel();
     if (lvl.type === "quiz") return;
@@ -295,11 +314,12 @@ function cycleCell(index) {
         }
     }
     const maxCmds = slotOptions(lvl).length;
-    gridState[index] = (gridState[index] + 1) % maxCmds;
+    gridState[index] = (gridState[index] + direction + maxCmds) % maxCmds;
     playClick();
     updateCellUI(index);
     updateSlotCounter();
     updateShellLine();
+    tutorialEvent("cell");
 }
 
 function updateCellUI(index) {
@@ -308,6 +328,10 @@ function updateCellUI(index) {
 
     cellElem.querySelector('.cmd-name').innerText = stepLabel(step);
     cellElem.querySelector('.cmd-desc').innerText = step.desc;
+    const lvlForLabel = currentLevel();
+    const locked = lvlForLabel.locked && lvlForLabel.locked[index] !== undefined;
+    cellElem.setAttribute("aria-label", `Cella ${index + 1}: ${step.cmd === null ? "vuota" : `${stepLabel(step)}, ${step.desc}`}` +
+        (locked ? ", bloccata" : lvlForLabel.type === "quiz" ? "" : ". Invio per il comando successivo, freccia su per il precedente"));
 
     if (gridState[index] === 0) {
         cellElem.classList.remove("active");
@@ -434,7 +458,7 @@ function renderStream(title, lines, terminal) {
 
 // Confronto finale riga per riga con il target
 function renderDiff(output, target, terminal) {
-    document.getElementById("stream-title").innerText = "Output finale (verde = corretto, rosso = sbagliato, tratteggio = mancante)";
+    document.getElementById("stream-title").innerText = "Output finale (✓ corretto, ✗ sbagliato, tratteggio = mancante)";
     const lines = output.map(text => ({ text, fd: 1 }));
     const states = output.map((text, i) => text === target[i] ? "ok" : "bad");
     for (let i = output.length; i < target.length; i++) {
@@ -608,6 +632,7 @@ function showResult(lvl, result) {
     } else {
         bumpStat("failures");
         playFail();
+        tutorialEvent("fail");
         if (streamsEqual(result.output, lvl.target)) {
             logToConsole(`> [FALLIMENTO] Lo stdout è giusto, ma degli errori sono finiti sul terminale.`, "log-error");
         } else {
@@ -620,6 +645,7 @@ function showResult(lvl, result) {
 
 // Livello della campagna risolto: stelle, record, obiettivi e passaggio al successivo
 function completeLevel(lvl) {
+    tutorialEvent("win");
     const wasCompleted = actCompleted(lvl.act);
     if (terminalActive()) {
         progress.terminal[lvl.id] = true;
@@ -760,6 +786,7 @@ function showStoryScreen(label, title, text, buttonText, onButton) {
 
 function closeActIntro() {
     document.getElementById("act-overlay").hidden = true;
+    maybeStartTutorial();
 }
 
 function persistProgress() {
@@ -915,6 +942,7 @@ document.querySelectorAll("#mode-toggle button").forEach(button => {
 renderSpeedControl();
 renderFxControl();
 applyCrt();
+applyColorMode();
 
 // index.html?sfida apre direttamente la sfida del giorno (è il link del risultato condiviso)
 if (!TEST_MODE && new URLSearchParams(location.search).has("sfida")) loadDaily();
@@ -931,3 +959,9 @@ if (!TEST_MODE && new URLSearchParams(location.search).has("allenamento")) {
 }
 if (sharedLink && sharedLink.error) showToast(`🔗 ${sharedLink.error}`);
 noteVersion();
+// Chi ha già dei progressi conosce il gioco: niente tutorial automatico
+if (!TEST_MODE && !settings.tutorialDone && Object.keys(progress.levels).length) {
+    settings.tutorialDone = true;
+    saveSettings(settings);
+}
+document.addEventListener("DOMContentLoaded", maybeStartTutorial);

@@ -169,7 +169,7 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
     border-radius: 6px;
     font-size: 14px;
 }
-.manual-box h3 { margin-top: 0; color: #58a6ff; font-size: 15px; border-bottom: 1px solid #30363d; padding-bottom: 4px; }
+.manual-box h2, .manual-box h3 { margin-top: 0; color: #58a6ff; font-size: 15px; border-bottom: 1px solid #30363d; padding-bottom: 4px; }
 .manual-grid {
     display: flex;
     flex-direction: column;
@@ -365,7 +365,7 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
     font-weight: bold;
     cursor: pointer;
 }
-.shell-note { color: #6e7681; font-size: 12px; margin-top: 6px; }
+.shell-note { color: #8b949e; font-size: 12px; margin-top: 6px; }
 
 /* Modalità prova (livello dell'editor) */
 .test-banner {
@@ -839,11 +839,14 @@ body[data-input="terminal"] #grid-hint { display: none; }
 
 #ed-share-url { display: block; color: #79c0ff; font-size: 12px; overflow-wrap: anywhere; max-height: 90px; overflow-y: auto; }
 
-.app-version { text-align: center; color: #6e7681; font-size: 12px; margin: 18px 0 4px; }
+.app-version { text-align: center; color: #8b949e; font-size: 12px; margin: 18px 0 4px; }
 .menu-version { margin-top: 10px; }
 
-.app-version[role=button] { cursor: pointer; text-decoration: underline dotted; }
-.app-version[role=button]:hover { color: #8b949e; }
+.app-version-button {
+    background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+    text-decoration: underline dotted; padding: 4px;
+}
+.app-version-button:hover { color: #c9d1d9; }
 .changelog-list { margin: 0 0 8px; padding-left: 20px; font-size: 14px; line-height: 1.5; color: #c9d1d9; }
 
 /* Backup dei progressi */
@@ -932,3 +935,56 @@ body[data-input="terminal"] #grid-hint { display: none; }
 .result-why { margin: 8px 0 0; font-size: 14px; color: #c9d1d9; line-height: 1.4; }
 .result-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .result-buttons button { flex: 1 1 110px; }
+
+/* --- Accessibilità --- */
+/* Le celle sono pulsanti: stessi caratteri e colori di prima */
+button.cell { font-family: 'Courier New', Courier, monospace; color: #c9d1d9; width: 100%; }
+button.cell.active { color: #7ee787; }
+button.cell.locked, button.cell.static { color: inherit; }
+/* Bordo ben visibile per chi usa la tastiera */
+:focus-visible { outline: 3px solid #e3b341; outline-offset: 2px; }
+.menu-panel:focus, .grid:focus { outline: none; }
+.menu-panel:focus-visible { outline: 2px solid #e3b341; }
+.skip-link { position: absolute; left: 8px; top: -60px; background: #e3b341; color: #0d1117; padding: 6px 10px; border-radius: 4px; z-index: 100; font-weight: bold; }
+.skip-link:focus { top: 8px; }
+/* Giusto e sbagliato non solo dal colore */
+.chip.ok::before { content: "✓ "; }
+.chip.bad::before { content: "✗ "; }
+
+/* Colori per daltonici: blu (giusto) e arancione (sbagliato) */
+body.cvd .chip.ok { background: #0c2d6b; border-color: #58a6ff; color: #79c0ff; }
+body.cvd .chip.bad, body.cvd .chip.missing { background: #3d1f00; border-color: #f0883e; color: #ffa657; }
+body.cvd .chip.err { background: #251a3d; border-color: #a371f7; color: #d2a8ff; }
+body.cvd .log-success { color: #79c0ff; }
+body.cvd .log-error { color: #ffa657; }
+body.cvd .cell.active, body.cvd button.cell.active { border-color: #58a6ff; background: #0c2d6b; color: #79c0ff; }
+body.cvd .cell.active .cmd-desc { color: #a5d6ff; }
+body.cvd .btn-run:not(:disabled) { background: #1f6feb; border-color: #58a6ff; }
+body.cvd .result-best { color: #79c0ff; }
+body.cvd .result-mine { color: #ffa657; }
+body.cvd .terminal-error { color: #ffa657; }
+
+/* Tutorial guidato */
+.coach {
+    position: fixed;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    width: min(560px, calc(100% - 20px));
+    box-sizing: border-box;
+    background: #161b22;
+    border: 2px solid #e3b341;
+    border-radius: 8px;
+    padding: 10px 12px;
+    z-index: 35;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+.coach[hidden] { display: none; }
+.coach-count { color: #e3b341; font-size: 13px; font-weight: bold; }
+.coach-text { text-align: left; margin: 6px 0 10px; font-size: 15px; line-height: 1.4; color: #c9d1d9; }
+.coach-buttons { display: flex; gap: 8px; }
+.coach-buttons button { flex: 1; }
+.coach-buttons button[hidden] { display: none; }
+body.coaching { padding-bottom: 220px; }
+.coach-target { box-shadow: 0 0 0 3px #e3b341, 0 0 18px #e3b341 !important; border-radius: 6px; position: relative; z-index: 5; }
+.menu-tutorial { background: #2b2111; }

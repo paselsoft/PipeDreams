@@ -104,7 +104,7 @@ module.exports = {
         await page.click(".menu-version");
         assert.equal(await page.isVisible("#changelog-overlay"), true);
         await page.goto(fileUrl("editor.html"));
-        await page.focus(".app-version");
+        await page.focus(".app-version button");
         await page.keyboard.press("Enter");
         assert.equal(await page.isVisible("#changelog-overlay"), true);
     },

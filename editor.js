@@ -167,6 +167,7 @@ function renderSolution(allowedCommands) {
     container.innerHTML = "";
     draft.solution.forEach((choice, slot) => {
         const select = document.createElement("select");
+        select.setAttribute("aria-label", `Cella ${slot + 1} della soluzione`);
         select.add(new Option(`${slot + 1}: [ Vuoto ]`, -1));
         allowedCommands.forEach((step, i) => {
             const valid = !commandError(draft.commands[i]);

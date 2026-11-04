@@ -17,6 +17,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - modalità terminale: finito un atto, i suoi livelli si risolvono anche scrivendo la pipeline
 - dati che scorrono tra i comandi, suoni sintetizzati, coriandoli ed effetto CRT opzionale
 - i progressi restano salvati nel browser (`localStorage`)
+- tutorial guidato al primo avvio; accessibile da tastiera e con i lettori di schermo, colori per daltonici
 - si installa come app (su telefono: «Aggiungi a schermata Home») e funziona anche offline
 - **backup dei progressi** (codice o file) per passare da un dispositivo all'altro, e novità di ogni versione
 - **livelli condivisibili**: l'editor crea un link che apre il livello nel gioco, senza toccare i progressi
@@ -44,6 +45,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
 | `version.js` | Versione e novità (`CHANGELOG`); il workflow aggiunge commit e data della pubblicazione |
 | `backup.js` | Backup dei progressi: esporta, unisce e ripristina |
+| `tutorial.js` | Tutorial guidato del primo livello |
+| `a11y.js` | Finestre accessibili: focus, Tab, Esc |
 | `share.js` | Livelli condivisi con un link: codifica e convalida |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
 | `editor.html`, `editor.js`, `editor.css` | Editor dei livelli |
@@ -67,7 +70,7 @@ obiettivi, sfida del giorno, manuale, laboratorio, terminale, effetti, editor e 
 schermi da 320 a 1440 px. Il runner serve i file con un piccolo server HTTP locale.
 
 ```bash
-npm install --no-save playwright@1.63.0 && npx playwright install chromium   # la prima volta
+npm install --no-save playwright@1.63.0 axe-core@4.10.2 && npx playwright install chromium   # la prima volta
 node tests/e2e/run.js            # tutti i test
 node tests/e2e/run.js terminale  # solo quelli che contengono "terminale" nel nome
 ```

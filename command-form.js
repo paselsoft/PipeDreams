@@ -65,6 +65,7 @@ function argsError(command) {
 // Menu a tendina del tipo di comando: cambiandolo, gli argomenti tornano ai valori predefiniti
 function commandSelect(command, onTypeChange) {
     const select = document.createElement("select");
+    select.setAttribute("aria-label", "Comando");
     for (const cmd of Object.keys(COMMANDS)) {
         select.add(new Option(COMMAND_NAMES[cmd] || cmd, cmd, false, cmd === command.cmd));
     }

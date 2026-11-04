@@ -1,11 +1,20 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.4.0", date: "2026-11-04", items: [
+            "🎓 Tutorial guidato al primo avvio: ti accompagna passo per passo nel primo livello. Si rivede dal menu LIVELLI.",
+            "⌨️ Si gioca tutto da tastiera: Tab tra le celle, Invio o ↓ per il comando successivo, ↑ per il precedente, Esc per chiudere le finestre.",
+            "🔈 Celle, console e finestre leggibili dai lettori di schermo.",
+            "👁 Colori per daltonici (blu e arancione) e simboli ✓ ✗ sulle righe giuste e sbagliate.",
+            "Contrasti migliorati: il gioco passa i controlli automatici di accessibilità (axe)."
+        ]
+    },
     {
         version: "1.3.0", date: "2026-11-03", items: [
             "🚚 Atto VI, «Il grande trasloco»: 7 nuovi livelli e un nuovo finale della storia.",
@@ -91,11 +100,12 @@ function closeChangelog() {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".app-version").forEach(element => {
-        element.textContent = appVersionText() + " · novità";
-        element.setAttribute("role", "button");
-        element.tabIndex = 0;
-        element.title = "Novità di questa versione";
-        element.onclick = openChangelog;
-        element.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openChangelog(); } };
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "app-version-button";
+        button.textContent = appVersionText() + " · novità";
+        button.title = "Novità di questa versione";
+        button.onclick = openChangelog;
+        element.replaceChildren(button);
     });
 });

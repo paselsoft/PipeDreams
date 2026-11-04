@@ -13,10 +13,13 @@
 </head>
 <body>
 
-    <h1>PIPE DREAMS <span style="color:#ff7b72">| grep</span></h1>
-    <p class="subtitle">Mobile & Desktop Unix Edition · <a href="editor.html">editor livelli</a></p>
+    <a class="skip-link" href="#grid">Vai alle celle</a>
+    <header>
+        <h1>PIPE DREAMS <span style="color:#ff7b72">| grep</span></h1>
+        <p class="subtitle">Mobile & Desktop Unix Edition · <a href="editor.html">editor livelli</a></p>
+    </header>
 
-    <div class="game-container">
+    <main class="game-container">
 
         <div class="test-banner" id="test-banner" hidden>
             <span id="test-banner-text">MODALITÀ PROVA: stai giocando il livello dell'editor, i progressi non vengono salvati.</span>
@@ -66,7 +69,7 @@
         </div>
         <p class="grid-hint" id="grid-hint">Tocca le celle per cambiare comando:</p>
         
-        <div class="grid" id="grid"></div>
+        <div class="grid" id="grid" role="group" aria-label="Celle della pipeline" tabindex="-1"></div>
 
         <div class="quiz-box" id="quiz-box" hidden></div>
 
@@ -115,22 +118,23 @@
             <span>Effetti:</span>
             <button id="btn-sound" onclick="toggleSetting('sound')">🔊 Suoni</button>
             <button id="btn-crt" onclick="toggleSetting('crt')">📺 CRT</button>
+            <button id="btn-cvd" onclick="toggleSetting('cvd')" title="Blu e arancione al posto di verde e rosso">👁 Daltonici</button>
         </div>
 
-        <div id="console">> Pronto. Tocca una cella e premi Esegui.</div>
+        <div id="console" role="log" aria-live="polite" aria-label="Console">> Pronto. Tocca una cella e premi Esegui.</div>
 
         <div class="result-card" id="result-card" hidden></div>
 
         <!-- MANUALE DEI COMANDI -->
         <div class="manual-box">
-            <h3>📖 MANUALE DEI COMANDI</h3>
+            <h2>📖 MANUALE DEI COMANDI</h2>
             <p class="manual-hint">Tocca un comando per aprire la scheda con gli esempi.</p>
             <div class="manual-grid" id="manual-index"></div>
         </div>
 
         <footer class="app-version" id="app-version"></footer>
 
-    </div>
+    </main>
 
     <!-- MENU LIVELLI -->
     <div class="menu-overlay" id="level-menu" hidden onclick="if (event.target === this) closeMenu()">
@@ -146,6 +150,7 @@
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
             <button class="menu-stats menu-backup" onclick="openBackup()">💾 Backup progressi</button>
+            <button class="menu-stats menu-tutorial" onclick="restartTutorial()">🎓 Rivedi il tutorial</button>
             <button class="menu-reset" onclick="resetProgress()">Azzera progressi</button>
             <div class="app-version menu-version"></div>
         </div>
@@ -217,6 +222,16 @@
         <button class="btn-copy" onclick="location.reload()">AGGIORNA</button>
     </div>
 
+    <!-- TUTORIAL GUIDATO -->
+    <div class="coach" id="coach" role="region" aria-label="Tutorial" hidden>
+        <div class="coach-count" id="coach-count"></div>
+        <p class="coach-text" id="coach-text" aria-live="polite"></p>
+        <div class="coach-buttons">
+            <button class="btn-hint" id="coach-skip" onclick="endTutorial()">Salta il tutorial</button>
+            <button class="btn-run" id="coach-next" onclick="nextTutorialStep()">AVANTI ▶</button>
+        </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- MANUALE -->
@@ -250,8 +265,10 @@
     <script src="backup.js"></script>
     <script src="compare.js"></script>
     <script src="training.js"></script>
+    <script src="tutorial.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>
+    <script src="a11y.js"></script>
 </body>
 </html>
