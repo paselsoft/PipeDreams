@@ -273,7 +273,8 @@ function parseSed(words) {
     if (parts.length !== 3) fail(`sed: script incompleto: '${script}'`);
     const [pattern, replacement, flags] = parts;
     if (flags !== "" && flags !== "g") fail(`sed: opzione sconosciuta per s: '${flags}' (nel gioco solo g)`);
-    const args = flags === "g" ? { pattern, replacement, global: true } : { pattern, replacement };
+    // Sostituzione vuota (s/x//): come nell'editor, l'argomento si omette
+    const args = { pattern, ...(replacement !== "" ? { replacement } : {}), ...(flags === "g" ? { global: true } : {}) };
     const error = COMMANDS.sed.validate(args);
     if (error) fail(`sed: ${error}`);
     return { cmd: "sed", args };
