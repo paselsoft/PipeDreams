@@ -256,6 +256,113 @@ const MANUAL = [
         traps: ["Un campo che non esiste produce una riga vuota."]
     },
     {
+        id: "nl",
+        name: "nl",
+        cmds: ["nl"],
+        summary: "Numera le righe.",
+        syntax: "nl [-ba] [-wN] [-s'X']",
+        description: "Mette davanti a ogni riga il suo numero. Per default numera solo le righe non vuote, allinea il numero a destra su 6 caratteri e lo separa dalla riga con una tabulazione.",
+        options: [
+            { flag: "-ba", text: "numera tutte le righe, anche quelle vuote" },
+            { flag: "-wN", text: "larghezza del numero (es. -w1: niente spazi davanti)" },
+            { flag: "-s'X'", text: "cosa mettere tra il numero e la riga (es. -s'. ' per «1. riga»)" }
+        ],
+        examples: [
+            { title: "Elenco numerato", input: ["pane", "latte", "uova"], steps: [{ cmd: "nl", args: { width: 1, separator: ". " } }] },
+            { title: "Le righe vuote non si contano", input: ["pane", "", "uova"], steps: [{ cmd: "nl", args: { width: 1, separator: ". " } }] },
+            { title: "Con -ba si contano tutte", input: ["pane", "", "uova"], steps: [{ cmd: "nl", args: { all: true, width: 1, separator: ". " } }] },
+            { title: "Classifica numerata", input: ["5 anna", "12 luca", "8 eva"], steps: [{ cmd: "sort", args: { numeric: true, reverse: true } }, { cmd: "nl", args: { width: 1, separator: ") " } }],
+              note: "nl va alla fine: numera le righe nell'ordine in cui le riceve." }
+        ],
+        traps: [
+            "Senza -w e -s il numero è largo 6 caratteri e seguito da una tabulazione.",
+            "nl numera l'ordine attuale: se ordini dopo, i numeri si mescolano."
+        ]
+    },
+    {
+        id: "tee",
+        name: "tee",
+        cmds: ["tee"],
+        summary: "Lascia passare il flusso e intanto ne salva una copia.",
+        syntax: "tee file   /   tee /dev/stderr",
+        description: "Come un raccordo a T in un tubo: il flusso continua nella pipe e una copia finisce in un file. Con tee /dev/stderr la copia va sullo stderr, cioè sul terminale: utile per vedere i dati a metà pipeline.",
+        examples: [
+            { title: "Vedere i dati a metà strada", input: ["b", "a", "b"], steps: [{ cmd: "sort" }, { cmd: "uniq" }, { cmd: "tee", args: { file: "/dev/stderr" } }, { cmd: "wc" }],
+              note: "Lo stdout è solo il conteggio, ma sul terminale (stderr) vedi anche l'elenco che è stato contato." },
+            { title: "Salvare una copia", input: ["b", "a"], steps: [{ cmd: "sort" }, { cmd: "tee", args: { file: "ordinati.txt" } }, { cmd: "head", args: { n: 1 } }],
+              note: "Nel gioco il file non si vede, ma in bash ordinati.txt conterrebbe l'elenco intero." },
+            { title: "La copia può entrare nella pipe", input: ["b", "a"], steps: [{ cmd: "sort" }, { cmd: "tee", args: { file: "/dev/stderr" } }, { cmd: "merge" }, { cmd: "wc" }],
+              note: "Con 2>&1 anche la copia su stderr entra nella pipe: wc conta 4 righe." }
+        ],
+        traps: ["tee non cambia il flusso: tutto quello che entra esce uguale."]
+    },
+    {
+        id: "comm",
+        name: "comm",
+        cmds: ["comm"],
+        summary: "Confronta due elenchi ordinati: righe in comune, solo nel primo, solo nel secondo.",
+        syntax: "comm -12 - file   /   comm -23 - file   /   comm -13 - file",
+        description: "Legge due elenchi ordinati (qui lo stdin, scritto -, e un file) e li divide in tre colonne: righe solo nel primo, solo nel secondo, in entrambi. Le opzioni dicono quali colonne nascondere.",
+        options: [
+            { flag: "-12", text: "nasconde le colonne 1 e 2: restano le righe in comune" },
+            { flag: "-23", text: "restano le righe solo nello stdin" },
+            { flag: "-13", text: "restano le righe solo nel file" }
+        ],
+        examples: [
+            { title: "In comune", input: ["mela", "pera", "uva"], steps: [{ cmd: "comm", args: { mode: "12", file: "spesa.txt", lines: ["kiwi", "pera", "uva"] } }] },
+            { title: "Solo nello stdin", input: ["mela", "pera", "uva"], steps: [{ cmd: "comm", args: { mode: "23", file: "spesa.txt", lines: ["kiwi", "pera", "uva"] } }] },
+            { title: "Solo nel file", input: ["mela", "pera", "uva"], steps: [{ cmd: "comm", args: { mode: "13", file: "spesa.txt", lines: ["kiwi", "pera", "uva"] } }] },
+            { title: "Input non ordinato", input: ["uva", "mela"], steps: [{ cmd: "comm", args: { mode: "12", file: "spesa.txt", lines: ["kiwi", "pera", "uva"] } }],
+              note: "comm si aspetta elenchi ordinati: lo avvisa su stderr e il confronto è sbagliato. Prima ordina." },
+            { title: "Prima sort, poi comm", input: ["uva", "mela"], steps: [{ cmd: "sort" }, { cmd: "comm", args: { mode: "12", file: "spesa.txt", lines: ["kiwi", "pera", "uva"] } }] }
+        ],
+        traps: [
+            "Entrambi gli elenchi devono essere ordinati: quasi sempre serve un sort prima.",
+            "Confronta righe intere: 'uva' e 'uva ' (con uno spazio) sono diverse."
+        ]
+    },
+    {
+        id: "join",
+        name: "join",
+        cmds: ["join"],
+        summary: "Unisce le righe di due file che hanno lo stesso primo campo.",
+        syntax: "join [-t'X'] - file",
+        description: "Come unire due tabelle su una colonna in comune. Per ogni riga dello stdin e del file con lo stesso primo campo (la chiave) scrive: chiave, resto della riga dello stdin, resto della riga del file. Le righe senza coppia spariscono. Entrambi gli input devono essere ordinati sulla chiave.",
+        options: [{ flag: "-t'X'", text: "i campi sono separati dal carattere X (senza -t: da spazi)" }],
+        examples: [
+            { title: "Due tabelle unite", input: ["anna 30", "luca 25"], steps: [{ cmd: "join", args: { file: "citta.txt", lines: ["anna roma", "luca bari"] } }] },
+            { title: "Solo le chiavi in comune", input: ["anna 30", "eva 41", "luca 25"], steps: [{ cmd: "join", args: { file: "citta.txt", lines: ["anna roma", "luca bari", "sara asti"] } }],
+              note: "eva non è nel file e sara non è nello stdin: spariscono." },
+            { title: "Con le virgole", input: ["bash,5.2.15", "curl,8.5.0"], steps: [{ cmd: "join", args: { separator: ",", file: "ultime.txt", lines: ["bash,5.2.32", "curl,8.11.0"] } }] },
+            { title: "Prima ordina sulla chiave", input: ["luca 25", "anna 30"], steps: [{ cmd: "sort" }, { cmd: "join", args: { file: "citta.txt", lines: ["anna roma", "luca bari"] } }] }
+        ],
+        traps: [
+            "La chiave è il primo campo: se non lo è, riordina le colonne prima (awk, cut).",
+            "Senza sort prima, join avvisa su stderr e perde delle coppie."
+        ]
+    },
+    {
+        id: "pacchetti",
+        name: "apt, pacman, dnf...",
+        cmds: [],
+        summary: "Aggiornare i pacchetti nelle diverse distribuzioni Linux, e leggerne l'output con le pipeline.",
+        syntax: "sudo apt update && sudo apt upgrade   /   sudo pacman -Syu   /   sudo dnf upgrade",
+        description: "Ogni famiglia di distribuzioni ha il suo gestore di pacchetti. Debian, Ubuntu e Mint: apt (sudo apt update aggiorna l'elenco, sudo apt upgrade installa; apt list --upgradable mostra cosa c'è da aggiornare). Arch e derivate (Manjaro, EndeavourOS): pacman -Syu aggiorna tutto, pacman -Qu elenca gli aggiornamenti; yay -Syu e paru -Syu fanno lo stesso includendo i pacchetti dell'AUR (yay -Qua, paru -Qua solo quelli dell'AUR). Red Hat, Fedora, Rocky e Alma: dnf upgrade aggiorna, dnf check-update elenca; rpm -qa elenca i pacchetti installati. Nel gioco questi comandi non si eseguono (servono permessi e rete): i livelli dell'Atto VII ti danno il loro output, e tu lo analizzi con le pipeline.",
+        examples: [
+            { title: "Quanti aggiornamenti con apt", input: [{ err: "WARNING: apt does not have a stable CLI interface. Use with caution in scripts." }, "Listing...", "curl/noble-updates 8.5.0-2ubuntu10.5 amd64 [upgradable from: 8.5.0-2ubuntu10.4]", "vim/noble-updates 2:9.1.0016-1ubuntu7.4 amd64 [upgradable from: 2:9.1.0016-1ubuntu7.3]"],
+              steps: [{ cmd: "devnull" }, { cmd: "grep", args: { pattern: "upgradable" } }, { cmd: "wc" }],
+              note: "In una pipe apt avvisa su stderr che il suo output può cambiare: 2>/dev/null lo zittisce. La riga Listing... non va contata." },
+            { title: "I nomi da pacman -Qu", input: ["linux 6.11.5.arch1-1 -> 6.11.6.arch1-1", "firefox 131.0.3-1 -> 132.0-1"], steps: [{ cmd: "cut", args: { delim: " ", field: 1 } }, { cmd: "sort" }] },
+            { title: "Pacchetti installati con rpm -qa", input: ["bash-5.2.26-3.fc40.x86_64", "curl-8.6.0-10.fc40.x86_64", "kernel-6.11.6-200.fc40.x86_64"], steps: [{ cmd: "grep", args: { pattern: "kernel" } }],
+              note: "rpm -qa scrive nome-versione-rilascio.architettura, una riga per pacchetto." }
+        ],
+        traps: [
+            "apt update non aggiorna i programmi: aggiorna solo l'elenco. Per installare serve apt upgrade.",
+            "Su Arch non aggiornare mai a metà (pacman -Sy e poi installare): usa sempre pacman -Syu.",
+            "yay e paru si usano senza sudo: lo chiedono loro quando serve."
+        ]
+    },
+    {
         id: "paste",
         name: "paste -s",
         cmds: ["paste"],

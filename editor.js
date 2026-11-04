@@ -16,6 +16,7 @@ function blankDraft() {
         slots: SLOT_COUNT,
         mission: "Descrivi l'obiettivo. Puoi usare <code>codice</code>.",
         nudge: "",
+        source: "",
         hint: "",
         stdinText: "",
         commands: [{ cmd: "sort", args: defaultArgs("sort"), desc: "Riordina" }],
@@ -54,9 +55,6 @@ function buildLevel() {
     if (usedCount === 0) errors.push("Componi la soluzione prevista.");
 
     const result = executePipeline(stdin, solutionSteps);
-    if (result.stderr.length) {
-        errors.push(`La soluzione prevista lascia errori sul terminale: ${result.stderr.join(", ")}`);
-    }
 
     const level = {
         id: draft.sourceId ?? nextLevelId(),
@@ -70,6 +68,9 @@ function buildLevel() {
         allowedCommands
     };
     if (draft.slots !== SLOT_COUNT) level.slots = draft.slots;
+    if ((draft.source || "").trim()) level.source = draft.source.trim();
+    // Lo stderr che la soluzione lascia sul terminale fa parte del risultato atteso (es. tee /dev/stderr)
+    if (result.stderr.length) level.targetStderr = result.stderr;
     return { level, errors, solutionSteps, usedCount };
 }
 
@@ -85,10 +86,12 @@ function levelToCode(level) {
         `        id: ${level.id},`,
         `        act: ${level.act},`,
         `        title: ${q(level.title)},`,
+        ...(level.source ? [`        source: ${q(level.source)},`] : []),
         ...(level.slots ? [`        slots: ${level.slots},`] : []),
         `        mission: ${q(level.mission)},`,
         `        stdin: [${level.stdin.map(formatLine).join(", ")}],`,
         `        target: [${level.target.map(q).join(", ")}],`,
+        ...(level.targetStderr ? [`        targetStderr: [${level.targetStderr.map(q).join(", ")}],`] : []),
         `        nudge: ${q(level.nudge)},`,
         `        hint: ${q(level.hint)},`,
         "        allowedCommands: [",
@@ -106,6 +109,7 @@ function renderAll() {
     document.getElementById("ed-slots").value = draft.slots;
     document.getElementById("ed-mission").value = draft.mission;
     document.getElementById("ed-nudge").value = draft.nudge;
+    document.getElementById("ed-source").value = draft.source || "";
     document.getElementById("ed-hint").value = draft.hint;
     document.getElementById("ed-stdin").value = draft.stdinText;
     document.getElementById("ed-load").value = draft.sourceId ?? "";
@@ -293,6 +297,7 @@ function loadFromLevel(id) {
         slots,
         mission: lvl.mission,
         nudge: lvl.nudge || "",
+        source: lvl.source || "",
         hint: lvl.hint,
         stdinText: stdinToText(lvl.stdin),
         commands: lvl.allowedCommands.map(step => {
@@ -378,7 +383,7 @@ function loadDraft() {
     try {
         const saved = JSON.parse(localStorage.getItem(DRAFT_KEY));
         if (saved && Array.isArray(saved.commands) && saved.commands.every(c => COMMANDS[c.cmd]) && Array.isArray(saved.solution)) {
-            return { nudge: "", ...saved };
+            return { nudge: "", source: "", ...saved };
         }
     } catch (e) {
         // bozza corrotta: si riparte da una vuota
@@ -410,6 +415,7 @@ function setupForm() {
     bindText("ed-title", "title");
     bindText("ed-mission", "mission");
     bindText("ed-nudge", "nudge");
+    bindText("ed-source", "source");
     bindText("ed-hint", "hint");
     bindText("ed-stdin", "stdinText");
     document.getElementById("ed-act").oninput = event => { draft.act = Math.max(1, Number(event.target.value) || 1); refresh(); };

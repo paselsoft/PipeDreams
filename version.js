@@ -1,11 +1,20 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.6.0", date: "2026-11-04", items: [
+            "🛠 Atto VII, «Patch Tuesday»: 7 nuovi livelli sugli aggiornamenti di Debian (apt), Arch (pacman, yay) e Fedora (dnf, rpm). L'input è il vero output dei gestori di pacchetti.",
+            "🧰 Nuovi comandi: nl (numerare), tee (vedere i dati a metà pipeline con tee /dev/stderr), comm e join (confrontare e unire con un file del livello).",
+            "📁 I livelli possono avere dei file: li vedi sotto l'input, e nel terminale li usi per nome (comm -12 - critici.txt).",
+            "📖 Manuale: schede per nl, tee, comm, join e per i gestori di pacchetti (apt, pacman, yay, paru, dnf, rpm).",
+            "🎯 Allenamento: nuovi argomenti «nl» e «comm e join»."
+        ]
+    },
     {
         version: "1.5.0", date: "2026-11-04", items: [
             "🌍 Galleria della community: livelli creati dai giocatori, da giocare dal menu LIVELLI. Le stelle restano salvate (anche nel backup).",

@@ -74,8 +74,11 @@ function renderExample(example, entry) {
     const result = executePipeline(example.input, example.steps);
     box.appendChild(el("code", "manual-shell", buildShellLine(example.input, example.steps, " |\n  ")));
 
+    // Anche i file letti da comm e join
+    const files = Object.entries(levelFiles({ allowedCommands: example.steps })).map(([name, lines]) => [name, lines.map(text => ({ text, fd: 1 }))]);
     const rows = [
         ["input", normalizeInput(example.input)],
+        ...files,
         ["output", result.output.map(text => ({ text, fd: 1 }))]
     ];
     for (const [label, lines] of rows) {

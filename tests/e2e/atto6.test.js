@@ -10,7 +10,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO VI");
         assert.equal(await page.textContent("#act-title"), "Il grande trasloco");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 30\/36: Log alla Rovescia/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 30\/43: Log alla Rovescia/);
         assert.match(await page.textContent("#story-text"), /log al contrario/);
         await placeSolution(page, 29);
         const text = await run(page);
@@ -30,7 +30,7 @@ module.exports = {
         assert.equal(await page.textContent("#terminal-error"), "");
         assert.match(await page.textContent("#shell-line"), /rev \|\s+cut -d'\.' -f1 \|\s+rev \|\s+LC_ALL=C sort/);
         await page.press("#terminal-input", "Enter");
-        await page.waitForFunction(() => /COMPLETATO/.test(document.getElementById("console").innerText));
+        await page.waitForFunction(() => /SUCCESSO/.test(document.getElementById("console").innerText));
         assert.match(await consoleText(page), /4 jpg/);
     },
 

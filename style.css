@@ -198,8 +198,12 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
     border-radius: 4px;
     font-size: 14px;
     transition: all 0.2s ease;
-    /* Spazi multipli e iniziali visibili: contano per cut, awk e uniq -c */
-    white-space: pre;
+    /* Spazi multipli e iniziali visibili: contano per cut, awk e uniq -c. Le righe lunghe
+       (es. l'output di apt) vanno a capo invece di uscire dallo schermo */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .chip.err {
     background: #2d1215;
@@ -1004,3 +1008,11 @@ body.coaching { padding-bottom: 220px; }
 .gallery-play { flex: 0 0 auto; }
 .gallery-propose a { color: #58a6ff; }
 .ed-propose { margin-top: 8px; width: 100%; }
+
+.stdin-source { color: #8b949e; font-weight: normal; }
+#level-files strong, #row-target-stderr strong { color: #79c0ff; }
+#row-target-stderr[hidden] { display: none; }
+.ed-param-lines textarea { width: 100%; box-sizing: border-box; font-family: inherit; }
+
+/* Le voci lunghe del menu dei comandi non allargano la pagina */
+.form-ui select { max-width: 100%; min-width: 0; }

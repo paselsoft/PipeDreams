@@ -25,6 +25,8 @@ function shareUrl(level, base) {
         stdin: level.stdin, target: level.target, allowedCommands: level.allowedCommands
     };
     if (level.slots) shared.slots = level.slots;
+    if (level.targetStderr) shared.targetStderr = level.targetStderr;
+    if (level.source) shared.source = level.source;
     return base + SHARE_PREFIX + encodeData(shared);
 }
 
@@ -46,6 +48,8 @@ function sharedLevelError(level) {
     const line = item => isShortText(item, 120) || (item && typeof item === "object" && isShortText(item.err, 120) && Object.keys(item).length === 1);
     if (!Array.isArray(level.stdin) || level.stdin.length < 1 || level.stdin.length > 60 || !level.stdin.every(line)) return "input non valido";
     if (!Array.isArray(level.target) || level.target.length > 60 || !level.target.every(item => isShortText(item, 200))) return "output atteso non valido";
+    if (level.source !== undefined && !isShortText(level.source, 80)) return "origine dell'input troppo lunga";
+    if (level.targetStderr !== undefined && !(Array.isArray(level.targetStderr) && level.targetStderr.length <= 60 && level.targetStderr.every(item => isShortText(item, 200)))) return "stderr atteso non valido";
     if (level.slots !== undefined && !(Number.isInteger(level.slots) && level.slots >= 1 && level.slots <= 8)) return "numero di slot non valido";
     if (!Array.isArray(level.allowedCommands) || level.allowedCommands.length < 1 || level.allowedCommands.length > 12) return "elenco dei comandi non valido";
     for (const step of level.allowedCommands) {
@@ -74,5 +78,7 @@ function sharedLevelFromHash(hash) {
         stdin: data.stdin, target: data.target, allowedCommands: data.allowedCommands
     };
     if (data.slots) level.slots = data.slots;
+    if (data.targetStderr && data.targetStderr.length) level.targetStderr = data.targetStderr;
+    if (data.source) level.source = data.source;
     return { level };
 }

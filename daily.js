@@ -69,8 +69,12 @@ const C = {
     uniqD: { cmd: "uniq", args: { repeated: true }, desc: "Solo le righe ripetute" },
     sortKey: (separator, key, numeric, reverse) => ({ cmd: "sort", args: { ...(numeric ? { numeric: true } : {}), ...(reverse ? { reverse: true } : {}), separator, key },
         desc: `Campo ${key}${numeric ? ", numerico" : ""}${reverse ? " decrescente" : ""}` }),
-    cutc: (from, to) => ({ cmd: "cutc", args: { from, to }, desc: from === to ? `Carattere ${from}` : `Caratteri ${from}-${to}` })
+    cutc: (from, to) => ({ cmd: "cutc", args: { from, to }, desc: from === to ? `Carattere ${from}` : `Caratteri ${from}-${to}` }),
+    comm: (mode, file, lines) => ({ cmd: "comm", args: { mode, file, lines }, desc: { "12": `In comune con ${file}`, "23": `Solo nell'elenco, non in ${file}`, "13": `Solo in ${file}` }[mode] }),
+    join: (file, lines) => ({ cmd: "join", args: { file, lines }, desc: `Unisci con ${file}` }),
+    nl: (width, separator) => ({ cmd: "nl", args: { width, separator }, desc: `Numera: 1${separator.trim()} 2${separator.trim()} 3${separator.trim()}` })
 };
+const byteSorted = list => [...list].sort((x, y) => (x < y ? -1 : x > y ? 1 : 0));
 
 // Ogni ricetta restituisce testi, input, comandi della soluzione ed esche
 const RECIPES = {
@@ -767,6 +771,63 @@ const TRAINING_RECIPES = {
             distractors: [C.uniq, C.uniqC, C.sortR]
         };
     },
+    t_nl: rng => {
+        const separator = pick(rng, [". ", ") ", ": "]);
+        return {
+            title: "Elenco Numerato", from: "Allenamento",
+            story: "nl numera le righe; -w1 toglie gli spazi davanti al numero e -s sceglie il separatore.",
+            mission: `Numera le cose da fare, come <code>1${separator}...</code>, nell'ordine in cui sono.`,
+            nudge: "Il formato del numero conta: niente spazi davanti.",
+            hint: `Un solo comando: nl -w1 -s'${separator}'.`,
+            stdin: sample(rng, ["backup", "patch", "riavvio", "log", "test", "report", "pulizia"], 4),
+            steps: [C.nl(1, separator)],
+            distractors: [{ cmd: "nl", desc: "Numera (formato standard)" }, C.sort, C.tac]
+        };
+    },
+    t_nl_top: rng => {
+        const names = sample(rng, NAMES, 5);
+        const n = randInt(rng, 2, 3);
+        return {
+            title: "Podio Numerato", from: "Allenamento",
+            story: "nl va alla fine: numera le righe nell'ordine in cui le riceve.",
+            mission: `Ogni riga è <code>punti nome</code>. Mostra i primi <code>${n}</code> in classifica, numerati come <code>1. 120 anna</code>.`,
+            nudge: "Prima la classifica, poi il taglio, poi i numeri.",
+            hint: `Tre comandi: sort -rn, head -n ${n}, nl -w1 -s'. '.`,
+            stdin: mixedNumbers(rng, 5).map((points, i) => `${points} ${names[i]}`),
+            steps: [C.sortRN, C.head(n), C.nl(1, ". ")],
+            distractors: [C.sortN, C.tail(n), C.sort]
+        };
+    },
+    t_comm: rng => {
+        const all = sample(rng, [...FRUITS, ...ANIMALS], 9);
+        const installed = all.slice(0, 6);
+        const wanted = byteSorted([...sample(rng, installed, 2), ...all.slice(6, 8)]);
+        const mode = pick(rng, ["12", "13"]);
+        return {
+            title: "Due Elenchi", from: "Allenamento",
+            story: "comm confronta due elenchi ordinati: -12 tiene le righe in comune, -13 quelle solo nel file.",
+            mission: mode === "12" ? "Quali righe dell'elenco ci sono anche in <code>lista.txt</code>?" : "Quali righe di <code>lista.txt</code> mancano nell'elenco?",
+            nudge: "comm vuole elenchi ordinati.",
+            hint: `Due comandi: sort, poi comm -${mode} - lista.txt.`,
+            stdin: shuffled(rng, installed),
+            steps: [C.sort, C.comm(mode, "lista.txt", wanted)],
+            distractors: [C.comm(mode === "12" ? "13" : "12", "lista.txt", wanted), C.comm("23", "lista.txt", wanted), C.sortR]
+        };
+    },
+    t_join: rng => {
+        const people = sample(rng, NAMES, 5);
+        const cities = byteSorted(people.slice(0, 4)).map(name => `${name} ${pick(rng, ["roma", "milano", "torino", "bari"])}`);
+        return {
+            title: "Unisci le Tabelle", from: "Allenamento",
+            story: "join unisce le righe di due elenchi ordinati che hanno lo stesso primo campo.",
+            mission: "Ogni riga è <code>nome età</code>; <code>citta.txt</code> ha <code>nome città</code>. Ottieni <code>nome età città</code> per chi è in entrambi.",
+            nudge: "join lavora su elenchi ordinati sul primo campo.",
+            hint: "Due comandi: sort, poi join - citta.txt.",
+            stdin: shuffled(rng, people.map(name => `${name} ${randInt(rng, 20, 60)}`)),
+            steps: [C.sort, C.join("citta.txt", cities)],
+            distractors: [C.comm("12", "citta.txt", cities), C.sortR, C.cut(" ", 1)]
+        };
+    },
     t_cut_c: rng => {
         const countries = sample(rng, ["IT", "FR", "DE", "ES", "PT"], 3);
         const codes = Array.from({ length: 6 }, (_, i) => `${countries[i % 3]}${randInt(rng, 2015, 2024)}${String(randInt(rng, 1, 999)).padStart(3, "0")}`);
@@ -791,6 +852,8 @@ const TRAINING_TOPICS = [
     { id: "uniq", label: "uniq", desc: "doppioni, conteggi e solo i ripetuti", base: ["t_uniq_base", "t_uniq_vicini"], advanced: ["t_uniq_conta", "t_wc_distinti", "t_uniq_d"], cmds: ["uniq"] },
     { id: "headtail", label: "head e tail", desc: "le prime e le ultime righe", base: ["t_head", "t_tail"], advanced: ["t_middle", "t_sort_top"], cmds: ["head", "tail"] },
     { id: "tacrev", label: "tac e rev", desc: "righe e caratteri al contrario", base: ["t_tac"], advanced: ["t_rev_ext"], cmds: ["tac", "rev"] },
+    { id: "nl", label: "nl", desc: "numerare le righe", base: ["t_nl"], advanced: ["t_nl_top"], cmds: ["nl"] },
+    { id: "commjoin", label: "comm e join", desc: "confrontare e unire due elenchi", base: ["t_comm"], advanced: ["t_join"], cmds: ["comm", "join"] },
     { id: "wc", label: "wc", desc: "contare le righe", base: ["t_wc_conta"], advanced: ["t_wc_distinti", "t_grep_o"], cmds: ["wc"] },
     { id: "cut", label: "cut", desc: "estrarre un campo o dei caratteri", base: ["t_cut_campo"], advanced: ["t_cut_csv", "t_cut_c"], cmds: ["cut", "cutc"] },
     { id: "awk", label: "awk", desc: "colonne separate da spazi", base: ["t_awk_spazi"], advanced: ["t_awk_numeri"], cmds: ["awk"] },

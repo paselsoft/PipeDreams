@@ -148,6 +148,34 @@ const PARSERS = {
         if (flags.has("d")) args.repeated = true;
         return args;
     },
+    nl: words => {
+        const args = {};
+        for (let i = 0; i < words.length;) {
+            const word = words[i];
+            if (word === "-ba" || (word === "-b" && words[i + 1] === "a")) {
+                args.all = true;
+                i += word === "-ba" ? 1 : 2;
+            } else if (word === "-bt" || (word === "-b" && words[i + 1] === "t")) {
+                i += word === "-bt" ? 1 : 2;
+            } else if (/^-w/.test(word)) {
+                const { value, used } = optionValue(words, i, "w");
+                args.width = positiveInt("nl", value);
+                i += used;
+            } else if (/^-s/.test(word)) {
+                const { value, used } = optionValue(words, i, "s");
+                if (value === undefined || value === "") fail("nl: dopo -s serve un separatore, es. nl -s'. '");
+                args.separator = value;
+                i += used;
+            } else {
+                fail(`nl: opzione non valida '${word}' (nel gioco: -ba, -wN, -s'X')`);
+            }
+        }
+        return args;
+    },
+    tee: words => {
+        if (words.length !== 1 || words[0].startsWith("-")) fail("tee: nel gioco tee scrive su un solo file, es. tee copia.txt o tee /dev/stderr");
+        return { file: words[0] };
+    },
     tac: words => {
         if (words.length) fail("tac: nel gioco tac legge solo dalla pipe, senza opzioni");
         return {};
@@ -264,13 +292,51 @@ function parseCutChars(words) {
     return { cmd: "cutc", args };
 }
 
-function parseCommand(words) {
+// comm -12 - file e join [-t'X'] - file: lo stdin è il primo file, il secondo è un file del livello
+function parseTwoFiles(name, words, files) {
+    const args = {};
+    const operands = [];
+    for (let i = 0; i < words.length;) {
+        const word = words[i];
+        if (name === "comm" && /^-[123]+$/.test(word)) {
+            // -12, -21 o -1 -2: le colonne da nascondere, in qualsiasi ordine
+            args.mode = [...new Set((args.mode || "") + word.slice(1))].sort().join("");
+            i++;
+        } else if (name === "join" && /^-t/.test(word)) {
+            const { value, used } = optionValue(words, i, "t");
+            if (value === undefined || [...value].length !== 1) fail("join: il separatore -t deve essere un solo carattere");
+            args.separator = value;
+            i += used;
+        } else if (word.startsWith("-") && word !== "-") {
+            fail(`${name}: opzione non valida '${word}'`);
+        } else {
+            operands.push(word);
+            i++;
+        }
+    }
+    if (name === "comm" && !["12", "13", "23"].includes(args.mode)) fail("comm: nel gioco si mostra una colonna sola: -12 (in comune), -23 (solo nello stdin) o -13 (solo nel file)");
+    if (operands.length !== 2 || operands[0] !== "-") fail(`${name}: si usa '${name} ${name === "comm" ? "-12 " : ""}- file': il primo file è lo stdin (-), il secondo un file del livello`);
+    const file = operands[1];
+    if (!files[file]) {
+        const known = Object.keys(files);
+        fail(`${name}: ${file}: file non trovato${known.length ? ` (in questo livello: ${known.join(", ")})` : ""}`);
+    }
+    return { ...args, file, lines: files[file] };
+}
+
+function parseCommand(words, files = {}) {
     // Le assegnazioni di variabili (es. LC_ALL=C) davanti al comando si ignorano
     while (words.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[0])) words = words.slice(1);
     if (!words.length) fail("bash: errore di sintassi vicino al token inatteso '|'");
     const [name, ...rest] = words;
     if (name === "sed") return parseSed(rest);
     if (name === "cut" && rest.some(word => /^-c/.test(word))) return parseCutChars(rest);
+    if (name === "comm" || name === "join") {
+        const args = parseTwoFiles(name, rest, files);
+        const error = COMMANDS[name].validate(args);
+        if (error) fail(`${name}: ${error}`);
+        return { cmd: name, args };
+    }
     if (!PARSERS[name]) fail(`bash: ${name}: comando non trovato`);
     const args = PARSERS[name](rest);
     const validate = COMMANDS[name].validate;
@@ -281,7 +347,7 @@ function parseCommand(words) {
 
 // Pipeline scritta dopo il prompt "$ programma": può iniziare con i reindirizzamenti del
 // programma (2>&1 | ...) o con una pipe ("| grep ..."). Restituisce { steps } oppure { error }.
-function parsePipeline(text) {
+function parsePipeline(text, files = {}) {
     try {
         const segments = tokenize(text.trim());
         const steps = [];
@@ -293,7 +359,7 @@ function parsePipeline(text) {
                 steps.push(...redirects);
                 return;
             }
-            const command = parseCommand(rest);
+            const command = parseCommand(rest, files);
             steps.push({ cmd: command.cmd, args: command.args }, ...redirects);
         });
         if (steps.length === 0) fail("bash: scrivi almeno un comando, es. sort | uniq");

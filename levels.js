@@ -687,5 +687,147 @@ const levels = [
             { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
             { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" }
         ]
+    },
+    {
+        id: 37,
+        act: 7,
+        title: "Lista della Spesa di apt",
+        source: "apt list --upgradable",
+        slots: 5,
+        mission: "Il server Debian ha degli aggiornamenti. Per il registro delle modifiche servono solo i <strong>nomi</strong> dei pacchetti, numerati come <code>1. curl</code>. L'avviso di apt su stderr non deve comparire.",
+        stdin: [{ err: "WARNING: apt does not have a stable CLI interface. Use with caution in scripts." }, "Listing...", "curl/noble-updates 8.5.0-2ubuntu10.6 amd64 [upgradable from: 8.5.0-2ubuntu10.5]", "libssl3t64/noble-updates 3.0.13-0ubuntu3.5 amd64 [upgradable from: 3.0.13-0ubuntu3.4]", "openssh-server/noble-updates 1:9.6p1-3ubuntu13.7 amd64 [upgradable from: 1:9.6p1-3ubuntu13.5]", "sudo/noble-updates 1.9.15p5-3ubuntu5.24.04.1 amd64 [upgradable from: 1.9.15p5-3ubuntu5]"],
+        target: ["1. curl", "2. libssl3t64", "3. openssh-server", "4. sudo"],
+        nudge: "Tre cose da togliere: l'avviso, la riga Listing... e tutto quello che segue la barra.",
+        hint: "Piano in 4 passi: 1) cestina l'avviso (2>/dev/null), 2) tieni le righe 'upgradable', 3) il nome è prima della barra (cut -d'/' -f1), 4) numera con nl -w1 -s'. '. Attenzione: nl senza opzioni usa 6 spazi e una tabulazione.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "grep", args: { pattern: "upgradable" }, desc: "Tieni le righe con 'upgradable'" },
+            { cmd: "cut", args: { delim: "/", field: 1 }, desc: "Campo 1 (/)" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "nl", args: { width: 1, separator: ". " }, desc: "Numera: 1. 2. 3." },
+            { cmd: "nl", desc: "Numera (formato standard)" }
+        ]
+    },
+    {
+        id: 38,
+        act: 7,
+        title: "Arch, Sempre Aggiornata",
+        source: "pacman -Qu",
+        mission: "Il server Arch elenca gli aggiornamenti come <code>nome vecchia -> nuova</code>. Il monitoraggio vuole solo <strong>quanti</strong> sono (lo stdout), ma tu vuoi vedere sul terminale anche i <strong>nomi</strong>.",
+        stdin: ["firefox 131.0.3-1 -> 132.0-1", "linux 6.11.5.arch1-1 -> 6.11.6.arch1-1", "mesa 1:24.2.5-1 -> 1:24.2.6-1", "python 3.12.6-1 -> 3.12.7-1"],
+        target: ["4"],
+        targetStderr: ["firefox", "linux", "mesa", "python"],
+        nudge: "Ti serve un raccordo a T: una copia dei nomi sul terminale, il resto avanti nella pipe.",
+        hint: "Piano in 3 passi: 1) tieni il nome (cut, campo 1), 2) tee /dev/stderr ne manda una copia sul terminale, 3) wc -l conta. Attenzione: tee su un file non mostra niente.",
+        allowedCommands: [
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 4 }, desc: "Campo 4 (spazio)" },
+            { cmd: "tee", args: { file: "/dev/stderr" }, desc: "Copia sul terminale" },
+            { cmd: "tee", args: { file: "aggiornamenti.txt" }, desc: "Copia in un file" },
+            { cmd: "wc", desc: "Conta le righe" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" }
+        ]
+    },
+    {
+        id: 39,
+        act: 7,
+        title: "Pacchetti Critici",
+        source: "rpm -qa --qf '%{NAME}\\n'",
+        mission: "Sul server Fedora, quali dei pacchetti <strong>critici</strong> (il file <code>critici.txt</code>) sono installati? Elenco in ordine alfabetico.",
+        stdin: ["kernel", "bash", "vim-enhanced", "openssl", "firefox", "sudo", "curl"],
+        target: ["openssl", "sudo"],
+        nudge: "comm confronta due elenchi, ma solo se sono ordinati.",
+        hint: "Piano in 2 passi: 1) ordina l'elenco dei pacchetti installati, 2) comm -12 tiene le righe presenti in entrambi. Attenzione: senza sort, comm avvisa su stderr e il confronto è sbagliato.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" },
+            { cmd: "comm", args: { mode: "12", file: "critici.txt", lines: ["glibc", "openssh", "openssl", "sudo"] }, desc: "In comune con critici.txt" },
+            { cmd: "comm", args: { mode: "23", file: "critici.txt", lines: ["glibc", "openssh", "openssl", "sudo"] }, desc: "Solo nell'elenco, non critici" },
+            { cmd: "comm", args: { mode: "13", file: "critici.txt", lines: ["glibc", "openssh", "openssl", "sudo"] }, desc: "Critici non installati" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" }
+        ]
+    },
+    {
+        id: 40,
+        act: 7,
+        title: "Versioni a Confronto",
+        source: "dpkg-query -W -f='${Package} ${Version}\\n'",
+        mission: "Accanto a ogni pacchetto installato metti l'ultima versione disponibile (il file <code>ultime.txt</code>): ogni riga deve diventare <code>pacchetto installata ultima</code>, in ordine alfabetico.",
+        stdin: ["openssl 3.0.13-0ubuntu3.4", "curl 8.5.0-2ubuntu10.4", "vim 2:9.1.0016-1ubuntu7.3", "bash 5.2.21-2ubuntu4"],
+        target: ["bash 5.2.21-2ubuntu4 5.2.21-2ubuntu4", "curl 8.5.0-2ubuntu10.4 8.5.0-2ubuntu10.6", "openssl 3.0.13-0ubuntu3.4 3.0.13-0ubuntu3.5", "vim 2:9.1.0016-1ubuntu7.3 2:9.1.0016-1ubuntu7.3"],
+        nudge: "join unisce le righe con lo stesso primo campo, se entrambi gli elenchi sono ordinati.",
+        hint: "Piano in 2 passi: 1) ordina, 2) join - ultime.txt unisce le righe con lo stesso nome. Attenzione: comm confronta le righe intere, e le versioni sono diverse.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "join", args: { file: "ultime.txt", lines: ["bash 5.2.21-2ubuntu4", "curl 8.5.0-2ubuntu10.6", "openssl 3.0.13-0ubuntu3.5", "vim 2:9.1.0016-1ubuntu7.3"] }, desc: "Unisci con ultime.txt" },
+            { cmd: "comm", args: { mode: "12", file: "ultime.txt", lines: ["bash 5.2.21-2ubuntu4", "curl 8.5.0-2ubuntu10.6", "openssl 3.0.13-0ubuntu3.5", "vim 2:9.1.0016-1ubuntu7.3"] }, desc: "In comune con ultime.txt" },
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "tac", desc: "Rovescia l'ordine delle righe" }
+        ]
+    },
+    {
+        id: 41,
+        act: 7,
+        title: "Cosa Manca?",
+        type: "quiz",
+        mission: "Tommaso chiede: questa pipeline confronta i pacchetti installati con <code>richiesti.txt</code> (git, htop, vim). Cosa stampa?",
+        stdin: ["bash", "curl", "vim"],
+        target: ["git", "htop"],
+        nudge: "-13 nasconde la colonna 1 (solo nello stdin) e la colonna 3 (in comune).",
+        hint: "comm -13 lascia solo la colonna 2: le righe che stanno solo nel file. Qui: i pacchetti richiesti non ancora installati.",
+        explain: "comm -13 tiene solo quello che è nel file ma non nello stdin: git e htop sono richiesti ma non installati.",
+        allowedCommands: [
+            { cmd: "comm", args: { mode: "13", file: "richiesti.txt", lines: ["git", "htop", "vim"] }, desc: "Solo in richiesti.txt" }
+        ],
+        start: [1],
+        wrong: [
+            { steps: [{ cmd: "comm", args: { mode: "12", file: "richiesti.txt", lines: ["git", "htop", "vim"] } }], why: "Questo sarebbe comm -12: le righe in comune. Con -13 restano invece quelle solo nel file." },
+            { steps: [{ cmd: "comm", args: { mode: "23", file: "richiesti.txt", lines: ["git", "htop", "vim"] } }], why: "Questo sarebbe comm -23: le righe solo nello stdin (installati ma non richiesti)." }
+        ]
+    },
+    {
+        id: 42,
+        act: 7,
+        title: "Fedora e il Kernel",
+        source: "dnf check-update",
+        slots: 6,
+        mission: "Quali pacchetti si aggiornano sul server Fedora? Togli il kernel (lo aggiorniamo a parte, con un riavvio) e scrivi i nomi <strong>senza l'architettura</strong> finale (<code>.x86_64</code>, <code>.noarch</code>).",
+        stdin: [{ err: "Last metadata expiration check: 0:12:44 ago on Tue 04 Nov 2026 07:10:31 CET." }, "", "curl.x86_64              8.6.0-11.fc40        updates", "kernel.x86_64            6.11.6-200.fc40      updates", "python3.12.x86_64        3.12.7-1.fc40        updates", "python3-pip.noarch       23.3.2-2.fc40        updates"],
+        target: ["curl", "python3.12", "python3-pip"],
+        nudge: "Il nome è la prima colonna, e l'architettura è l'ultimo pezzo dopo un punto. Attento a python3.12.",
+        hint: "Piano in 5 passi: 2>/dev/null, tieni le righe 'updates', scarta il kernel, awk '{print $1}', poi sed -E 's/\\.[a-z0-9_]+$//' toglie l'ultimo punto e quello che segue. Attenzione: cut -d'.' -f1 taglia python3.12.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "grep", args: { pattern: "updates" }, desc: "Tieni le righe con 'updates'" },
+            { cmd: "grep", args: { pattern: "kernel", invert: true }, desc: "Scarta le righe con 'kernel'" },
+            { cmd: "awk", args: { field: 1 }, desc: "Campo 1 di awk" },
+            { cmd: "sed", args: { pattern: "\\.[a-z0-9_]+$" }, desc: "Togli l'ultimo .xxx" },
+            { cmd: "cut", args: { delim: ".", field: 1 }, desc: "Campo 1 (.)" },
+            { cmd: "sort", desc: "Ordine alfabetico" }
+        ]
+    },
+    {
+        id: 43,
+        act: 7,
+        title: "Boss Atto VII",
+        source: "for s in zebra mela gatto pesca pera; do ssh $s inventario; done",
+        slots: 7,
+        mission: "🚨 Patch Tuesday! L'inventario di tutti i server è <code>pacchetto server</code>. Quali server hanno almeno un pacchetto in <code>vulnerabili.txt</code>? Elenco ordinato, senza ripetizioni. Il server pera non risponde: il suo errore non deve comparire.",
+        stdin: ["bash zebra", "openssh zebra", "xz mela", "curl pesca", { err: "ssh: connect to host pera port 22: Connection timed out" }, "sudo mela", "curl gatto", "bash pesca", "openssh gatto", "xz gatto", "vim mela", "vim pesca"],
+        target: ["gatto", "mela", "zebra"],
+        nudge: "join unisce l'inventario con le vulnerabilità sul nome del pacchetto; poi resta da tenere il server.",
+        hint: "Piano in 6 passi: 2>/dev/null, sort, join - vulnerabili.txt (riga: pacchetto server CVE), awk '{print $2}', sort, uniq. Attenzione: comm confronta righe intere, qui non trova niente.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "merge", desc: "Unisci stderr a stdout" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "join", args: { file: "vulnerabili.txt", lines: ["openssh CVE-2024-6387", "sudo CVE-2023-22809", "xz CVE-2024-3094"] }, desc: "Unisci con vulnerabili.txt" },
+            { cmd: "comm", args: { mode: "12", file: "vulnerabili.txt", lines: ["openssh CVE-2024-6387", "sudo CVE-2023-22809", "xz CVE-2024-3094"] }, desc: "In comune con vulnerabili.txt" },
+            { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+            { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
+        ]
     }
 ];

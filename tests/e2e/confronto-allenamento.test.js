@@ -62,7 +62,7 @@ module.exports = {
     },
 
     "confronto: con una soluzione ottimale si vedono le alternative": async ({ page }) => {
-        await open(page, { progress: { levels: Object.fromEntries([...Array(36)].map((_, i) => [i + 1, { stars: 3, best: 1 }])) } });
+        await open(page, { progress: { levels: Object.fromEntries([...Array(43)].map((_, i) => [i + 1, { stars: 3, best: 1 }])) } });
         const index = await page.evaluate(() => levels.findIndex(lvl => !lvl.type && !lvl.locked && solveLevel(lvl).optimalCount > 1));
         assert.ok(index >= 0, "serve un livello con più soluzioni ottimali");
         await placeSolution(page, index);
@@ -86,7 +86,7 @@ module.exports = {
         await open(page);
         await page.click("#btn-menu");
         await page.click("#menu-training");
-        assert.equal(await page.locator(".training-topic").count(), 12);
+        assert.equal(await page.locator(".training-topic").count(), 14);
         await page.click(".training-topic[data-topic=sort]");
         assert.equal(await page.isVisible("#training-bar"), true);
         assert.match(await page.innerText("#level-title"), /^🎯 ALLENAMENTO SORT · LIVELLO 1: /);

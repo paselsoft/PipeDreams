@@ -6,8 +6,11 @@
 // se un comando ha più reindirizzamenti vince l'ultimo.
 // label(args) restituisce la sintassi mostrata al giocatore.
 // params descrive gli argomenti per l'editor dei livelli: text, char (un solo carattere),
-// number (intero >= 1), flag (opzione sì/no), set (insieme di caratteri di tr, accetta \n);
+// number (intero >= 1), flag (opzione sì/no), set (insieme di caratteri di tr, accetta \n),
+// choice (uno dei valori in options), file (nome di un file del livello), lines (righe del file);
 // optional: true permette il valore vuoto.
+// run può restituire anche righe { err: "testo" }: lo stderr del comando, nell'ordine di scrittura.
+// shell(args), se presente, è la versione per bash della sintassi (es. il file come <(printf ...)).
 // validate(args), se presente, restituisce un messaggio d'errore per argomenti non supportati.
 
 // I comandi numerici trattano come 0 le righe che non iniziano con un numero, come GNU sort -n
@@ -104,6 +107,142 @@ function sedSubstitute(line, regex, replacement, global) {
         if (!global) break;
     }
     return out + line.slice(pos);
+}
+
+// Il file di comm e join nella riga di bash: process substitution con il suo contenuto
+const processSubstitution = lines => `<(printf '%s\\n' ${lines.map(line => `'${line.replace(/'/g, "'\\''")}'`).join(" ")})`;
+
+// Il file di comm e join: un nome semplice e righe ordinate (per comm la riga, per join la chiave)
+function fileError(a, keyOf) {
+    if (!/^[A-Za-z0-9_][A-Za-z0-9._-]*$/.test(a.file || "")) return "il nome del file può contenere solo lettere, cifre, . _ -";
+    if (!Array.isArray(a.lines) || a.lines.length === 0) return "il file non ha righe";
+    for (let i = 1; i < a.lines.length; i++) {
+        if (byteOrder(keyOf(a.lines[i - 1]), keyOf(a.lines[i])) > 0) return "le righe del file devono essere ordinate (LC_ALL=C sort)";
+    }
+    return null;
+}
+
+// GNU comm: unisce due elenchi ordinati. mode indica le colonne da nascondere (12: solo le righe
+// comuni; 23: solo quelle dello stdin; 13: solo quelle del file). Se un input non è ordinato
+// avvisa su stderr, ma solo dopo aver visto una riga non accoppiata (come GNU).
+function commLines(first, second, mode) {
+    const visible = { "12": 3, "23": 1, "13": 2 }[mode];
+    const out = [];
+    const warned = [false, false];
+    let seenUnpairable = false;
+    const input = [first, second];
+    const pos = [0, 0];
+    // Dopo aver letto una riga la confronta con la precedente; a fine file ricontrolla le ultime
+    // due, perché nel frattempo può essere comparsa una riga senza coppia (come GNU comm)
+    const warn = (which, previous, current) => {
+        if (seenUnpairable && !warned[which] && byteOrder(previous, current) > 0) {
+            out.push({ err: `comm: file ${which + 1} is not in sorted order` });
+            warned[which] = true;
+        }
+    };
+    const step = which => {
+        const lines = input[which];
+        const i = ++pos[which];
+        if (i < lines.length) warn(which, lines[i - 1], lines[i]);
+        else if (i >= 2) warn(which, lines[i - 2], lines[i - 1]);
+    };
+    while (pos[0] < first.length || pos[1] < second.length) {
+        const order = pos[0] >= first.length ? 1 : pos[1] >= second.length ? -1 : byteOrder(first[pos[0]], second[pos[1]]);
+        if (order === 0) {
+            if (visible === 3) out.push(second[pos[1]]);
+        } else {
+            seenUnpairable = true;
+            if (order < 0 && visible === 1) out.push(first[pos[0]]);
+            if (order > 0 && visible === 2) out.push(second[pos[1]]);
+        }
+        // Avanza il file da cui viene la riga (entrambi se coincidono), prima il primo
+        if (order <= 0) step(0);
+        if (order >= 0) step(1);
+    }
+    if (warned[0] || warned[1]) out.push({ err: "comm: input is not in sorted order" });
+    return out;
+}
+
+// Campi di join: separati da -t, oppure da spazi e tabulazioni (ignorando quelli iniziali)
+function joinFields(line, separator) {
+    if (separator) return line === "" ? [] : line.split(separator);
+    const trimmed = line.replace(/^[ \t]+/, "");
+    return trimmed === "" ? [] : trimmed.split(/[ \t]+/).filter((field, i, all) => field !== "" || i < all.length - 1);
+}
+
+// GNU join sul campo 1: per ogni chiave presente in entrambi, chiave + resto della riga dello
+// stdin + resto della riga del file (ogni coppia, se la chiave si ripete). Le righe senza coppia
+// spariscono. Come GNU legge gli input a gruppi e avvisa su stderr se non sono ordinati.
+function joinLines(first, second, separator) {
+    const outSep = separator || " ";
+    const names = ["-", "file"];
+    const input = [first, second];
+    const pos = [0, 0];
+    const prev = [null, null];
+    const warned = [false, false];
+    let seenUnpairable = false;
+    const out = [];
+    const key = line => line.fields[0] ?? "";
+    const getLine = which => {
+        if (pos[which] >= input[which].length) return null;
+        const text = input[which][pos[which]++];
+        const line = { text, fields: joinFields(text, separator) };
+        if (prev[which] && seenUnpairable && !warned[which] && byteOrder(key(prev[which]), key(line)) > 0) {
+            out.push({ err: `join: ${names[which]}:${pos[which]}: is not sorted: ${text}` });
+            warned[which] = true;
+        }
+        prev[which] = line;
+        return line;
+    };
+    const seq = [[], []];
+    const getseq = which => {
+        const line = getLine(which);
+        if (line) seq[which].push(line);
+        return Boolean(line);
+    };
+    const pair = (a, b) => (a.fields[0] ?? "") + a.fields.slice(1).map(f => outSep + f).join("") + b.fields.slice(1).map(f => outSep + f).join("");
+    getseq(0);
+    getseq(1);
+    while (seq[0].length && seq[1].length) {
+        const diff = byteOrder(key(seq[0][0]), key(seq[1][0]));
+        if (diff !== 0) {
+            const which = diff < 0 ? 0 : 1;
+            seq[which] = [];
+            getseq(which);
+            seenUnpairable = true;
+            continue;
+        }
+        // Tutte le righe consecutive con la stessa chiave, prima nello stdin e poi nel file
+        let eof1 = false;
+        do {
+            if (!getseq(0)) { eof1 = true; break; }
+        } while (byteOrder(key(seq[0][seq[0].length - 1]), key(seq[1][0])) === 0);
+        let eof2 = false;
+        do {
+            if (!getseq(1)) { eof2 = true; break; }
+        } while (byteOrder(key(seq[0][0]), key(seq[1][seq[1].length - 1])) === 0);
+        const group1 = eof1 ? seq[0] : seq[0].slice(0, -1);
+        const group2 = eof2 ? seq[1] : seq[1].slice(0, -1);
+        for (const a of group1) for (const b of group2) out.push(pair(a, b));
+        seq[0] = eof1 ? [] : seq[0].slice(-1);
+        seq[1] = eof2 ? [] : seq[1].slice(-1);
+    }
+    // GNU legge anche il resto degli input per controllarne l'ordine
+    for (const which of [0, 1]) {
+        if (!seq[which].length || (warned[0] && warned[1])) continue;
+        while (getLine(which)) if (warned[which]) break;
+    }
+    if (warned[0] || warned[1]) out.push({ err: "join: input is not in sorted order" });
+    return out;
+}
+
+// File del livello (nome → righe), letti dagli argomenti di comm e join
+function levelFiles(lvl) {
+    const files = {};
+    for (const step of lvl.allowedCommands || []) {
+        if (step.args && step.args.file && Array.isArray(step.args.lines)) files[step.args.file] = step.args.lines;
+    }
+    return files;
 }
 
 // awk divide sui gruppi di spazi e tabulazioni (ignorando quelli iniziali), oppure esattamente su -F
@@ -257,6 +396,52 @@ const COMMANDS = {
         label: a => `awk${a.separator ? ` -F'${a.separator}'` : ""} '{print $${a.field}}'`,
         run: (s, a) => s.map(line => awkFields(line, a.separator)[a.field - 1] ?? "")
     },
+    // comm e join confrontano lo stdin (-) con un file del livello, ordinato
+    comm: {
+        params: [
+            { key: "mode", type: "choice", label: "colonne", options: ["12", "23", "13"], default: "12" },
+            { key: "file", type: "file", label: "file", default: "file.txt" },
+            { key: "lines", type: "lines", label: "righe del file" }
+        ],
+        label: a => `comm -${a.mode} - ${a.file}`,
+        shell: a => `comm -${a.mode} - ${processSubstitution(a.lines)}`,
+        validate: a => fileError(a, line => line),
+        run: (s, a) => commLines(s, a.lines, a.mode)
+    },
+    join: {
+        params: [
+            { key: "separator", type: "char", label: "-t", optional: true },
+            { key: "file", type: "file", label: "file", default: "file.txt" },
+            { key: "lines", type: "lines", label: "righe del file" }
+        ],
+        label: a => `join${a.separator ? ` -t'${a.separator}'` : ""} - ${a.file}`,
+        shell: a => `join${a.separator ? ` -t'${a.separator}'` : ""} - ${processSubstitution(a.lines)}`,
+        validate: a => fileError(a, line => joinFields(line, a.separator)[0] ?? ""),
+        run: (s, a) => joinLines(s, a.lines, a.separator)
+    },
+    nl: {
+        params: [
+            { key: "all", type: "flag", label: "-ba" },
+            { key: "width", type: "number", label: "-w", optional: true },
+            { key: "separator", type: "text", label: "-s", optional: true }
+        ],
+        label: a => `nl${a.all ? " -ba" : ""}${a.width ? ` -w${a.width}` : ""}${a.separator ? ` -s'${a.separator}'` : ""}`,
+        validate: a => a.separator && a.separator.length > 3 ? "nel gioco il separatore di nl è lungo al massimo 3 caratteri" : null,
+        // Come GNU nl: numera le righe non vuote (-ba: tutte); le altre restano allineate con spazi
+        run: (s, a) => {
+            const width = a.width || 6;
+            const separator = a.separator || "\t";
+            let n = 1;
+            return s.map(line => a.all || line !== "" ? String(n++).padStart(width) + separator + line : " ".repeat(width + separator.length) + line);
+        }
+    },
+    tee: {
+        params: [{ key: "file", type: "text", label: "file", default: "/dev/stderr" }],
+        label: a => `tee ${a.file}`,
+        validate: a => /^(\/dev\/stderr|\/dev\/null|[A-Za-z0-9_][A-Za-z0-9._-]*)$/.test(a.file) ? null : "nel gioco tee scrive su un file semplice (es. copia.txt) o su /dev/stderr",
+        // Lascia passare il flusso; con /dev/stderr lo ricopia anche sullo stderr (il terminale)
+        run: (s, a) => a.file === "/dev/stderr" ? [...s, ...s.map(text => ({ err: text }))] : s
+    },
     paste: {
         params: [{ key: "delim", type: "char", label: "-d", default: "," }],
         label: a => `paste -sd'${a.delim}'`,
@@ -316,7 +501,7 @@ function applyStep(state, step) {
     }
     const { stdout, toTerminal } = resolveOutput(state);
     return {
-        lines: command.run(stdout, step.args || {}).map(text => ({ text, fd: 1 })),
+        lines: command.run(stdout, step.args || {}).map(text => typeof text === "string" ? { text, fd: 1 } : { text: text.err, fd: 2 }),
         errRoute: "terminal",
         terminal: [...state.terminal, ...toTerminal]
     };

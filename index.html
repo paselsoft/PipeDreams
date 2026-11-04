@@ -66,8 +66,10 @@
         </div>
 
         <div class="io-panel">
-            <div><strong>input:</strong> <span id="txt-stdin" class="chips"></span></div>
+            <div><strong>input<span id="stdin-source" class="stdin-source"></span>:</strong> <span id="txt-stdin" class="chips"></span></div>
+            <div id="level-files"></div>
             <div><strong>stdout atteso:</strong> <span id="txt-target" class="chips"></span></div>
+            <div id="row-target-stderr" hidden><strong>sul terminale (stderr):</strong> <span id="txt-target-stderr" class="chips"></span></div>
             <div class="legend"><span class="chip">stdout</span> <span class="chip err">stderr</span></div>
         </div>
 

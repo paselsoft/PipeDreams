@@ -30,7 +30,7 @@ const report = vm.runInContext(`(() => {
     let single = 0;
     for (const step of steps) {
         const text = stepLabel(step);
-        const result = parsePipeline(COMMANDS[step.cmd].redirect ? text : "| " + text);
+        const result = parsePipeline(COMMANDS[step.cmd].redirect ? text : "| " + text, levelFiles({ allowedCommands: [step] }));
         single++;
         if (result.error || !same(result.steps, [step])) failures.push("comando: " + text + " → " + (result.error || JSON.stringify(result.steps)));
     }
@@ -41,7 +41,7 @@ const report = vm.runInContext(`(() => {
     for (const entry of MANUAL) for (const example of entry.examples) pipelines.push(example.steps);
     for (const steps of pipelines) {
         const text = pipelineText(steps);
-        const result = parsePipeline(text);
+        const result = parsePipeline(text, levelFiles({ allowedCommands: steps }));
         if (result.error || !same(result.steps, steps)) failures.push("pipeline: " + text + " → " + (result.error || JSON.stringify(result.steps)));
     }
 
@@ -72,10 +72,17 @@ const report = vm.runInContext(`(() => {
         ["uniq -c -d", [{ cmd: "uniq", args: { count: true, repeated: true } }]],
         ["cut -c 2-4", [{ cmd: "cutc", args: { from: 2, to: 4 } }]],
         ["cut -c3", [{ cmd: "cutc", args: { from: 3, to: 3 } }]],
-        ["tac | rev", [{ cmd: "tac" }, { cmd: "rev" }]]
+        ["tac | rev", [{ cmd: "tac" }, { cmd: "rev" }]],
+        ["nl -b a -w 1 -s '. '", [{ cmd: "nl", args: { all: true, width: 1, separator: ". " } }]],
+        ["nl -bt", [{ cmd: "nl", args: {} }]],
+        ["tee /dev/stderr | wc -l", [{ cmd: "tee", args: { file: "/dev/stderr" } }, { cmd: "wc" }]],
+        ["comm -21 - critici.txt", [{ cmd: "comm", args: { mode: "12", file: "critici.txt", lines: ["bash", "sudo"] } }]],
+        ["comm -1 -3 - critici.txt", [{ cmd: "comm", args: { mode: "13", file: "critici.txt", lines: ["bash", "sudo"] } }]],
+        ["join -t , - ultime.txt", [{ cmd: "join", args: { separator: ",", file: "ultime.txt", lines: ["bash,5.2", "curl,8.1"] } }]]
     ].filter(([, expected]) => expected);
+    const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"] };
     for (const [text, expected] of variants) {
-        const result = parsePipeline(text);
+        const result = parsePipeline(text, variantFiles);
         if (result.error || !same(result.steps, expected)) failures.push("variante: " + text + " → " + (result.error || JSON.stringify(result.steps)));
     }
 
@@ -83,9 +90,11 @@ const report = vm.runInContext(`(() => {
     const errors = ["gerp ERR", "sort -x", "sort |", "| | sort", "grep", "grep 'ERR", "wc", "cut -f2", "cut -d:: -f1",
         "sed 's/a/b/'", "sed -E 's/a|b/x/'", "sed -E 's/a/b/q'", "awk '{print $1, $2}'", "head -n zero", "paste -d,",
         "sort > out.txt", "tr -d", "uniq -u", "", "sort -k2", "sort -t, -k2,3", "sort -k2,2", "sort -t,",
-        "grep -vo x", "cut -c", "cut -c4-2", "cut -c1-3 -d,", "tac -s x", "rev file"];
+        "grep -vo x", "cut -c", "cut -c4-2", "cut -c1-3 -d,", "tac -s x", "rev file",
+        "comm - critici.txt", "comm -3 - critici.txt", "comm -12 critici.txt -", "comm -12 - altro.txt", "join - ", "join -t,, - ultime.txt",
+        "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b"];
     for (const text of errors) {
-        const result = parsePipeline(text);
+        const result = parsePipeline(text, variantFiles);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));
     }
     return { single, pipelines: pipelines.length, variants: variants.length, errors: errors.length, failures };

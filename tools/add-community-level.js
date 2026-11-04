@@ -26,8 +26,8 @@ if (!result || result.error) {
 }
 
 // Solo i campi di un livello "componi", nell'ordine dell'editor
-const { title, mission, nudge, hint, stdin, target, allowedCommands, slots } = result.level;
-const level = { title, ...(slots ? { slots } : {}), mission, nudge: nudge || "", hint, stdin, target, allowedCommands };
+const { title, source, mission, nudge, hint, stdin, target, targetStderr, allowedCommands, slots } = result.level;
+const level = { title, ...(source ? { source } : {}), ...(slots ? { slots } : {}), mission, nudge: nudge || "", hint, stdin, target, ...(targetStderr ? { targetStderr } : {}), allowedCommands };
 const slug = title.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "livello";
 const existing = vm.runInContext("COMMUNITY_LEVELS.map(entry => entry.id)", context);
 let id = `c-${slug}`;

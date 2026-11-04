@@ -4,7 +4,7 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { spawnSync } = require("child_process");
+const { runBash } = require("./bash");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({ TextEncoder, TextDecoder, btoa, atob });
@@ -12,7 +12,6 @@ for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "comman
     vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, { filename: file });
 }
 
-const toLines = text => text === "" ? [] : text.replace(/\n$/, "").split("\n");
 const report = vm.runInContext(`COMMUNITY_LEVELS.map(entry => {
     const error = sharedLevelError(entry.level);
     const solution = error ? null : solveLevel(entry.level);
@@ -21,7 +20,7 @@ const report = vm.runInContext(`COMMUNITY_LEVELS.map(entry => {
         fields: typeof entry.id === "string" && /^c-[a-z0-9-]+$/.test(entry.id) && typeof entry.author === "string" && entry.author.trim() !== "" && /^\\d{4}-\\d{2}-\\d{2}$/.test(entry.added || ""),
         par: solution && solution.par, optimalCount: solution && solution.optimalCount,
         line: solution ? buildShellLine(entry.level.stdin, solution.optimalSteps[0]) : null,
-        target: entry.level.target
+        target: entry.level.target, targetStderr: entry.level.targetStderr || []
     };
 })`, context);
 
@@ -34,8 +33,8 @@ for (const r of report) {
     if (ids.has(r.id)) problems.push("id ripetuto");
     ids.add(r.id);
     if (r.line) {
-        const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
-        if (JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) problems.push("bash dà un output diverso");
+        const real = runBash(r.line);
+        if (JSON.stringify(real.stdout) !== JSON.stringify(r.target) || JSON.stringify(real.stderr) !== JSON.stringify(r.targetStderr)) problems.push("bash dà un output diverso");
     }
     if (problems.length) failures++;
     console.log(`${problems.length ? "✗" : "✓"} ${r.id} · ${r.title} (di ${r.author}) · par ${r.par}, ${r.optimalCount} soluzioni ottimali${problems.length ? " · " + problems.join(", ") : ""}`);

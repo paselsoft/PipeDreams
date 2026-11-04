@@ -44,9 +44,9 @@ module.exports = {
         for (const width of [320, 390, 1440]) {
             const context = await browser.newContext({ viewport: { width, height: 900 } });
             const page = await context.newPage();
-            await open(page, { progress: { levels: Object.fromEntries([...Array(36)].map((_, i) => [i + 1, { stars: 3, best: 1 }])) } });
+            await open(page, { progress: { levels: Object.fromEntries([...Array(43)].map((_, i) => [i + 1, { stars: 3, best: 1 }])) } });
             // Un livello per tipo, il più largo (7 slot) e la sfida
-            for (const index of [0, 16, 23, 24, 25]) {
+            for (const index of [0, 16, 23, 24, 25, 36, 42]) {
                 await page.evaluate(i => loadLevel(i), index);
                 assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px, livello ${index + 1}`);
             }

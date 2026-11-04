@@ -5,7 +5,7 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { spawnSync } = require("child_process");
+const { runBash } = require("./bash");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({});
@@ -14,7 +14,6 @@ for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "manual
 }
 
 const runs = Number(process.argv[2]) || 100;
-const toLines = text => text === "" ? [] : text.replace(/\n$/, "").split("\n");
 
 // Genera la pipeline nel contesto del gioco: la prima prova di ogni livello è la soluzione ottimale
 const simulate = vm.runInContext(`(index, useSolution) => {
@@ -33,9 +32,9 @@ const levelCount = vm.runInContext("levels.length", context);
 for (let index = 0; index < levelCount; index++) {
     for (let run = 0; run < runs; run++) {
         const sim = simulate(index, run === 0);
-        const real = spawnSync("bash", ["-c", sim.line], { env: { PATH: process.env.PATH } });
-        const output = toLines(real.stdout.toString());
-        const stderr = toLines(real.stderr.toString());
+        const real = runBash(sim.line);
+        const output = real.stdout;
+        const stderr = real.stderr;
         total++;
         if (JSON.stringify(output) !== JSON.stringify(sim.output) || JSON.stringify(stderr) !== JSON.stringify(sim.stderr)) {
             failures++;
@@ -53,9 +52,9 @@ const examples = vm.runInContext(`MANUAL.flatMap(entry => entry.examples.map(exa
              output: result.output, stderr: result.stderr };
 }))`, context);
 for (const sim of examples) {
-    const real = spawnSync("bash", ["-c", sim.line], { env: { PATH: process.env.PATH } });
-    const output = toLines(real.stdout.toString());
-    const stderr = toLines(real.stderr.toString());
+    const real = runBash(sim.line);
+    const output = real.stdout;
+    const stderr = real.stderr;
     total++;
     if (JSON.stringify(output) !== JSON.stringify(sim.output) || JSON.stringify(stderr) !== JSON.stringify(sim.stderr)) {
         failures++;
@@ -79,7 +78,15 @@ const fuzz = vm.runInContext(`(seed) => {
         { cmd: "grep", args: { pattern: "ab", only: true } }, { cmd: "grep", args: { pattern: "a", only: true } }, { cmd: "grep", args: { pattern: ",", only: true } },
         { cmd: "uniq", args: { repeated: true } }, { cmd: "uniq", args: { repeated: true, count: true } }, { cmd: "uniq" },
         { cmd: "cutc", args: { from: 1, to: 2 } }, { cmd: "cutc", args: { from: 2, to: 2 } }, { cmd: "cutc", args: { from: 3, to: 9 } },
-        { cmd: "tac" }, { cmd: "rev" }, { cmd: "wc" }, { cmd: "head", args: { n: 2 } }
+        { cmd: "tac" }, { cmd: "rev" }, { cmd: "wc" }, { cmd: "head", args: { n: 2 } },
+        // Atto VII: comm e join con file ordinati, nl, tee (anche con 2>&1 dopo, per l'ordine dello stderr)
+        { cmd: "comm", args: { mode: "12", file: "f.txt", lines: ["", "10", "a", "a,b", "b"] } },
+        { cmd: "comm", args: { mode: "23", file: "f.txt", lines: ["9", "a", "anna", "b"] } },
+        { cmd: "comm", args: { mode: "13", file: "f.txt", lines: [",", "a", "c,2", "luca"] } },
+        { cmd: "join", args: { file: "f.txt", lines: ["1,b,3 x", "a 1", "a 2", "b 3", "z,10,a 4"] } },
+        { cmd: "join", args: { separator: ",", file: "f.txt", lines: ["", "1,x", "a,y", "c,z", "x,w"] } },
+        { cmd: "nl" }, { cmd: "nl", args: { all: true, width: 2, separator: ". " } }, { cmd: "nl", args: { width: 1, separator: ":" } },
+        { cmd: "tee", args: { file: "/dev/stderr" } }, { cmd: "tee", args: { file: "copia.txt" } }, { cmd: "merge" }, { cmd: "devnull" }
     ];
     const input = Array.from({ length: 1 + rand(7) }, () => pickOne(words));
     const steps = Array.from({ length: 1 + rand(4) }, () => pickOne(pool));
@@ -89,9 +96,9 @@ const fuzz = vm.runInContext(`(seed) => {
 let fuzzed = 0;
 for (let seed = 1; seed <= runs * 5; seed++) {
     const sim = fuzz(seed);
-    const real = spawnSync("bash", ["-c", sim.line], { env: { PATH: process.env.PATH } });
-    const output = toLines(real.stdout.toString());
-    const stderr = toLines(real.stderr.toString());
+    const real = runBash(sim.line);
+    const output = real.stdout;
+    const stderr = real.stderr;
     total++;
     fuzzed++;
     if (JSON.stringify(output) !== JSON.stringify(sim.output) || JSON.stringify(stderr) !== JSON.stringify(sim.stderr)) {

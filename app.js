@@ -102,6 +102,25 @@ function showLevel(lvl, titleText) {
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     // Nel quiz lo stdout è proprio la domanda
     renderChips(document.getElementById("txt-target"), lvl.type === "quiz" ? [{ text: "?", fd: 1 }] : lvl.target.map(text => ({ text, fd: 1 })));
+    // Stderr atteso sul terminale (es. con tee /dev/stderr) e file del livello per comm e join
+    const expectedErr = lvl.type === "quiz" ? [] : lvl.targetStderr || [];
+    document.getElementById("row-target-stderr").hidden = !expectedErr.length;
+    renderChips(document.getElementById("txt-target-stderr"), expectedErr.map(text => ({ text, fd: 2 })));
+    const files = document.getElementById("level-files");
+    files.innerHTML = "";
+    for (const [name, lines] of Object.entries(levelFiles(lvl))) {
+        const row = document.createElement("div");
+        const label = document.createElement("strong");
+        label.textContent = `file ${name}:`;
+        const chips = document.createElement("span");
+        chips.className = "chips";
+        renderChips(chips, lines.map(text => ({ text, fd: 1 })));
+        row.append(label, " ", chips);
+        files.appendChild(row);
+    }
+    // Da dove arriva l'input (es. l'output di apt list --upgradable)
+    document.getElementById("stdin-source").textContent = lvl.source ? ` (output di ${lvl.source})` : "";
+    document.querySelector(".terminal-prompt").textContent = `$ ${lvl.source || "programma"}`;
     renderQuiz(lvl);
 
     buildGrid();
@@ -225,7 +244,7 @@ function stopAnimation() {
 }
 
 function currentSteps() {
-    if (terminalActive()) return parsePipeline(terminalText()).steps || [];
+    if (terminalActive()) return parsePipeline(terminalText(), levelFiles(currentLevel())).steps || [];
     const options = slotOptions(currentLevel());
     return gridState.map(idx => options[idx]);
 }
@@ -293,7 +312,7 @@ function refreshTerminal() {
         return;
     }
     const text = terminalText();
-    const result = text.trim() ? parsePipeline(text) : { steps: [] };
+    const result = text.trim() ? parsePipeline(text, levelFiles(currentLevel())) : { steps: [] };
     document.getElementById("terminal-error").textContent = result.error || "";
     updateShellLine();
     updateSlotCounter();
@@ -563,7 +582,7 @@ async function runPipeline() {
     }
     if (isBusy) return;
     if (terminalActive()) {
-        const parsed = parsePipeline(terminalText());
+        const parsed = parsePipeline(terminalText(), levelFiles(currentLevel()));
         if (parsed.error) {
             levelSession.attempts++;
             bumpStat("runs");

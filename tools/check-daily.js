@@ -4,7 +4,7 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { spawnSync } = require("child_process");
+const { runBash } = require("./bash");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({});
@@ -14,7 +14,6 @@ for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "daily.
 
 const days = Number(process.argv[2]) || 366;
 const start = process.argv[3] || vm.runInContext("dateKey()", context);
-const toLines = text => text === "" ? [] : text.replace(/\n$/, "").split("\n");
 
 const check = vm.runInContext(`key => {
     const t0 = Date.now();
@@ -50,12 +49,12 @@ for (let i = 0; i < days; i++, key = nextKey(key)) {
     const r = check(key);
     recipes[`${r.difficulty} / ${r.title}`] = (recipes[`${r.difficulty} / ${r.title}`] || 0) + 1;
     slowest = Math.max(slowest, r.ms);
-    const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
+    const real = runBash(r.line);
     const problems = [];
     if (!r.deterministic) problems.push("non deterministico");
     if (r.par > r.slots) problems.push("par oltre gli slot");
     if (r.optimalCount > 3) problems.push(`${r.optimalCount} soluzioni ottimali`);
-    if (JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) problems.push("bash dà un output diverso");
+    if (JSON.stringify(real.stdout) !== JSON.stringify(r.target)) problems.push("bash dà un output diverso");
     if (real.stderr.length) problems.push("bash scrive su stderr");
     if (problems.length) {
         failures++;
@@ -76,9 +75,9 @@ let marathonChecked = 0;
 for (let game = 0; game < 60; game++) {
     for (const difficulty of ["facile", "media", "difficile"]) {
         const r = checkMarathon(`verifica${game}`, game, difficulty);
-        const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
+        const real = runBash(r.line);
         marathonChecked++;
-        if (!r.deterministic || r.par > r.slots || JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) {
+        if (!r.deterministic || r.par > r.slots || JSON.stringify(real.stdout) !== JSON.stringify(r.target)) {
             failures++;
             console.log(`maratona ${game} ${difficulty} ${r.title}: non valido\n  ${r.line}`);
         }
@@ -101,9 +100,9 @@ for (const topic of topics) {
     for (let game = 0; game < 8; game++) {
         for (let round = 0; round < 7; round++) {
             const r = checkTraining(topic, `verifica${game}`, round);
-            const real = spawnSync("bash", ["-c", r.line], { env: { PATH: process.env.PATH } });
+            const real = runBash(r.line);
             trainingChecked++;
-            if (!r.deterministic || r.par > r.slots || real.stderr.length || JSON.stringify(toLines(real.stdout.toString())) !== JSON.stringify(r.target)) {
+            if (!r.deterministic || r.par > r.slots || real.stderr.length || JSON.stringify(real.stdout) !== JSON.stringify(r.target)) {
                 failures++;
                 console.log(`allenamento ${topic} ${game}/${round} ${r.title}: non valido\n  ${r.line}`);
             }

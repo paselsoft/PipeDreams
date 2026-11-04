@@ -26,6 +26,10 @@ const ACTS = {
     6: {
         title: "Il grande trasloco",
         intro: "La Pipe & Co. trasloca i server nel nuovo datacenter, e Giulia ti nomina responsabile della migrazione. I vecchi sistemi esportano dati assurdi: log al contrario, nomi scritti allo specchio, codici senza separatori. Nella cassetta degli attrezzi arrivano tac e rev, sort con le chiavi (-t -k), grep -o, uniq -d e cut -c."
+    },
+    7: {
+        title: "Patch Tuesday",
+        intro: "Nel nuovo datacenter convivono tre famiglie di Linux: Debian con apt, Arch con pacman (e yay per l'AUR), Fedora con dnf e rpm. È il secondo martedì del mese, il giorno delle patch, e Giulia vuole tutto aggiornato entro sera. Non lancerai tu gli aggiornamenti: leggerai i loro output. Arrivano nl per numerare, tee per vedere i dati a metà strada, comm e join per confrontare due elenchi."
     }
 };
 
@@ -66,8 +70,15 @@ const STORY = {
     33: { from: "Marco", text: "La copia dei file ha dei buchi. Ogni ERR è un file perso: quanti ne abbiamo persi, esattamente?" },
     34: { from: "Giulia", text: "La sicurezza del nuovo datacenter segnala badge clonati. Trovami quelli assegnati a più persone." },
     35: { from: "Tommaso", text: "Sto etichettando gli armadi del datacenter: in quali paesi abbiamo server? I codici sono tutti attaccati, senza trattini..." },
-    36: { from: "Giulia", text: "🚨 Il vecchio server si spegne a mezzanotte e il disco va svuotato. Prima di copiare, voglio sapere quanti file abbiamo per estensione." }
+    36: { from: "Giulia", text: "🚨 Il vecchio server si spegne a mezzanotte e il disco va svuotato. Prima di copiare, voglio sapere quanti file abbiamo per estensione." },
+    37: { from: "Giulia", text: "Buon Patch Tuesday! Si parte dal server Debian: ho lanciato apt list --upgradable. Mi prepari l'elenco numerato per il registro delle modifiche?" },
+    38: { from: "Marco", text: "Sul server Arch uso pacman -Qu (yay -Qua per l'AUR). Al monitoraggio basta il numero, ma io voglio vedere anche i nomi mentre la pipeline lavora." },
+    39: { from: "Tommaso", text: "Ho fatto rpm -qa sul server Fedora. Giulia mi ha dato la lista dei pacchetti critici: come faccio a vedere quali ci sono?" },
+    40: { from: "Marco", text: "Su Debian dpkg-query mi dà le versioni installate, e ho un file con le ultime uscite. Mettile una accanto all'altra, che le confronto a occhio." },
+    41: { from: "Tommaso", text: "Ultima domanda della giornata, promesso: cosa stampa comm -13? Io direi le righe in comune..." },
+    42: { from: "Giulia", text: "Fedora: dnf check-update elenca tutto, ma il kernel lo aggiorniamo stanotte con un riavvio. Gli altri pacchetti, senza architettura, per favore." },
+    43: { from: "Giulia", text: "🚨 È uscito il bollettino delle vulnerabilità! Ho l'inventario di tutti i server: dimmi subito quali vanno patchati per primi." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Mezzanotte e un minuto: il vecchio server si spegne e il trasloco è finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";
+const EPILOGUE = "Il secondo martedì del mese si chiude con tutti i server aggiornati, Debian, Arch e Fedora, e nessuno ha dovuto riavviare in orario di lavoro. Settimane prima, a mezzanotte e un minuto, il vecchio server si era spento e il trasloco era finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";

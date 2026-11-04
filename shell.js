@@ -17,9 +17,11 @@ function sourceCommand(stdin) {
 }
 
 // Il gioco ordina byte per byte: LC_ALL=C rende sort identico anche con locale italiano
+// Anche comm e join confrontano le righe: LC_ALL=C. Il loro file diventa <(printf ...).
 function shellCommand(step) {
-    const label = stepLabel(step);
-    return step.cmd === "sort" ? `LC_ALL=C ${label}` : label;
+    const command = COMMANDS[step.cmd];
+    const text = command.shell ? command.shell(step.args || {}) : stepLabel(step);
+    return ["sort", "comm", "join"].includes(step.cmd) ? `LC_ALL=C ${text}` : text;
 }
 
 // I reindirizzamenti si attaccano al comando precedente; gli slot vuoti vengono ignorati.
