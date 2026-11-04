@@ -41,6 +41,7 @@ function loadLevel(index) {
     stopMarathon();
     stopTraining();
     stopGallery();
+    stopMystery();
     dailyLevel = null;
     currentLevelIndex = index;
     progress.lastLevel = index;
@@ -58,6 +59,7 @@ function loadDaily() {
     stopMarathon();
     stopTraining();
     stopGallery();
+    stopMystery();
     const key = dateKey();
     dailyLevel = generateDaily(key);
     showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
@@ -101,7 +103,10 @@ function showLevel(lvl, titleText) {
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${mission}`;
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     // Nel quiz lo stdout è proprio la domanda
-    renderChips(document.getElementById("txt-target"), lvl.type === "quiz" ? [{ text: "?", fd: 1 }] : lvl.target.map(text => ({ text, fd: 1 })));
+    // Nel quiz lo stdout è la domanda; negli enigmi dei casi è l'indizio da scoprire
+    renderChips(document.getElementById("txt-target"), lvl.type === "quiz" ? [{ text: "?", fd: 1 }]
+        : lvl.hiddenTarget ? [{ text: `🔒 nascosto: è l'indizio (${lvl.target.length} ${lvl.target.length === 1 ? "riga" : "righe"})`, fd: 1 }]
+        : lvl.target.map(text => ({ text, fd: 1 })));
     // Stderr atteso sul terminale (es. con tee /dev/stderr) e file del livello per comm e join
     const expectedErr = lvl.type === "quiz" ? [] : lvl.targetStderr || [];
     document.getElementById("row-target-stderr").hidden = !expectedErr.length;
@@ -650,6 +655,8 @@ function showResult(lvl, result) {
         trainingSolved(lvl);
     } else if (isSolved(lvl, result) && lvl.community) {
         communitySolved(lvl);
+    } else if (isSolved(lvl, result) && lvl.mystery) {
+        mysterySolved(lvl);
     } else if (isSolved(lvl, result)) {
         completeLevel(lvl);
     } else {

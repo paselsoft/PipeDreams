@@ -41,6 +41,9 @@ jobs:
       - name: I livelli della community sono validi
         run: node tools/check-community.js
 
+      - name: I casi a puntate sono validi
+        run: node tools/check-stories.js
+
       - name: L'interprete della modalità terminale rilegge ogni comando
         run: node tools/check-terminal.js
 

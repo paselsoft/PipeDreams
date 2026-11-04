@@ -1016,3 +1016,29 @@ body.coaching { padding-bottom: 220px; }
 
 /* Le voci lunghe del menu dei comandi non allargano la pagina */
 .form-ui select { max-width: 100%; min-width: 0; }
+
+/* Casi a puntate */
+.menu-stories { background: #251a3d; border-color: #8957e5; color: #d2a8ff; }
+.mystery-bar { background: #251a3d; border-color: #8957e5; color: #d2a8ff; }
+.story-item .gallery-info strong, .story-chapter .gallery-info strong { color: #d2a8ff; }
+.story-chapter.locked, .story-chapter.soon { border-style: dashed; }
+.story-chapter.locked .gallery-info strong, .story-chapter.soon .gallery-info strong { color: #8b949e; }
+#stories-body { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+#stories-body .menu-stats { margin-top: 4px; }
+.notebook-clue { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 14px; }
+.notebook-label { color: #d2a8ff; }
+.deduction-question { font-size: 16px; color: #e6edf3; line-height: 1.4; margin: 0; }
+.deduction-options { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.deduction-option {
+    text-align: left; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px;
+    color: #c9d1d9; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.35; cursor: pointer;
+}
+.deduction-option:hover:not(:disabled) { border-color: #8957e5; }
+.deduction-option.wrong { border-color: #f85149; color: #8b949e; text-decoration: line-through; }
+.deduction-option.wrong::before { content: "✗ "; color: #f85149; }
+.deduction-option.right { border-color: #3fb950; color: #3fb950; }
+.deduction-option.right::before { content: "✓ "; }
+.deduction-option:disabled { cursor: default; }
+.deduction-feedback { margin: 4px 0; font-size: 15px; color: #e3b341; min-height: 1em; }
+body.cvd .deduction-option.right { border-color: #58a6ff; color: #79c0ff; }
+body.cvd .deduction-option.wrong { border-color: #f0883e; }

@@ -1,11 +1,19 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.7.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.7.0", date: "2026-11-04", items: [
+            "📚 Casi a puntate: gialli divisi in capitoli. Le pipeline trovano gli indizi, tu deduci cosa è successo. Si aprono dal menu LIVELLI dopo l'Atto III.",
+            "🔎 Primo caso: «Il server fantasma», 5 capitoli. Ogni notte alle 3:14 spariscono dei backup…",
+            "🔒 Negli enigmi lo stdout atteso è nascosto: è l'indizio da scoprire. Gli indizi trovati finiscono nel 🗒 Taccuino.",
+            "🏅 Nuovi obiettivi: Detective ed Elementare."
+        ]
+    },
     {
         version: "1.6.0", date: "2026-11-04", items: [
             "🛠 Atto VII, «Patch Tuesday»: 7 nuovi livelli sugli aggiornamenti di Debian (apt), Arch (pacman, yay) e Fedora (dnf, rpm). L'input è il vero output dei gestori di pacchetti.",

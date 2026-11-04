@@ -37,6 +37,7 @@ function playCommunity(id) {
     if (!entry) return;
     stopMarathon();
     stopTraining();
+    stopMystery();
     closeGallery();
     closeMenu();
     dailyLevel = communityLevel(entry);

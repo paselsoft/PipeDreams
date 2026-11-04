@@ -15,6 +15,8 @@ const ACHIEVEMENTS = [
     { id: "terminalista", icon: "⌨️", title: "Terminalista", desc: "Risolvi un livello in modalità terminale, scrivendo la pipeline." },
     { id: "maratoneta", icon: "🏃", title: "Maratoneta", desc: "Risolvi 5 livelli in una sola Maratona." },
     { id: "palestra", icon: "🎯", title: "In palestra", desc: "Risolvi 10 livelli di allenamento." },
+    { id: "detective", icon: "🔎", title: "Detective", desc: "Chiudi un caso a puntate." },
+    { id: "sherlock", icon: "🕵️", title: "Elementare", desc: "Chiudi un caso con tutte le deduzioni al primo tentativo." },
     { id: "esploratore", icon: "🌍", title: "Esploratore", desc: "Risolvi 3 livelli della galleria della community." },
     { id: "abitudinario", icon: "📅", title: "Abitudinario", desc: "Risolvi la sfida del giorno." },
     { id: "serie", icon: "🔥", title: "In serie", desc: "Risolvi la sfida del giorno 3 giorni di fila." }
@@ -120,6 +122,7 @@ function openAchievements() {
         ["Sfide del giorno risolte", String(Object.keys(progress.daily).length)],
         ["Serie attuale", `${dailyStreak(progress.daily)} giorni`],
         ["Record Maratona", `${progress.marathon.best || 0} livelli`],
+        ["Capitoli dei casi", `${STORIES.reduce((sum, story) => sum + solvedChapters(story), 0)}/${STORIES.reduce((sum, story) => sum + story.chapters.length, 0)}`],
         ["Livelli della community", `${Object.keys(progress.community).length}/${COMMUNITY_LEVELS.length}`],
         ["Livelli di allenamento", String(Object.values(progress.training).reduce((sum, n) => sum + n, 0))],
         ...STAT_LABELS.map(([key, label]) => [label, String(progress.stats[key] || 0)]),

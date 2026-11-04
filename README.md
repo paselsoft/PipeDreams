@@ -21,6 +21,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 - tutorial guidato al primo avvio; accessibile da tastiera e con i lettori di schermo, colori per daltonici
 - si installa come app (su telefono: «Aggiungi a schermata Home») e funziona anche offline
 - **backup dei progressi** (codice o file) per passare da un dispositivo all'altro, e novità di ogni versione
+- **casi a puntate**: gialli a capitoli, con enigmi-pipeline che trovano gli indizi e domande di deduzione
 - **galleria della community**: livelli dei giocatori, proposti dall'editor e scelti per il gioco
 - **livelli condivisibili**: l'editor crea un link che apre il livello nel gioco, senza toccare i progressi
 
@@ -49,6 +50,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `backup.js` | Backup dei progressi: esporta, unisce e ripristina |
 | `tutorial.js` | Tutorial guidato del primo livello |
 | `a11y.js` | Finestre accessibili: focus, Tab, Esc |
+| `stories.js`, `stories-view.js` | Casi a puntate: dati e schermate (capitoli, taccuino, deduzione) |
 | `community.js`, `gallery.js` | Livelli della community e la loro galleria nel gioco |
 | `share.js` | Livelli condivisi con un link: codifica e convalida |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | App installabile e funzionamento offline |
@@ -67,6 +69,7 @@ node tools/check-shell.js 100   # simulazione ed esempi del manuale coincidono c
 node tools/check-daily.js 366   # sfide dei prossimi 366 giorni, Maratona e allenamento valide in bash?
 node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
 node tools/check-community.js   # i livelli della galleria sono validi e coincidono con bash?
+node tools/check-stories.js     # gli enigmi dei casi sono validi, coincidono con bash e usano comandi già visti?
 ```
 
 I test nel browser (Playwright) giocano davvero il gioco: tutti i livelli, salvataggio, storia,
@@ -89,6 +92,14 @@ Se aggiungi un file al gioco, aggiungilo anche all'elenco `FILES` di `sw.js`. A 
 workflow cambia il nome della cache in `sw.js`: chi ha il gioco aperto vede «È pronta una nuova versione».
 
 Per una nuova versione: aumenta `APP_VERSION` in `version.js` e aggiungi una voce in cima a `CHANGELOG`.
+
+## Casi a puntate
+
+Ogni caso in `stories.js` ha dei capitoli; ogni capitolo ha un racconto, degli enigmi (livelli
+«componi» con lo stdout atteso nascosto: il risultato è l'indizio) e una domanda a scelta multipla
+con il perché di ogni risposta sbagliata. I capitoli si sbloccano uno dopo l'altro; `release`
+(AAAA-MM-GG) rimanda un capitolo a una data, per pubblicare un caso a puntate. Dopo ogni modifica:
+`node tools/check-stories.js`.
 
 ## Galleria della community
 

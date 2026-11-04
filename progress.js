@@ -6,9 +6,10 @@ const PROGRESS_KEY = "pipedreams.progress.v1";
 // seenActs: atti di cui è già stata mostrata l'introduzione; stats e achievements: obiettivi;
 // daily: risultati della sfida del giorno, per data (AAAA-MM-GG); terminal: livelli risolti
 // in modalità terminale; marathon: record e partite della Maratona; training: livelli
-// dell'allenamento risolti, per argomento; community: risultati dei livelli della galleria
+// dell'allenamento risolti, per argomento; community: risultati dei livelli della galleria;
+// stories: casi a puntate (enigmi risolti, capitoli dedotti, tentativi)
 function emptyProgress() {
-    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {}, marathon: {}, training: {}, community: {} };
+    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {}, marathon: {}, training: {}, community: {}, stories: {} };
 }
 
 const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -27,7 +28,8 @@ function normalizeProgress(data) {
         terminal: isPlainObject(data.terminal) ? data.terminal : {},
         marathon: isPlainObject(data.marathon) ? data.marathon : {},
         training: isPlainObject(data.training) ? data.training : {},
-        community: isPlainObject(data.community) ? data.community : {}
+        community: isPlainObject(data.community) ? data.community : {},
+        stories: isPlainObject(data.stories) ? data.stories : {}
     };
 }
 

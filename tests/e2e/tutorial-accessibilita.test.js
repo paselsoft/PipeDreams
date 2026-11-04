@@ -152,6 +152,14 @@ module.exports = {
         await audit("allenamento");
         await page.evaluate(() => { closeTrainingMenu(); openGallery(); });
         await audit("galleria");
+        await page.evaluate(() => {
+            closeGallery();
+            progress.levels = Object.fromEntries(levels.filter(lvl => lvl.act <= 3).map(lvl => [lvl.id, { stars: 3, best: 1 }]));
+            openStory("server-fantasma");
+        });
+        await audit("casi");
+        await page.evaluate(() => openDeduction("server-fantasma", "le-3-14"));
+        await audit("deduzione");
         await page.goto(fileUrl("editor.html"));
         await audit("editor");
     }

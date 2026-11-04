@@ -56,6 +56,14 @@
             </span>
         </div>
 
+        <div class="marathon-bar mystery-bar" id="mystery-bar" hidden>
+            <span id="mystery-status"></span>
+            <span class="marathon-actions">
+                <button onclick="mysteryNotebook()">🗒 Taccuino</button>
+                <button onclick="exitMystery()">✕ Esci</button>
+            </span>
+        </div>
+
         <div class="story-box" id="story-box" hidden>
             <span class="story-from" id="story-from"></span>
             <span id="story-text"></span>
@@ -157,6 +165,7 @@
             <button class="menu-daily menu-marathon" id="menu-marathon" onclick="startMarathon()">🏃 Maratona</button>
             <button class="menu-daily menu-training" id="menu-training" onclick="openTrainingMenu()">🎯 Allenamento</button>
             <button class="menu-daily menu-gallery" id="menu-gallery" onclick="openGallery()">🌍 Livelli della community</button>
+            <button class="menu-daily menu-stories" id="menu-stories" onclick="openStories()">📚 Casi a puntate</button>
             <button class="menu-stats" onclick="openAchievements()">🏆 Obiettivi e statistiche</button>
             <div class="menu-total" id="menu-total"></div>
             <div class="menu-list" id="menu-list"></div>
@@ -197,6 +206,18 @@
             </div>
             <p class="manual-hint">Scegli un comando: livelli generati senza fine, prima brevi e poi più complessi. Niente tempo, niente fretta.</p>
             <div class="training-list" id="training-list"></div>
+        </div>
+    </div>
+
+    <!-- CASI A PUNTATE -->
+    <div class="menu-overlay" id="stories-overlay" hidden onclick="if (event.target === this) closeStories()">
+        <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="stories-title">
+            <div class="menu-header">
+                <button class="menu-back" id="stories-back" hidden>← Indietro</button>
+                <h2 id="stories-title">📚 CASI</h2>
+                <button class="menu-close" onclick="closeStories()" aria-label="Chiudi">✕</button>
+            </div>
+            <div id="stories-body"></div>
         </div>
     </div>
 
@@ -292,6 +313,8 @@
     <script src="tutorial.js"></script>
     <script src="community.js"></script>
     <script src="gallery.js"></script>
+    <script src="stories.js"></script>
+    <script src="stories-view.js"></script>
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="lab.js"></script>

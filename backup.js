@@ -46,7 +46,12 @@ function cleanProgress(progress) {
         terminal: pick(progress.terminal, value => value === true),
         marathon: pick(progress.marathon, isCount),
         training: pick(progress.training, isCount),
-        community: pick(progress.community, value => isResult(value) && isCount(value.best))
+        community: pick(progress.community, value => isResult(value) && isCount(value.best)),
+        stories: pick(Object.fromEntries(Object.entries(progress.stories).filter(([, story]) => isPlainObject(story)).map(([id, story]) => [id, {
+            puzzles: pick(isPlainObject(story.puzzles) ? story.puzzles : {}, value => isResult(value) && isCount(value.best)),
+            chapters: pick(isPlainObject(story.chapters) ? story.chapters : {}, value => isResult(value) && isCount(value.attempts)),
+            tries: pick(isPlainObject(story.tries) ? story.tries : {}, isCount)
+        }])), isPlainObject)
     };
 }
 
@@ -70,7 +75,12 @@ function mergeProgress(a, b) {
         terminal: { ...a.terminal, ...b.terminal },
         marathon: mergeBy(a.marathon, b.marathon, Math.max),
         training: mergeBy(a.training, b.training, Math.max),
-        community: mergeBy(a.community, b.community, (x, y) => better(x, y, "best"))
+        community: mergeBy(a.community, b.community, (x, y) => better(x, y, "best")),
+        stories: mergeBy(a.stories, b.stories, (x, y) => ({
+            puzzles: mergeBy(x.puzzles, y.puzzles, (p, q) => better(p, q, "best")),
+            chapters: mergeBy(x.chapters, y.chapters, (p, q) => better(p, q, "attempts")),
+            tries: mergeBy(x.tries, y.tries, Math.max)
+        }))
     };
 }
 
