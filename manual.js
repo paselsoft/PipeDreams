@@ -229,7 +229,7 @@ const MANUAL = [
             { title: "Classi e ripetizioni", input: ["tel 333 e 4444"], steps: [{ cmd: "sed", args: { pattern: "[0-9]+", replacement: "N", global: true } }] },
             { title: "Gruppi: scambiare due parole", input: ["Rossi Mario", "Bianchi Anna"], steps: [{ cmd: "sed", args: { pattern: "([A-Za-z]+) ([A-Za-z]+)", replacement: "\\2 \\1" } }] },
             { title: "& riusa la corrispondenza", input: ["a 1 b 22"], steps: [{ cmd: "sed", args: { pattern: "[0-9]+", replacement: "[&]", global: true } }] },
-            { title: "Cancellare un pezzo", input: ["x = 1   # commento", "y = 2"], steps: [{ cmd: "sed", args: { pattern: " *#.*", replacement: "" } }] }
+            { title: "Cancellare un pezzo", input: ["x = 1   # commento", "y = 2"], steps: [{ cmd: "sed", args: { pattern: " *#.*" } }] }
         ],
         traps: [
             "Senza g cambia solo la prima corrispondenza di ogni riga.",
