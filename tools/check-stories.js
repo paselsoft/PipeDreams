@@ -34,6 +34,9 @@ const report = vm.runInContext(`STORIES.map(story => {
                 return {
                     id: puzzle.id, title: puzzle.level.title, clue: Boolean(puzzle.clue), error,
                     unknown: puzzle.level.allowedCommands.map(step => step.cmd).filter(cmd => !known.has(cmd)),
+                    // rev e cut -c in bash contano byte (locale C): solo testo ASCII
+                    nonAscii: puzzle.level.allowedCommands.some(step => step.cmd === "rev" || step.cmd === "cutc") &&
+                        puzzle.level.stdin.some(line => /[^\x00-\x7f]/.test(typeof line === "string" ? line : line.err)),
                     par: solution && solution.par, optimalCount: solution && solution.optimalCount, slots: levelSlots(puzzle.level),
                     line: solution ? buildShellLine(puzzle.level.stdin, solution.optimalSteps[0]) : null,
                     target: puzzle.level.target, targetStderr: puzzle.level.targetStderr || []
@@ -65,6 +68,7 @@ for (const story of report) {
             if (!puzzle.clue) issues.push("indizio senza nome");
             if (puzzle.unknown.length) issues.push(`comandi non ancora visti all'atto richiesto: ${puzzle.unknown.join(", ")}`);
             if (puzzle.par > puzzle.slots) issues.push("par oltre gli slot");
+            if (puzzle.nonAscii) issues.push("con rev o cut -c l'input deve essere solo ASCII (niente lettere accentate)");
             if (puzzle.optimalCount > 4) issues.push(`${puzzle.optimalCount} soluzioni ottimali: l'enigma è troppo aperto`);
             if (puzzle.line) {
                 const real = runBash(puzzle.line);

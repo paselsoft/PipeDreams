@@ -1,11 +1,19 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.9.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.9.0", date: "2026-11-05", items: [
+            "📚 Due nuovi casi a puntate, 4 capitoli ciascuno.",
+            "✉️ «Il messaggio nascosto» (dopo l'Atto VI): la newsletter parte scritta allo specchio, e qualcuno ci ha nascosto un messaggio. Con rev, tac, cut -c e sort -k.",
+            "☣️ «Il pacchetto avvelenato» (dopo l'Atto VII): un processo sconosciuto divora la CPU dei server. Con nl, comm, join e tee.",
+            "🔒 Negli enigmi anche lo stderr atteso può essere nascosto: fa parte dell'indizio, e finisce nel taccuino."
+        ]
+    },
     {
         version: "1.8.0", date: "2026-11-05", items: [
             "💡 Aiuti nelle deduzioni dei casi: il primo evidenzia gli indizi che contano e dà un suggerimento, il secondo elimina una risposta sbagliata (massimo ★★).",

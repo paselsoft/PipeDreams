@@ -137,7 +137,8 @@ function clueNodes(story, chapters) {
             const row = el("div", "notebook-clue");
             row.dataset.clue = puzzleKey(chapter, puzzle);
             const chips = el("span", "chips");
-            renderChips(chips, puzzle.level.target.map(text => ({ text, fd: 1 })));
+            // Anche quello che la soluzione lascia sul terminale (es. con tee /dev/stderr)
+            renderChips(chips, [...puzzle.level.target.map(text => ({ text, fd: 1 })), ...(puzzle.level.targetStderr || []).map(text => ({ text, fd: 2 }))]);
             row.append(el("span", "notebook-label", `${puzzle.clue}:`), chips);
             nodes.push(row);
         }

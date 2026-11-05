@@ -13,7 +13,9 @@ process.on("exit", () => fs.rmSync(workdir, { recursive: true, force: true }));
 const toLines = text => text === "" ? [] : text.replace(/\n$/, "").split("\n");
 
 function runBash(line) {
-    const real = spawnSync("bash", ["-c", `exec 2> >(cat >&2)\n${line}`], { env: { PATH: process.env.PATH }, cwd: workdir });
+    // Un tempo massimo: un comando bloccato non deve fermare le verifiche
+    const real = spawnSync("bash", ["-c", `exec 2> >(cat >&2)\n${line}`], { env: { PATH: process.env.PATH }, cwd: workdir, timeout: 10000 });
+    if (real.error) return { stdout: [], stderr: [`(bash non ha risposto: ${real.error.code || real.error.message})`] };
     return { stdout: toLines(real.stdout.toString()), stderr: toLines(real.stderr.toString()) };
 }
 

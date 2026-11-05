@@ -154,5 +154,29 @@ module.exports = {
         await page.waitForFunction(() => /Indizio nel taccuino/.test(document.getElementById("console").innerText), null, { timeout: 6000 });
         assert.ok(await page.evaluate(() => progress.stories["server-fantasma"].puzzles["crontab/comando"]));
         assert.ok(await page.evaluate(() => progress.achievements.terminalista));
+    },
+
+    "casi: ogni caso si sblocca con il suo atto; stderr nascosto e indizio nel taccuino": async ({ page }) => {
+        await open(page);
+        const unlocked = () => page.evaluate(() => STORIES.map(story => storyOpen(story)));
+        await page.evaluate(() => { progress.levels = Object.fromEntries(levels.filter(lvl => lvl.act <= 6).map(lvl => [lvl.id, { stars: 3, best: 1 }])); });
+        assert.deepEqual(await unlocked(), [true, true, false]);
+        await page.evaluate(() => { progress.levels = Object.fromEntries(levels.map(lvl => [lvl.id, { stars: 3, best: 1 }])); persistProgress(); });
+        assert.deepEqual(await unlocked(), [true, true, true]);
+        await page.evaluate(() => openStories());
+        assert.equal(await page.locator("#stories-body .gallery-play:not([disabled])").count(), 3);
+        // Enigma con tee: anche lo stderr atteso è nascosto, e l'indizio lo comprende
+        await page.evaluate(() => {
+            const state = storyProgress("pacchetto-avvelenato");
+            for (const chapter of ["cpu", "origine", "sorgente"]) state.chapters[chapter] = { stars: 3, attempts: 1 };
+            playPuzzle("pacchetto-avvelenato", "diffusione", 0);
+        });
+        assert.equal(await page.isVisible("#row-target-stderr"), true);
+        assert.match(await page.textContent("#txt-target-stderr"), /nascosto: fa parte dell'indizio \(3 righe\)/);
+        await solveCurrent(page);
+        await page.click("#btn-run");
+        await page.waitForFunction(() => /DEDUZIONE/.test(document.getElementById("stories-title").textContent), null, { timeout: 6000 });
+        const clue = await page.innerText("#stories-body");
+        assert.match(clue, /Server con fast-json-tools.*:\s*3\s*gatto\s*mela\s*zebra/s);
     }
 };

@@ -110,7 +110,9 @@ function showLevel(lvl, titleText) {
     // Stderr atteso sul terminale (es. con tee /dev/stderr) e file del livello per comm e join
     const expectedErr = lvl.type === "quiz" ? [] : lvl.targetStderr || [];
     document.getElementById("row-target-stderr").hidden = !expectedErr.length;
-    renderChips(document.getElementById("txt-target-stderr"), expectedErr.map(text => ({ text, fd: 2 })));
+    renderChips(document.getElementById("txt-target-stderr"), lvl.hiddenTarget && expectedErr.length
+        ? [{ text: `🔒 nascosto: fa parte dell'indizio (${expectedErr.length} ${expectedErr.length === 1 ? "riga" : "righe"})`, fd: 2 }]
+        : expectedErr.map(text => ({ text, fd: 2 })));
     const files = document.getElementById("level-files");
     files.innerHTML = "";
     for (const [name, lines] of Object.entries(levelFiles(lvl))) {
