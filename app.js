@@ -257,7 +257,8 @@ function currentSteps() {
 // --- Modalità terminale: si sblocca per i livelli "componi" di un atto completato ---
 const terminalText = () => document.getElementById("terminal-input").value;
 const actCompleted = act => levels.filter(lvl => lvl.act === act).every(lvl => progress.levels[lvl.id]);
-const terminalAvailable = lvl => !TEST_MODE && lvl.act > 0 && !lvl.type && !lvl.locked && actCompleted(lvl.act);
+// Negli enigmi dei casi il terminale è sempre disponibile: il caso si apre solo dopo l'Atto III
+const terminalAvailable = lvl => !TEST_MODE && !lvl.type && !lvl.locked && (Boolean(lvl.mystery) || (lvl.act > 0 && actCompleted(lvl.act)));
 const terminalActive = () => settings.inputMode === "terminal" && terminalAvailable(currentLevel());
 
 function setInputMode(mode) {
@@ -274,7 +275,7 @@ function setInputMode(mode) {
 
 function applyInputMode() {
     const lvl = currentLevel();
-    const offer = !TEST_MODE && lvl.act > 0 && !lvl.type && !lvl.locked;
+    const offer = !TEST_MODE && (lvl.act > 0 || Boolean(lvl.mystery)) && !lvl.type && !lvl.locked;
     const terminal = terminalActive();
     document.getElementById("mode-toggle").hidden = !offer;
     document.body.dataset.input = terminal ? "terminal" : "cells";
@@ -663,6 +664,10 @@ function showResult(lvl, result) {
         bumpStat("failures");
         playFail();
         tutorialEvent("fail");
+        // Negli enigmi lo stdout atteso è nascosto: almeno il numero di righe aiuta a orientarsi
+        if (lvl.hiddenTarget && result.output.length !== lvl.target.length) {
+            logToConsole(`> L'indizio ha ${lvl.target.length} ${lvl.target.length === 1 ? "riga" : "righe"}, la tua uscita ${result.output.length}.`, "log-hint");
+        }
         if (streamsEqual(result.output, lvl.target)) {
             logToConsole(`> [FALLIMENTO] Lo stdout è giusto, ma degli errori sono finiti sul terminale.`, "log-error");
         } else {

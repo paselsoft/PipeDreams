@@ -54,7 +54,7 @@ module.exports = {
         assert.equal(await page.$eval(".deduction-option >> nth=1", button => button.disabled), true);
         await page.click(".deduction-option >> nth=0");
         assert.match(await page.textContent(".deduction-feedback"), /^✓ Esatto!.*★★☆$/);
-        assert.deepEqual(await page.evaluate(() => progress.stories["server-fantasma"].chapters["le-3-14"]), { stars: 2, attempts: 2 });
+        assert.deepEqual(await page.evaluate(() => progress.stories["server-fantasma"].chapters["le-3-14"]), { stars: 2, attempts: 2, hints: 0 });
         await page.click("#stories-body >> text=CAPITOLO SUCCESSIVO ▶");
         assert.equal(await page.textContent("#act-label"), "📚 IL SERVER FANTASMA · CAPITOLO 2");
         await page.click("#act-button");
@@ -99,5 +99,60 @@ module.exports = {
         // Il backup porta anche i casi
         const restored = await page.evaluate(() => readBackup(backupCode(progress)).progress.stories["server-fantasma"]);
         assert.equal(Object.keys(restored.puzzles).length, 9);
+    },
+
+    "casi: aiuti nella deduzione, statistiche e righe dell'indizio": async ({ page }) => {
+        await open(page);
+        await actsUpTo3(page);
+        await page.evaluate(() => {
+            const state = storyProgress("server-fantasma");
+            state.puzzles["le-3-14/chi"] = { stars: 3, best: 3 };
+            state.puzzles["le-3-14/da-dove"] = { stars: 2, best: 4 };
+            persistProgress();
+            openDeduction("server-fantasma", "le-3-14");
+        });
+        // Aiuto 1: suggerimento e indizi da guardare evidenziati
+        await page.click(".deduction-help");
+        assert.match(await page.textContent(".deduction-hint"), /^💡 Gli indirizzi 10\.x sono della rete interna/);
+        assert.equal(await page.locator(".notebook-clue.clue-focus").count(), 2);
+        // Aiuto 2: una risposta sbagliata eliminata, poi la giusta vale al massimo ★★
+        await page.click(".deduction-help");
+        assert.equal(await page.locator(".deduction-option.eliminated").count(), 1);
+        assert.equal(await page.$eval(".deduction-help", button => button.disabled), true);
+        await page.click(".deduction-option >> nth=0");
+        assert.deepEqual(await page.evaluate(() => progress.stories["server-fantasma"].chapters["le-3-14"]), { stars: 2, attempts: 1, hints: 2 });
+        // Statistiche del caso
+        await page.click("#stories-back");
+        const stats = await page.innerText(".story-stats");
+        assert.match(stats, /Capitoli\s+1\/5/);
+        assert.match(stats, /Stelle negli enigmi\s+5\/27/);
+        assert.match(stats, /Stelle nelle deduzioni\s+2\/15/);
+        assert.match(stats, /Deduzioni al primo colpo\s+1\/5/);
+        assert.match(stats, /Aiuti nelle deduzioni\s+2/);
+        // Enigma con risultato sbagliato: il gioco dice quante righe ha l'indizio
+        await page.evaluate(() => playPuzzle("server-fantasma", "cosa-sparisce", 0));
+        await page.evaluate(() => {
+            const options = slotOptions(currentLevel());
+            gridState = [options.findIndex(o => stepLabel(o) === "grep '03:14'"), 0, 0, 0];
+            buildGrid();
+        });
+        await page.click("#btn-run");
+        await page.waitForFunction(() => /FALLIMENTO/.test(document.getElementById("console").innerText));
+        assert.match(await consoleText(page), /L'indizio ha 1 riga, la tua uscita 4\./);
+    },
+
+    "casi: gli enigmi si risolvono anche nel terminale": async ({ page }) => {
+        await open(page, { settings: { inputMode: "terminal" } });
+        await actsUpTo3(page);
+        await page.evaluate(() => playPuzzle("server-fantasma", "crontab", 0));
+        assert.equal(await page.isVisible("#mode-toggle"), true);
+        assert.equal(await page.evaluate(() => document.body.dataset.input), "terminal");
+        assert.equal(await page.textContent(".terminal-prompt"), "$ crontab -l");
+        await page.fill("#terminal-input", "grep '14 3 ' | sed -E 's/^14 3 \\* \\* \\* //'");
+        assert.equal(await page.textContent("#terminal-error"), "");
+        await page.press("#terminal-input", "Enter");
+        await page.waitForFunction(() => /Indizio nel taccuino/.test(document.getElementById("console").innerText), null, { timeout: 6000 });
+        assert.ok(await page.evaluate(() => progress.stories["server-fantasma"].puzzles["crontab/comando"]));
+        assert.ok(await page.evaluate(() => progress.achievements.terminalista));
     }
 };

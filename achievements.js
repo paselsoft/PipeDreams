@@ -123,6 +123,7 @@ function openAchievements() {
         ["Serie attuale", `${dailyStreak(progress.daily)} giorni`],
         ["Record Maratona", `${progress.marathon.best || 0} livelli`],
         ["Capitoli dei casi", `${STORIES.reduce((sum, story) => sum + solvedChapters(story), 0)}/${STORIES.reduce((sum, story) => sum + story.chapters.length, 0)}`],
+        ["Deduzioni al primo colpo", String(STORIES.reduce((sum, story) => sum + storyStats(story).firstTry, 0))],
         ["Livelli della community", `${Object.keys(progress.community).length}/${COMMUNITY_LEVELS.length}`],
         ["Livelli di allenamento", String(Object.values(progress.training).reduce((sum, n) => sum + n, 0))],
         ...STAT_LABELS.map(([key, label]) => [label, String(progress.stats[key] || 0)]),

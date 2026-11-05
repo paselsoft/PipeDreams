@@ -1042,3 +1042,11 @@ body.coaching { padding-bottom: 220px; }
 .deduction-feedback { margin: 4px 0; font-size: 15px; color: #e3b341; min-height: 1em; }
 body.cvd .deduction-option.right { border-color: #58a6ff; color: #79c0ff; }
 body.cvd .deduction-option.wrong { border-color: #f0883e; }
+
+.deduction-help { align-self: flex-start; }
+.deduction-hint { margin: 0; padding: 8px 10px; border-left: 3px solid #e3b341; background: #2b2111; color: #e6edf3; font-size: 14px; line-height: 1.4; }
+.deduction-hint[hidden] { display: none; }
+.notebook-clue.clue-focus { outline: 2px solid #e3b341; outline-offset: 3px; border-radius: 4px; }
+.notebook-clue.clue-focus .notebook-label::before { content: "👉 "; }
+.deduction-option.eliminated { opacity: 1; color: #8b949e; border-style: dashed; text-decoration: line-through; }
+.story-stats { margin: 2px 0 4px; }

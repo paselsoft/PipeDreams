@@ -23,7 +23,11 @@ const report = vm.runInContext(`STORIES.map(story => {
             question: chapter.question && Array.isArray(chapter.question.options) && chapter.question.options.length >= 3 &&
                 new Set(chapter.question.options).size === chapter.question.options.length &&
                 Number.isInteger(chapter.question.answer) && chapter.question.answer >= 0 && chapter.question.answer < chapter.question.options.length &&
-                Boolean(chapter.question.explain) && Array.isArray(chapter.question.why) && chapter.question.why.length === chapter.question.options.length,
+                Boolean(chapter.question.explain) && Array.isArray(chapter.question.why) && chapter.question.why.length === chapter.question.options.length &&
+                Boolean(chapter.question.hint) && Array.isArray(chapter.question.focus) && chapter.question.focus.length > 0 &&
+                // Gli indizi indicati esistono e vengono da questo capitolo o da uno precedente
+                chapter.question.focus.every(key => story.chapters.slice(0, story.chapters.indexOf(chapter) + 1)
+                    .some(other => other.puzzles.some(puzzle => key === other.id + "/" + puzzle.id))),
             puzzles: chapter.puzzles.map(puzzle => {
                 const error = sharedLevelError(puzzle.level);
                 const solution = error ? null : solveLevel(puzzle.level);
@@ -52,7 +56,7 @@ for (const story of report) {
         if (!chapter.fields) problems.push("campi del capitolo mancanti");
         if (chapterIds.has(chapter.id)) problems.push("id del capitolo ripetuto");
         chapterIds.add(chapter.id);
-        if (!chapter.question) problems.push("domanda non valida (servono 3+ opzioni diverse, risposta, spiegazione e un perché per opzione)");
+        if (!chapter.question) problems.push("domanda non valida (servono 3+ opzioni diverse, risposta, spiegazione, un perché per opzione, aiuto e indizi da guardare)");
         if (problems.length) { failures++; console.log(`  ✗ ${chapter.title}: ${problems.join(", ")}`); }
         for (const puzzle of chapter.puzzles) {
             checked++;

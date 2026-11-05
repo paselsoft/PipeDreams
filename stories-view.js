@@ -1,6 +1,7 @@
 // Casi a puntate nel gioco: elenco dei casi, capitoli, enigmi (stdout atteso nascosto),
 // taccuino degli indizi e domanda di deduzione. Progressi in progress.stories[id]:
-// { puzzles: { "capitolo/enigma": { stars, best } }, chapters: { capitolo: { stars, attempts } }, tries: { capitolo: n } }
+// { puzzles: { "capitolo/enigma": { stars, best } }, chapters: { capitolo: { stars, attempts, hints } },
+//   tries: { capitolo: n }, wrong: risposte sbagliate, hints: aiuti chiesti nelle deduzioni }
 
 let mystery = null; // { story, chapter, puzzle } durante un enigma
 
@@ -61,10 +62,44 @@ function closeStories() {
     document.getElementById("stories-overlay").hidden = true;
 }
 
+// Statistiche di un caso: capitoli, stelle di enigmi e deduzioni, errori e aiuti
+function storyStats(story) {
+    const state = progress.stories[story.id] || { puzzles: {}, chapters: {} };
+    const puzzles = story.chapters.flatMap(chapter => chapter.puzzles.map(puzzle => state.puzzles[puzzleKey(chapter, puzzle)]));
+    const chapters = story.chapters.map(chapter => state.chapters[chapter.id]);
+    return {
+        chapters: chapters.filter(Boolean).length,
+        totalChapters: story.chapters.length,
+        puzzleStars: puzzles.reduce((sum, record) => sum + (record ? record.stars : 0), 0),
+        maxPuzzleStars: puzzles.length * 3,
+        deductionStars: chapters.reduce((sum, record) => sum + (record ? record.stars : 0), 0),
+        maxDeductionStars: chapters.length * 3,
+        firstTry: chapters.filter(record => record && record.attempts === 1).length,
+        wrong: state.wrong || 0,
+        hints: state.hints || 0
+    };
+}
+
+function statsRow(story) {
+    const stats = storyStats(story);
+    const table = el("div", "stats-table story-stats");
+    for (const [label, value] of [
+        ["Capitoli", `${stats.chapters}/${stats.totalChapters}`],
+        ["Stelle negli enigmi", `${stats.puzzleStars}/${stats.maxPuzzleStars}`],
+        ["Stelle nelle deduzioni", `${stats.deductionStars}/${stats.maxDeductionStars}`],
+        ["Deduzioni al primo colpo", `${stats.firstTry}/${stats.totalChapters}`],
+        ["Risposte sbagliate", String(stats.wrong)],
+        ["Aiuti nelle deduzioni", String(stats.hints)]
+    ]) {
+        table.append(el("span", "stats-label", label), el("span", "stats-value", value));
+    }
+    return table;
+}
+
 function openStory(id) {
     const story = findStory(id);
     const state = storyProgress(id);
-    const nodes = [el("p", "manual-description", story.synopsis)];
+    const nodes = [el("p", "manual-description", story.synopsis), statsRow(story)];
     story.chapters.forEach((chapter, index) => {
         const status = chapterStatus(story, index);
         const item = el("div", "gallery-item story-chapter " + status);
@@ -100,6 +135,7 @@ function clueNodes(story, chapters) {
         nodes.push(el("h3", "manual-section", `${story.chapters.indexOf(chapter) + 1}. ${chapter.title}`));
         for (const puzzle of found) {
             const row = el("div", "notebook-clue");
+            row.dataset.clue = puzzleKey(chapter, puzzle);
             const chips = el("span", "chips");
             renderChips(chips, puzzle.level.target.map(text => ({ text, fd: 1 })));
             row.append(el("span", "notebook-label", `${puzzle.clue}:`), chips);
@@ -150,6 +186,7 @@ function playPuzzle(storyId, chapterId, index) {
     const chapterIndex = story.chapters.findIndex(item => item.id === chapterId);
     const chapter = story.chapters[chapterIndex];
     const puzzle = chapter.puzzles[index];
+    closeStories();
     stopMarathon();
     stopTraining();
     stopGallery();
@@ -178,6 +215,7 @@ function mysterySolved(lvl) {
     recordResult({ levels: state.puzzles }, puzzleKey(chapter, puzzle), stars, used);
     persistProgress();
     checkSessionAchievements(currentSolution.par);
+    if (terminalActive()) unlockAchievement("terminalista");
     playWin();
     celebrate(stars);
     logToConsole(`> ${rating(stars, used)}`, "log-success");
@@ -202,6 +240,7 @@ function openDeduction(storyId, chapterId) {
     const state = storyProgress(storyId);
     const question = chapter.question;
     let attempts = 0;
+    let hintTier = 0; // 1: indizi da guardare e suggerimento; 2: anche una risposta sbagliata eliminata
     // Nell'ultimo capitolo servono gli indizi di tutto il caso
     const last = chapterIndex === story.chapters.length - 1;
     const nodes = [
@@ -212,12 +251,39 @@ function openDeduction(storyId, chapterId) {
     const options = el("div", "deduction-options");
     const feedback = el("p", "deduction-feedback");
     feedback.setAttribute("role", "status");
+    const hintBox = el("p", "deduction-hint");
+    hintBox.hidden = true;
+    const hintButton = el("button", "btn-hint deduction-help", "💡 AIUTO 1/2");
+    hintButton.onclick = () => {
+        hintTier++;
+        state.hints = (state.hints || 0) + 1;
+        persistProgress();
+        if (hintTier === 1) {
+            hintBox.hidden = false;
+            hintBox.textContent = `💡 ${question.hint}`;
+            document.querySelectorAll("#stories-body .notebook-clue").forEach(row => {
+                row.classList.toggle("clue-focus", question.focus.includes(row.dataset.clue));
+            });
+            hintButton.textContent = "💡 AIUTO 2/2 (massimo ★★)";
+        } else {
+            // Elimina una risposta sbagliata non ancora provata
+            const wrongButton = [...options.querySelectorAll("button")].find((button, i) => i !== question.answer && !button.disabled);
+            if (wrongButton) {
+                wrongButton.disabled = true;
+                wrongButton.classList.add("eliminated");
+                feedback.textContent = `💡 Eliminata: ${question.why[[...options.children].indexOf(wrongButton)]}`;
+            }
+            hintButton.disabled = true;
+            hintButton.textContent = "💡 Aiuti finiti";
+        }
+    };
     question.options.forEach((text, i) => {
         const button = el("button", "deduction-option", text);
         button.onclick = () => {
             attempts++;
             state.tries[chapterId] = (state.tries[chapterId] || 0) + 1;
             if (i !== question.answer) {
+                state.wrong = (state.wrong || 0) + 1;
                 button.disabled = true;
                 button.classList.add("wrong");
                 feedback.textContent = `✗ No: ${question.why[i]}`;
@@ -226,9 +292,11 @@ function openDeduction(storyId, chapterId) {
             }
             button.classList.add("right");
             options.querySelectorAll("button").forEach(other => { other.disabled = true; });
-            const stars = starsByAttempts(attempts);
+            // Con il secondo aiuto il massimo è ★★
+            const stars = Math.min(starsByAttempts(attempts), hintTier >= 2 ? 2 : 3);
             const previous = state.chapters[chapterId];
-            if (!previous || stars > previous.stars) state.chapters[chapterId] = { stars, attempts };
+            if (!previous || stars > previous.stars) state.chapters[chapterId] = { stars, attempts, hints: hintTier };
+            hintButton.disabled = true;
             persistProgress();
             playWin();
             celebrate(stars);
@@ -249,7 +317,7 @@ function openDeduction(storyId, chapterId) {
         };
         options.appendChild(button);
     });
-    nodes.push(options, feedback);
+    nodes.push(hintButton, hintBox, options, feedback);
     stopMystery();
     loadLevel(startLevelIndex());
     showStoriesPanel(`🔎 CAPITOLO ${chapterIndex + 1}: DEDUZIONE`, nodes, () => openStory(storyId));

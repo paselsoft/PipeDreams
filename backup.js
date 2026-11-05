@@ -50,7 +50,9 @@ function cleanProgress(progress) {
         stories: pick(Object.fromEntries(Object.entries(progress.stories).filter(([, story]) => isPlainObject(story)).map(([id, story]) => [id, {
             puzzles: pick(isPlainObject(story.puzzles) ? story.puzzles : {}, value => isResult(value) && isCount(value.best)),
             chapters: pick(isPlainObject(story.chapters) ? story.chapters : {}, value => isResult(value) && isCount(value.attempts)),
-            tries: pick(isPlainObject(story.tries) ? story.tries : {}, isCount)
+            tries: pick(isPlainObject(story.tries) ? story.tries : {}, isCount),
+            wrong: isCount(story.wrong) ? story.wrong : 0,
+            hints: isCount(story.hints) ? story.hints : 0
         }])), isPlainObject)
     };
 }
@@ -79,7 +81,9 @@ function mergeProgress(a, b) {
         stories: mergeBy(a.stories, b.stories, (x, y) => ({
             puzzles: mergeBy(x.puzzles, y.puzzles, (p, q) => better(p, q, "best")),
             chapters: mergeBy(x.chapters, y.chapters, (p, q) => better(p, q, "attempts")),
-            tries: mergeBy(x.tries, y.tries, Math.max)
+            tries: mergeBy(x.tries, y.tries, Math.max),
+            wrong: Math.max(x.wrong || 0, y.wrong || 0),
+            hints: Math.max(x.hints || 0, y.hints || 0)
         }))
     };
 }

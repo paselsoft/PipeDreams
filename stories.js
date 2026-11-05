@@ -2,6 +2,8 @@
 // (livelli "componi" con lo stdout atteso nascosto: il risultato è l'indizio da scoprire) e una
 // domanda di deduzione. Si sbloccano un capitolo alla volta; release (AAAA-MM-GG) facoltativa
 // rimanda un capitolo a una data. requiresAct: atto della campagna da completare prima.
+// question.focus: gli indizi ("capitolo/enigma") che contano per la risposta; question.hint: il
+// primo aiuto della deduzione (il secondo elimina una risposta sbagliata).
 // Dopo ogni modifica: node tools/check-stories.js
 const STORIES = [
     {
@@ -91,7 +93,9 @@ const STORIES = [
                         "root ha solo un tentativo fallito, di giorno e da internet.",
                         "Tommaso entra alle 10:11, dal suo indirizzo 10.0.0.20."
                     ],
-                    explain: "Stesso utente, stessa ora quasi al secondo, stesso indirizzo interno: sembra più un automatismo che una persona."
+                    explain: "Stesso utente, stessa ora quasi al secondo, stesso indirizzo interno: sembra più un automatismo che una persona.",
+                    focus: ["le-3-14/chi", "le-3-14/da-dove"],
+                    hint: "Gli indirizzi 10.x sono della rete interna, non di internet. E una persona entrerebbe ogni notte alla stessa ora, quasi allo stesso secondo?"
                 }
             },
             {
@@ -173,7 +177,9 @@ const STORIES = [
                         "Quelle cancellazioni sono di giorno: le hanno fatte loro, lavorando.",
                         "Il log è stato cancellato alle 11:40, non alle 03:14."
                     ],
-                    explain: "Il fantasma è preciso: cancella i backup .tar di /srv/backup, e nient'altro. Sembra proprio uno script di pulizia."
+                    explain: "Il fantasma è preciso: cancella i backup .tar di /srv/backup, e nient'altro. Sembra proprio uno script di pulizia.",
+                    focus: ["cosa-sparisce/quali"],
+                    hint: "Se il fantasma cancellasse a caso, alle 03:14 troveresti estensioni diverse. Quante ne hai trovate?"
                 }
             },
             {
@@ -250,7 +256,9 @@ const STORIES = [
                         "La stampante ha un altro indirizzo, 10.0.0.43.",
                         "L'inventario dice che è in magazzino, acceso."
                     ],
-                    explain: "Un portatile dimenticato acceso, con l'account di Bruno, che si collega ogni notte alla stessa ora: un'attività programmata."
+                    explain: "Un portatile dimenticato acceso, con l'account di Bruno, che si collega ogni notte alla stessa ora: un'attività programmata.",
+                    focus: ["indirizzo/dove"],
+                    hint: "Dove si trova il portatile, e in che stato è? Chi ci va, in magazzino, alle tre di notte?"
                 }
             },
             {
@@ -327,7 +335,9 @@ const STORIES = [
                         "Tommaso entra di giorno, e le cancellazioni sono alle 3:14 ogni notte.",
                         "Lo script è nella home di Bruno da marzo 2023 e parte da un portatile interno."
                     ],
-                    explain: "Nessun fantasma: un'attività programmata dimenticata. Il nuovo sistema di backup è arrivato, ma nessuno ha tolto la vecchia pulizia."
+                    explain: "Nessun fantasma: un'attività programmata dimenticata. Il nuovo sistema di backup è arrivato, ma nessuno ha tolto la vecchia pulizia.",
+                    focus: ["crontab/comando", "crontab/commenti"],
+                    hint: "Leggi i commenti dello script: chi l'ha scritto, quando, e cosa dice il TODO? E da dove parte il comando delle 3:14?"
                 }
             },
             {
@@ -375,7 +385,9 @@ const STORIES = [
                         "Capitolo 3: 10.0.0.42 è portatile-bruno, non il PC di Tommaso (10.0.0.20).",
                         "Capitoli 1 e 4: l'accesso era interno, con chiave, e partiva da uno script, non da una persona."
                     ],
-                    explain: "Ogni dettaglio torna: chi (cap. 1), cosa (cap. 2), da dove (cap. 3), come (cap. 4) e la conferma di stanotte. Caso chiuso!"
+                    explain: "Ogni dettaglio torna: chi (cap. 1), cosa (cap. 2), da dove (cap. 3), come (cap. 4) e la conferma di stanotte. Caso chiuso!",
+                    focus: ["le-3-14/da-dove", "cosa-sparisce/quali", "indirizzo/macchina"],
+                    hint: "I rapporti sono quasi uguali: ognuno sbagliato ha un solo dettaglio falso. Controlla l'indirizzo (cap. 1 e 3) e il tipo di file (cap. 2)."
                 }
             }
         ]

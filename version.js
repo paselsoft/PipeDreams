@@ -1,11 +1,19 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.8.0", date: "2026-11-05", items: [
+            "💡 Aiuti nelle deduzioni dei casi: il primo evidenzia gli indizi che contano e dà un suggerimento, il secondo elimina una risposta sbagliata (massimo ★★).",
+            "📊 Statistiche dei casi: capitoli, stelle di enigmi e deduzioni, deduzioni al primo colpo, errori e aiuti.",
+            "⌨️ Gli enigmi dei casi si risolvono anche in modalità terminale.",
+            "🔒 Se un enigma non riesce, il gioco dice quante righe ha l'indizio rispetto alla tua uscita."
+        ]
+    },
     {
         version: "1.7.0", date: "2026-11-04", items: [
             "📚 Casi a puntate: gialli divisi in capitoli. Le pipeline trovano gli indizi, tu deduci cosa è successo. Si aprono dal menu LIVELLI dopo l'Atto III.",
