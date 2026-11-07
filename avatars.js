@@ -137,6 +137,32 @@ const CHARACTERS = {
             contento: { 9: "...ssmssssmss...", 10: "....ssmmmmsshh.." }
         }
     },
+    nadia: {
+        name: "Nadia", role: "la guardia notturna",
+        palette: { s: "#b07a52", h: "#4b3426", u: "#2f5d8a", y: "#e3b341" },
+        rows: [
+            "....hhhhhhhh....",
+            "..hhhhhhhhhhhh..",
+            ".hhhhhhhhhhhhhh.",
+            ".hhhhhhhhhhhhhh.",
+            ".hhhsssssssshhh.",
+            ".hhsssssssssshh.",
+            ".hhssessssesshh.",
+            ".hhsssssssssshh.",
+            "..hssssssssssh..",
+            "..hssssmmssssh..",
+            "...hssssssssh...",
+            "....ssssssss....",
+            "......ssss......",
+            "...uuuuuuuuuu...",
+            "..uuuyuuuuuuuu..",
+            "..uuuuuuuuuuuu.."
+        ],
+        moods: {
+            preoccupato: { 5: ".hhskksssskkshh.", 10: "...hsssmmsssh..." },
+            contento: { 9: "..hssmssssmssh..", 10: "...hssmmmmssh..." }
+        }
+    },
     bruno: {
         name: "Bruno", role: "un ex collega",
         palette: { h: "#8b949e", k: "#6e7681", j: "#8a5a2b" },

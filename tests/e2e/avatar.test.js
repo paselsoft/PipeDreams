@@ -77,6 +77,9 @@ module.exports = {
         await page.click("text=📜 Rileggi il finale");
         assert.equal(await page.getAttribute("#act-avatar .avatar", "data-character"), "elena");
         assert.equal(await page.getAttribute("#act-avatar .avatar", "data-mood"), "contento");
+        // Il personaggio nuovo: Nadia racconta il primo capitolo delle stampe di mezzanotte
+        await page.evaluate(() => startChapter("stampe-mezzanotte", "mezzanotte"));
+        assert.equal(await page.getAttribute("#act-avatar .avatar", "data-character"), "nadia");
         // Le introduzioni degli atti sono un racconto: nessun avatar
         await page.evaluate(() => showActIntro(2));
         assert.equal(await page.isVisible("#act-avatar"), false);

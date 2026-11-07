@@ -1502,5 +1502,266 @@ const STORIES = [
                 }
             }
         ]
+    },
+    {
+        id: "stampe-mezzanotte",
+        title: "Le stampe di mezzanotte",
+        synopsis: "Ogni notte, a mezzanotte in punto, la stampante del secondo piano si accende da sola e stampa un foglio. In ufficio non c'è nessuno, tranne la guardia notturna.",
+        requiresAct: 4,
+        finale: "Nadia",
+        epilogue: "Giulia spegne la stampa automatica, ma Nadia la ferma: «Aspetta! Ogni notte leggevo quel foglio: so sempre quando finisce il latte.» Così il frigorifero ora stampa l'inventario solo il venerdì, e Nadia lo appende in bacheca con una calamita a forma di pinguino. Il mistero più freddo della Pipe & Co. è risolto.",
+        chapters: [
+            {
+                id: "mezzanotte",
+                title: "Mezzanotte",
+                from: "Nadia",
+                text: "Buonasera, sono Nadia, la guardia notturna. Ogni notte, a mezzanotte in punto, al secondo piano la stampante si sveglia e stampa un foglio. Non c'è nessuno! Il tecnico mi ha dato il registro delle stampe: io non ci capisco niente, voi sì.",
+                puzzles: [
+                    {
+                        id: "titolo",
+                        clue: "Cosa si stampa a mezzanotte",
+                        level: {
+                            title: "Il Foglio di Mezzanotte",
+                            source: "cat /var/log/cups/page_log",
+                            mission: "Ogni riga è <code>giorno ora indirizzo pagine documento</code>. Che <strong>documento</strong> si stampa a mezzanotte (<code>00:00</code>)? Una riga sola.",
+                            nudge: "Il documento è l'ultimo campo della riga.",
+                            hint: "grep ' 00:00', awk '{print $5}', poi uniq.",
+                            stdin: ["31/10 09:12 10.0.0.12 2 report-ottobre.pdf", "31/10 15:40 10.0.0.15 1 slide-felpe.pdf", "01/11 00:00 10.0.0.77 1 inventario.txt", "01/11 10:05 10.0.0.20 3 appunti-bash.pdf", "02/11 00:00 10.0.0.77 1 inventario.txt", "03/11 00:00 10.0.0.77 1 inventario.txt", "03/11 11:30 10.0.0.12 1 orari-ferie.pdf", "04/11 00:00 10.0.0.77 1 inventario.txt"],
+                            target: ["inventario.txt"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 00:00" }, desc: "Tieni le righe con ' 00:00'" },
+                                { cmd: "grep", args: { pattern: " 00:00", invert: true }, desc: "Scarta le righe con ' 00:00'" },
+                                { cmd: "awk", args: { field: 5 }, desc: "Campo 5 di awk" },
+                                { cmd: "awk", args: { field: 4 }, desc: "Campo 4 di awk" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "indirizzo",
+                        clue: "Da quale indirizzo arriva",
+                        level: {
+                            title: "Chi Stampa?",
+                            source: "cat /var/log/cups/page_log",
+                            mission: "Da quale <strong>indirizzo</strong> arrivano le stampe di mezzanotte? Una riga sola.",
+                            nudge: "L'indirizzo è il terzo campo.",
+                            hint: "grep ' 00:00', awk '{print $3}', poi uniq.",
+                            stdin: ["31/10 09:12 10.0.0.12 2 report-ottobre.pdf", "31/10 15:40 10.0.0.15 1 slide-felpe.pdf", "01/11 00:00 10.0.0.77 1 inventario.txt", "01/11 10:05 10.0.0.20 3 appunti-bash.pdf", "02/11 00:00 10.0.0.77 1 inventario.txt", "03/11 00:00 10.0.0.77 1 inventario.txt", "03/11 11:30 10.0.0.12 1 orari-ferie.pdf", "04/11 00:00 10.0.0.77 1 inventario.txt"],
+                            target: ["10.0.0.77"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 00:00" }, desc: "Tieni le righe con ' 00:00'" },
+                                { cmd: "grep", args: { pattern: "pdf" }, desc: "Tieni le righe con 'pdf'" },
+                                { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+                                { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa succede al secondo piano a mezzanotte?",
+                    options: [
+                        "Ogni notte, alle 00:00 in punto, un dispositivo con indirizzo 10.0.0.77 manda in stampa inventario.txt",
+                        "Marco (10.0.0.12) stampa i suoi report di notte",
+                        "La stampante si guasta e stampa fogli a caso",
+                        "Qualcuno entra in ufficio e stampa appunti su bash"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "10.0.0.12 stampa di giorno (alle 9:12 e alle 11:30), non a mezzanotte.",
+                        "A mezzanotte esce sempre lo stesso documento, dallo stesso indirizzo: non è un caso.",
+                        "Gli appunti su bash sono stati stampati alle 10:05, da 10.0.0.20."
+                    ],
+                    explain: "Stesso documento, stessa ora, stesso indirizzo, ogni notte: un dispositivo che stampa da solo. Ma quale?",
+                    focus: ["mezzanotte/titolo", "mezzanotte/indirizzo"],
+                    hint: "Cosa si stampa a mezzanotte, e da dove? Le altre stampe sono di giorno."
+                }
+            },
+            {
+                id: "dispositivo",
+                title: "Il 10.0.0.77",
+                from: "Marco",
+                text: "10.0.0.77 non è un PC. Il server DHCP sa che nome ha, e la tabella ARP del router mi dice anche chi l'ha prodotto, dalla prima parte del suo indirizzo MAC.",
+                puzzles: [
+                    {
+                        id: "nome",
+                        clue: "Nome del dispositivo 10.0.0.77",
+                        level: {
+                            title: "Come Si Chiama?",
+                            source: "cat /var/lib/dhcp/dhcpd.leases",
+                            mission: "Ogni riga è <code>lease indirizzo nome</code>. Come si chiama il dispositivo <code>10.0.0.77</code>? Solo il nome.",
+                            nudge: "Tieni la riga giusta, poi il nome è l'ultimo campo.",
+                            hint: "grep '10.0.0.77', poi awk '{print $3}'.",
+                            stdin: ["lease 10.0.0.12 pc-marco", "lease 10.0.0.15 pc-giulia", "lease 10.0.0.20 pc-tommaso", "lease 10.0.0.43 stampante-2p", "lease 10.0.0.77 frigo-salapausa", "lease 10.0.0.78 macchinetta-caffe"],
+                            target: ["frigo-salapausa"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "10.0.0.77" }, desc: "Tieni le righe con '10.0.0.77'" },
+                                { cmd: "grep", args: { pattern: "10.0.0.43" }, desc: "Tieni le righe con '10.0.0.43'" },
+                                { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+                                { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "marca",
+                        clue: "Produttore del dispositivo 10.0.0.77",
+                        level: {
+                            title: "Chi l'ha Fatto?",
+                            source: "arp -a",
+                            mission: "Ogni riga è <code>indirizzo mac produttore</code>. Chi ha prodotto il dispositivo <code>10.0.0.77</code>? Scrivi il nome in <strong>maiuscolo</strong>, come sull'etichetta.",
+                            nudge: "Il produttore è il terzo campo; poi le minuscole diventano maiuscole.",
+                            hint: "grep '10.0.0.77', awk '{print $3}', tr 'a-z' 'A-Z'.",
+                            stdin: ["10.0.0.12 3c:22:fb:10:4a:01 lenovo", "10.0.0.43 00:1b:a9:44:10:02 brother", "10.0.0.77 a4:c1:38:9e:07:11 smartcool", "10.0.0.78 b8:27:eb:5d:62:aa caffeplus"],
+                            target: ["SMARTCOOL"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "10.0.0.77" }, desc: "Tieni le righe con '10.0.0.77'" },
+                                { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+                                { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+                                { cmd: "tr", args: { from: "a-z", to: "A-Z" }, desc: "Minuscole → maiuscole" },
+                                { cmd: "tr", args: { from: "A-Z", to: "a-z" }, desc: "Maiuscole → minuscole" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cos'è il dispositivo 10.0.0.77?",
+                    options: [
+                        "Il frigorifero intelligente della sala pausa, di marca SmartCool",
+                        "La stampante del secondo piano",
+                        "Il PC di Tommaso, rimasto acceso",
+                        "La macchinetta del caffè"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "La stampante è 10.0.0.43: riceve le stampe, non le manda.",
+                        "Il PC di Tommaso è 10.0.0.20.",
+                        "La macchinetta del caffè è 10.0.0.78, di marca CaffePlus."
+                    ],
+                    explain: "frigo-salapausa, SmartCool: il frigorifero intelligente arrivato il mese scorso. Ma perché un frigo dovrebbe stampare?",
+                    focus: ["dispositivo/nome", "dispositivo/marca"],
+                    hint: "Leggi il nome del dispositivo: dove si trova, e cos'è?"
+                }
+            },
+            {
+                id: "impostazioni",
+                title: "Le impostazioni del frigo",
+                from: "Tommaso",
+                text: "Il frigo ha un'app! Dal pannello ho esportato tutte le impostazioni. Accanto a ogni riga c'è scritto se qualcuno l'ha cambiata o se è ancora com'era di fabbrica.",
+                puzzles: [
+                    {
+                        id: "stampa",
+                        clue: "Impostazioni di stampa del frigo",
+                        level: {
+                            title: "Il Frigo Stampa?",
+                            source: "cat impostazioni-frigo.conf",
+                            mission: "Ogni riga è <code>nome=valore # stato</code>. Mostra le impostazioni che riguardano la <strong>stampa</strong>, come <code>nome=valore</code>: senza il commento.",
+                            nudge: "Tieni le righe giuste, poi togli il commento da « #» in poi.",
+                            hint: "grep 'stampa', poi sed -E 's/ #.*//' toglie il commento. Attenzione: tr cambierebbe anche l'uguale.",
+                            stdin: ["lingua=it # modificato", "temperatura=4 # modificato", "stampa_automatica=si # predefinito", "stampa_ora=00:00 # predefinito", "stampa_su=stampante-2p # predefinito", "wifi_rete=pipe-ospiti # modificato", "aggiornamenti=si # predefinito"],
+                            target: ["stampa_automatica=si", "stampa_ora=00:00", "stampa_su=stampante-2p"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "stampa" }, desc: "Tieni le righe con 'stampa'" },
+                                { cmd: "grep", args: { pattern: "modificato" }, desc: "Tieni le righe con 'modificato'" },
+                                { cmd: "sed", args: { pattern: " #.*" }, desc: "Togli il commento" },
+                                { cmd: "tr", args: { from: "=", to: " " }, desc: "= → spazio" },
+                                { cmd: "cut", args: { delim: "=", field: 1 }, desc: "Campo 1 (=)" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "predefinite",
+                        clue: "Impostazioni mai cambiate",
+                        level: {
+                            title: "Di Fabbrica",
+                            source: "cat impostazioni-frigo.conf",
+                            mission: "Quali impostazioni sono ancora <strong>come di fabbrica</strong> (<code>predefinito</code>)? Solo i nomi.",
+                            nudge: "Tieni le righe predefinite, poi il nome è prima dell'uguale.",
+                            hint: "grep 'predefinito', poi cut -d'=' -f1.",
+                            stdin: ["lingua=it # modificato", "temperatura=4 # modificato", "stampa_automatica=si # predefinito", "stampa_ora=00:00 # predefinito", "stampa_su=stampante-2p # predefinito", "wifi_rete=pipe-ospiti # modificato", "aggiornamenti=si # predefinito"],
+                            target: ["stampa_automatica", "stampa_ora", "stampa_su", "aggiornamenti"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "predefinito" }, desc: "Tieni le righe con 'predefinito'" },
+                                { cmd: "grep", args: { pattern: "modificato" }, desc: "Tieni le righe con 'modificato'" },
+                                { cmd: "cut", args: { delim: "=", field: 1 }, desc: "Campo 1 (=)" },
+                                { cmd: "cut", args: { delim: "=", field: 2 }, desc: "Campo 2 (=)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Perché il frigo stampa ogni notte?",
+                    options: [
+                        "La stampa automatica dell'inventario è attiva di fabbrica, alle 00:00 su stampante-2p, e nessuno l'ha mai cambiata",
+                        "Tommaso l'ha attivata per scherzo dall'app",
+                        "Un virus ha cambiato le impostazioni del frigo",
+                        "La stampante chiede ogni notte la lista al frigo"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Le impostazioni di stampa sono ancora «predefinito»: nessuno le ha toccate.",
+                        "Un virus le avrebbe cambiate: invece sono come di fabbrica.",
+                        "È il frigo che ha stampa_su=stampante-2p: è lui a mandare la stampa."
+                    ],
+                    explain: "Di fabbrica il frigo SmartCool stampa l'inventario ogni notte. Qualcuno lo ha collegato alla rete Wi-Fi, ma non ha mai guardato le altre impostazioni.",
+                    focus: ["impostazioni/stampa", "impostazioni/predefinite"],
+                    hint: "Le impostazioni di stampa sono state cambiate da qualcuno, o sono di fabbrica?"
+                }
+            },
+            {
+                id: "caso-chiuso",
+                title: "Caso chiuso",
+                from: "Giulia",
+                text: "Prima di spegnere la stampa automatica voglio sapere da quando succede, per il rapporto. Le stampe di mezzanotte sono nel registro della stampante.",
+                puzzles: [
+                    {
+                        id: "notti",
+                        clue: "Le notti delle stampe",
+                        level: {
+                            title: "Da Quando?",
+                            source: "cat /var/log/cups/page_log",
+                            mission: "In quali giorni il frigo ha stampato a mezzanotte? Mettili in <strong>un'unica riga</strong>, separati da virgole, come <code>01/11,02/11,...</code>",
+                            nudge: "Tieni le stampe delle 00:00, poi il giorno, poi una riga sola.",
+                            hint: "grep ' 00:00', cut -d' ' -f1, paste -sd','.",
+                            stdin: ["31/10 09:12 10.0.0.12 2 report-ottobre.pdf", "31/10 15:40 10.0.0.15 1 slide-felpe.pdf", "01/11 00:00 10.0.0.77 1 inventario.txt", "01/11 10:05 10.0.0.20 3 appunti-bash.pdf", "02/11 00:00 10.0.0.77 1 inventario.txt", "03/11 00:00 10.0.0.77 1 inventario.txt", "03/11 11:30 10.0.0.12 1 orari-ferie.pdf", "04/11 00:00 10.0.0.77 1 inventario.txt"],
+                            target: ["01/11,02/11,03/11,04/11"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 00:00" }, desc: "Tieni le righe con ' 00:00'" },
+                                { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+                                { cmd: "paste", args: { delim: "," }, desc: "Unisci con ','" },
+                                { cmd: "paste", args: { delim: ";" }, desc: "Unisci con ';'" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale rapporto mandi alla direzione? Uno solo è giusto in ogni dettaglio.",
+                    options: [
+                        "Il frigorifero della sala pausa (10.0.0.77, SmartCool) ha la stampa automatica dell'inventario attiva di fabbrica: alle 00:00 stampa su stampante-2p, ogni notte dal 01/11. Basta spegnerla nelle impostazioni.",
+                        "Il frigorifero della sala pausa (10.0.0.43, SmartCool) ha la stampa automatica dell'inventario attiva di fabbrica: alle 00:00 stampa su stampante-2p, ogni notte dal 01/11. Basta spegnerla nelle impostazioni.",
+                        "Il frigorifero della sala pausa (10.0.0.77, SmartCool) ha la stampa automatica dell'inventario, che qualcuno ha attivato di nascosto: alle 00:00 stampa su stampante-2p, ogni notte dal 01/11. Basta spegnerla nelle impostazioni.",
+                        "Il frigorifero della sala pausa (10.0.0.77, SmartCool) ha la stampa automatica dell'inventario attiva di fabbrica: alle 00:00 stampa su stampante-2p, ogni notte dal 03/11. Basta spegnerla nelle impostazioni."
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Capitoli 1 e 2: il frigo è 10.0.0.77; 10.0.0.43 è la stampante.",
+                        "Capitolo 3: le impostazioni di stampa sono ancora quelle di fabbrica.",
+                        "Capitolo 4: la prima stampa di mezzanotte è del 01/11."
+                    ],
+                    explain: "Indirizzo, marca, impostazioni di fabbrica e date: ogni dettaglio torna. Caso chiuso!",
+                    focus: ["mezzanotte/indirizzo", "dispositivo/nome", "impostazioni/predefinite", "caso-chiuso/notti"],
+                    hint: "I rapporti cambiano un solo dettaglio: l'indirizzo, chi ha attivato la stampa, o il primo giorno."
+                }
+            }
+        ]
     }
 ];

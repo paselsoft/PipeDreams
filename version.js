@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.12.0", date: "2026-11-07", items: [
+            "🖨️ Nuovo caso: «Le stampe di mezzanotte» (dopo l'Atto IV, 4 capitoli). Ogni notte alle 00:00 la stampante del secondo piano si accende da sola…",
+            "👮‍♀️ Un nuovo personaggio: Nadia, la guardia notturna, con il suo avatar."
+        ]
+    },
     {
         version: "1.11.0", date: "2026-11-07", items: [
             "🧑‍💻 I personaggi hanno un volto: Marco, Giulia, Tommaso, Irene, Elena e Bruno in pixel art, ognuno con tre espressioni.",
