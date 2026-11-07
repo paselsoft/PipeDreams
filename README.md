@@ -114,6 +114,14 @@ node tools/check-community.js
 Il primo comando convalida il livello come un link condiviso e lo aggiunge in cima a
 `community.js`; il secondo verifica tutti i livelli della galleria anche con bash.
 
+## Skill per Claude Code
+
+In `.claude/skills/` ci sono skill di progetto che Claude Code carica da solo lavorando su
+questo repository: `verifica` (cosa vuol dire «fatto»), `storie-utente`, `revisione-ux`,
+`ciclo-miglioramento` (una storia per commit), `check-architettura` e `nuovo-caso`; `/pipedreams`
+sceglie quella giusta. Il metodo è adattato da [BAMA](https://github.com/daveebbelaar/bama)
+(licenza MIT). Documenti condivisi: `docs/GLOSSARIO.md` e `docs/FIXLOG.md`.
+
 ## Pubblicazione
 
 Il workflow `.github/workflows/pages.yml` esegue le verifiche a ogni push e, se passano,
