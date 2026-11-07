@@ -11,6 +11,7 @@ const STORIES = [
         title: "Il server fantasma",
         synopsis: "Ogni notte, alle 3:14 precise, spariscono dei backup dal server gufo. Nessuno era in ufficio. Un fantasma?",
         requiresAct: 3,
+        finale: "Bruno",
         epilogue: "Marco spegne il vecchio portatile in magazzino, Giulia disattiva l'account di Bruno e chiama Bruno per raccontargli tutto. Lui ride: «Quello script! Dovevo toglierlo quando è arrivato il nuovo sistema di backup.» Da quella notte, alle 3:14, sul server gufo non succede più niente. Il fantasma era solo una riga dimenticata in un crontab.",
         chapters: [
             {
@@ -397,6 +398,7 @@ const STORIES = [
         title: "Il messaggio nascosto",
         synopsis: "La newsletter di stanotte è partita con un testo illeggibile, scritto allo specchio. Uno scherzo, un sabotaggio… o qualcuno che chiede aiuto?",
         requiresAct: 6,
+        finale: "Irene",
         epilogue: "Alle 8:01 Marco apre la sala server con la vecchia chiave di metallo. Irene esce stropicciata, con una tazza vuota in mano: «Il filtro della newsletter blocca le modifiche dell'ultimo minuto con parole come AIUTO. Ho dovuto nasconderla.» Il firmware 2.3 della porta viene ritirato, e da allora in sala server c'è sempre una chiave appesa accanto alla porta. E una pizza, il venerdì.",
         chapters: [
             {
@@ -655,6 +657,7 @@ const STORIES = [
         title: "Il pacchetto avvelenato",
         synopsis: "Le ventole dei server girano al massimo e nessuno sa perché. Qualcosa sta consumando tutta la CPU, e non è un programma che conosciamo.",
         requiresAct: 7,
+        finale: "Marco",
         epilogue: "Marco rimuove fast-json-tools da zebra, gatto e mela, e Giulia cancella il mirror «veloce» dalle sorgenti di apt. Si scopre che l'aveva aggiunto un vecchio script di installazione copiato da un forum. Da quel giorno alla Pipe & Co. vale una regola nuova: solo repository ufficiali, e ogni pacchetto nuovo passa da comm contro l'elenco approvato. Le ventole tornano a sussurrare.",
         chapters: [
             {
@@ -915,6 +918,7 @@ const STORIES = [
         title: "Il caffè scomparso",
         synopsis: "Ogni mattina mancano capsule dalla macchinetta del caffè, e sono sempre quelle al ginseng. In ufficio iniziano i sospetti…",
         requiresAct: 2,
+        finale: "Elena",
         epilogue: "Giulia chiama l'azienda dei distributori: «La calibrazione serale usa davvero quattro capsule?» «Certo, è nel contratto!» Da quel giorno Elena porta le sue capsule di prova, Marco smette di guardare storto i colleghi alla macchinetta e Tommaso scopre che il ginseng gli piace. Il caso più dolce della Pipe & Co. è chiuso.",
         chapters: [
             {
@@ -1196,6 +1200,7 @@ const STORIES = [
         title: "L'ultimo commit",
         synopsis: "Ieri mattina, dopo un rilascio, il negozio online ha iniziato a rispondere «500 Internal Server Error». Nessuno ammette di aver toccato niente.",
         requiresAct: 7,
+        finale: "Tommaso",
         epilogue: "Tommaso, rosso come un pomodoro, corregge i prezzi e aggiunge un test che rifiuta le virgole. Giulia non lo sgrida: «Il punto decimale l'hanno inventato per farci litigare.» Marco aggiunge al rilascio un controllo con grep: se un prezzo ha la virgola, il deploy si ferma. Il negozio torna a vendere mouse e webcam, e la Pipe & Co. ha un nuovo detto: «Prima di committare, grep la virgola.»",
         chapters: [
             {

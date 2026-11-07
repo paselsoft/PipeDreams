@@ -13,6 +13,7 @@ function openGallery() {
     for (const entry of COMMUNITY_LEVELS) {
         const record = progress.community[entry.id];
         const item = el("div", "gallery-item");
+        item.appendChild(avatarNode(entry.author));
         const info = el("div", "gallery-info");
         info.append(el("strong", "", entry.level.title),
             el("span", "gallery-meta", `di ${entry.author} · ${entry.level.allowedCommands.length} comandi a disposizione`),

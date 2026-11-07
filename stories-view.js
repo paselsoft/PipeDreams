@@ -109,6 +109,7 @@ function openStory(id) {
         const record = state.chapters[chapter.id];
         const label = { done: record ? `✓ ${starString(record.stars)}` : "✓", open: "da giocare", locked: "🔒 risolvi il capitolo precedente", soon: `🔒 esce il ${formatDate(chapter.release || "")}` }[status];
         info.append(el("strong", "", `${index + 1}. ${chapter.title}`), el("span", "gallery-stars", label));
+        item.appendChild(avatarNode(chapter.from));
         const play = el("button", "btn-hint gallery-play", status === "done" ? "↺ RIGIOCA" : "▶ GIOCA");
         play.disabled = status === "locked" || status === "soon";
         play.setAttribute("aria-label", `${status === "done" ? "Rigioca" : "Gioca"} il capitolo ${index + 1}: ${chapter.title}`);
@@ -121,7 +122,7 @@ function openStory(id) {
     nodes.push(notebook);
     if (solvedChapters(story) === story.chapters.length) {
         const ending = el("button", "menu-stats", "📜 Rileggi il finale");
-        ending.onclick = () => { closeStories(); showStoryScreen("CASO CHIUSO", story.title, story.epilogue, "CHIUDI"); };
+        ending.onclick = () => { closeStories(); showStoryScreen("CASO CHIUSO", story.title, story.epilogue, "CHIUDI", null, story.finale, "contento"); };
         nodes.push(ending);
     }
     showStoriesPanel(`📚 ${story.title.toUpperCase()}`, nodes, openStories);
@@ -167,7 +168,7 @@ function startChapter(storyId, chapterId) {
         const state = storyProgress(storyId);
         const replay = Boolean(state.chapters[chapterId]);
         nextChapterStep(storyId, chapterId, replay ? 0 : null);
-    });
+    }, chapter.from, moodForText(chapter.text));
 }
 
 // Prossimo enigma del capitolo (from: indice da cui ripartire, o null per il primo non risolto),
@@ -246,8 +247,12 @@ function openDeduction(storyId, chapterId) {
     let hintTier = 0; // 1: indizi da guardare e suggerimento; 2: anche una risposta sbagliata eliminata
     // Nell'ultimo capitolo servono gli indizi di tutto il caso
     const last = chapterIndex === story.chapters.length - 1;
+    const asker = el("div", "deduction-asker");
+    const askerAvatar = el("span", "avatar-slot");
+    setAvatar(askerAvatar, chapter.from, "normale", "medium");
+    asker.append(askerAvatar, el("p", "deduction-question", question.text));
     const nodes = [
-        el("p", "deduction-question", question.text),
+        asker,
         el("h3", "manual-section", last ? "Il taccuino" : "Indizi di questo capitolo"),
         ...clueNodes(story, last ? story.chapters : [chapter])
     ];
@@ -289,11 +294,13 @@ function openDeduction(storyId, chapterId) {
                 state.wrong = (state.wrong || 0) + 1;
                 button.disabled = true;
                 button.classList.add("wrong");
+                setAvatar(askerAvatar, chapter.from, "preoccupato", "medium");
                 feedback.textContent = `✗ No: ${question.why[i]}`;
                 persistProgress();
                 return;
             }
             button.classList.add("right");
+            setAvatar(askerAvatar, chapter.from, "contento", "medium");
             options.querySelectorAll("button").forEach(other => { other.disabled = true; });
             // Con il secondo aiuto il massimo è ★★
             const stars = Math.min(starsByAttempts(attempts), hintTier >= 2 ? 2 : 3);
@@ -310,7 +317,7 @@ function openDeduction(storyId, chapterId) {
             const next = el("button", "btn-run", last ? "📜 IL FINALE" : "CAPITOLO SUCCESSIVO ▶");
             next.onclick = () => {
                 closeStories();
-                if (last) showStoryScreen("CASO CHIUSO", story.title, story.epilogue, "CHIUDI", () => openStory(storyId));
+                if (last) showStoryScreen("CASO CHIUSO", story.title, story.epilogue, "CHIUDI", () => openStory(storyId), story.finale, "contento");
                 else if (chapterStatus(story, chapterIndex + 1) === "open") startChapter(storyId, story.chapters[chapterIndex + 1].id);
                 else openStory(storyId);
             };

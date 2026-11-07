@@ -716,7 +716,7 @@ function completeLevel(lvl) {
     } else {
         logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
         setBusy(false);
-        if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI");
+        if (!TEST_MODE) showStoryScreen("EPILOGO", "Il guru delle pipeline", EPILOGUE, "CHIUDI", null, "Giulia", "contento");
     }
 }
 
@@ -795,6 +795,7 @@ function renderStory(lvl) {
     if (message) {
         document.getElementById("story-from").textContent = `📨 ${message.from}:`;
         document.getElementById("story-text").textContent = message.text;
+        setAvatar(document.getElementById("story-avatar"), message.from, moodForText(message.text));
     }
     if (!TEST_MODE && !lvl.daily && ACTS[lvl.act] && !progress.seenActs.includes(lvl.act)) {
         progress.seenActs.push(lvl.act);
@@ -807,8 +808,10 @@ function showActIntro(act) {
     showStoryScreen(`ATTO ${ROMAN[act] || act}`, ACTS[act].title, ACTS[act].intro, "INIZIA ( ▶ )");
 }
 
-// onButton, se presente, viene eseguito alla chiusura con il pulsante principale
-function showStoryScreen(label, title, text, buttonText, onButton) {
+// onButton, se presente, viene eseguito alla chiusura con il pulsante principale;
+// speaker e mood mostrano l'avatar di chi parla (nessuno per le introduzioni degli atti)
+function showStoryScreen(label, title, text, buttonText, onButton, speaker = null, mood = "normale") {
+    setAvatar(document.getElementById("act-avatar"), speaker, mood, "big");
     document.getElementById("act-label").textContent = label;
     document.getElementById("act-title").textContent = title;
     document.getElementById("act-text").textContent = text;

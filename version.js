@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.11.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.11.0", date: "2026-11-07", items: [
+            "🧑‍💻 I personaggi hanno un volto: Marco, Giulia, Tommaso, Irene, Elena e Bruno in pixel art, ognuno con tre espressioni.",
+            "🚨 Nelle emergenze chi scrive è preoccupato; nelle deduzioni l'espressione cambia con la tua risposta.",
+            "📚 Nei casi a puntate il ritratto di chi racconta ogni capitolo, e nel finale il personaggio della rivelazione."
+        ]
+    },
     {
         version: "1.10.0", date: "2026-11-07", items: [
             "☕ Nuovo caso: «Il caffè scomparso» (dopo l'Atto II, 4 capitoli). Ogni mattina mancano le capsule di ginseng… Un giallo leggero con i comandi base.",

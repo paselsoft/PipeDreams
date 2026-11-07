@@ -65,8 +65,11 @@
         </div>
 
         <div class="story-box" id="story-box" hidden>
-            <span class="story-from" id="story-from"></span>
-            <span id="story-text"></span>
+            <span class="avatar-slot" id="story-avatar" hidden></span>
+            <div class="story-content">
+                <span class="story-from" id="story-from"></span>
+                <span id="story-text"></span>
+            </div>
         </div>
 
         <div class="mission-box" id="mission-desc">
@@ -180,7 +183,10 @@
     <div class="menu-overlay" id="act-overlay" hidden onclick="if (event.target === this) closeActIntro()">
         <div class="menu-panel act-panel" role="dialog" aria-modal="true" aria-labelledby="act-title">
             <div class="act-label" id="act-label"></div>
-            <h2 id="act-title"></h2>
+            <div class="act-heading">
+                <span class="avatar-slot" id="act-avatar" hidden></span>
+                <h2 id="act-title"></h2>
+            </div>
             <p class="act-text" id="act-text"></p>
             <button class="btn-run" onclick="closeActIntro()" id="act-button">INIZIA ( ▶ )</button>
         </div>
@@ -292,6 +298,7 @@
     </div>
 
     <script src="version.js"></script>
+    <script src="avatars.js"></script>
     <script src="commands.js"></script>
     <script src="levels.js"></script>
     <script src="solver.js"></script>

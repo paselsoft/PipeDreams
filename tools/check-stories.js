@@ -9,7 +9,7 @@ const { runBash } = require("./bash");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({ TextEncoder, TextDecoder, btoa, atob });
-for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "command-form.js", "share.js", "stories.js"]) {
+for (const file of ["avatars.js", "commands.js", "levels.js", "solver.js", "shell.js", "command-form.js", "share.js", "stories.js"]) {
     vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, { filename: file });
 }
 
@@ -17,6 +17,8 @@ const report = vm.runInContext(`STORIES.map(story => {
     const known = new Set(levels.filter(lvl => lvl.act <= story.requiresAct).flatMap(lvl => lvl.allowedCommands.map(step => step.cmd)));
     return {
         id: story.id, title: story.title, fields: Boolean(story.title && story.synopsis && story.epilogue && Number.isInteger(story.requiresAct)),
+        // Chi parla ha un ritratto in avatars.js
+        portraits: [story.finale, ...story.chapters.map(chapter => chapter.from)].every(name => characterByName(name)),
         chapters: story.chapters.map(chapter => ({
             id: chapter.id, title: chapter.title,
             fields: Boolean(chapter.title && chapter.from && chapter.text && chapter.puzzles.length) && (chapter.release === undefined || /^\\d{4}-\\d{2}-\\d{2}$/.test(chapter.release)),
@@ -52,6 +54,7 @@ const ids = new Set();
 for (const story of report) {
     console.log(`${story.title} (${story.id})`);
     if (!story.fields || ids.has(story.id)) { failures++; console.log("  ✗ campi del caso mancanti o id ripetuto"); }
+    if (!story.portraits) { failures++; console.log("  ✗ finale o narratore senza ritratto in avatars.js"); }
     ids.add(story.id);
     const chapterIds = new Set();
     for (const chapter of story.chapters) {

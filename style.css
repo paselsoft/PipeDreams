@@ -1056,3 +1056,20 @@ body.cvd .deduction-option.wrong { border-color: #f0883e; }
 .notebook-clue.clue-focus .notebook-label::before { content: "👉 "; }
 .deduction-option.eliminated { opacity: 1; color: #8b949e; border-style: dashed; text-decoration: line-through; }
 .story-stats { margin: 2px 0 4px; }
+
+/* Avatar dei personaggi (pixel art) */
+.avatar {
+    display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+    background: #161b22; border: 1px solid #30363d; border-radius: 6px; overflow: hidden;
+}
+.avatar svg { width: 90%; height: 90%; }
+.avatar-small { width: 40px; height: 40px; }
+.avatar-medium { width: 52px; height: 52px; }
+.avatar-big { width: 88px; height: 88px; }
+.avatar-initial { color: #d2a8ff; font-weight: bold; font-size: 18px; }
+.avatar-slot[hidden] { display: none; }
+.story-box:not([hidden]) { display: flex; gap: 10px; align-items: flex-start; }
+.story-content { min-width: 0; }
+.act-heading { display: flex; align-items: center; gap: 12px; }
+.deduction-asker { display: flex; gap: 10px; align-items: flex-start; }
+.gallery-item > .avatar { align-self: center; }

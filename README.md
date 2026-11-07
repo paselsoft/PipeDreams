@@ -48,6 +48,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
 | `version.js` | Versione e novità (`CHANGELOG`); il workflow aggiunge commit e data della pubblicazione |
 | `backup.js` | Backup dei progressi: esporta, unisce e ripristina |
+| `avatars.js` | Ritratti dei personaggi in pixel art (griglie 16×16 disegnate come SVG) |
 | `tutorial.js` | Tutorial guidato del primo livello |
 | `a11y.js` | Finestre accessibili: focus, Tab, Esc |
 | `stories.js`, `stories-view.js` | Casi a puntate: dati e schermate (capitoli, taccuino, deduzione) |
