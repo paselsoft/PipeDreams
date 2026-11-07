@@ -19,13 +19,14 @@ module.exports = {
         await open(page);
         await page.click("#btn-menu");
         await page.click("#menu-stories");
+        assert.match(await page.innerText("#stories-body"), /Si sblocca completando l'Atto II\b/);
         assert.match(await page.innerText("#stories-body"), /Si sblocca completando l'Atto III/);
         assert.equal(await page.$eval("#stories-body .gallery-play", button => button.disabled), true);
         await page.keyboard.press("Escape");
 
         await actsUpTo3(page);
         await page.evaluate(() => openStories());
-        await page.click("#stories-body >> text=▶ APRI");
+        await page.click("[aria-label='Apri il caso Il server fantasma']");
         assert.match(await page.textContent("#stories-title"), /IL SERVER FANTASMA/);
         assert.equal(await page.locator(".story-chapter.open").count(), 1, "solo il primo capitolo è aperto");
         assert.equal(await page.locator(".story-chapter.locked").count(), 4);
@@ -160,11 +161,14 @@ module.exports = {
         await open(page);
         const unlocked = () => page.evaluate(() => STORIES.map(story => storyOpen(story)));
         await page.evaluate(() => { progress.levels = Object.fromEntries(levels.filter(lvl => lvl.act <= 6).map(lvl => [lvl.id, { stars: 3, best: 1 }])); });
-        assert.deepEqual(await unlocked(), [true, true, false]);
+        const byId = async () => Object.fromEntries(await page.evaluate(() => STORIES.map(story => [story.id, storyOpen(story)])));
+        assert.deepEqual(await byId(), { "server-fantasma": true, "messaggio-nascosto": true, "pacchetto-avvelenato": false, "caffe-scomparso": true, "ultimo-commit": false });
         await page.evaluate(() => { progress.levels = Object.fromEntries(levels.map(lvl => [lvl.id, { stars: 3, best: 1 }])); persistProgress(); });
-        assert.deepEqual(await unlocked(), [true, true, true]);
+        assert.ok((await unlocked()).every(Boolean));
         await page.evaluate(() => openStories());
-        assert.equal(await page.locator("#stories-body .gallery-play:not([disabled])").count(), 3);
+        assert.equal(await page.locator("#stories-body .gallery-play:not([disabled])").count(), 5);
+        // In ordine di atto: il caffè (Atto II) per primo
+        assert.match(await page.textContent("#stories-body .story-item strong"), /Il caffè scomparso/);
         // Enigma con tee: anche lo stderr atteso è nascosto, e l'indizio lo comprende
         await page.evaluate(() => {
             const state = storyProgress("pacchetto-avvelenato");
@@ -178,5 +182,22 @@ module.exports = {
         await page.waitForFunction(() => /DEDUZIONE/.test(document.getElementById("stories-title").textContent), null, { timeout: 6000 });
         const clue = await page.innerText("#stories-body");
         assert.match(clue, /Server con fast-json-tools.*:\s*3\s*gatto\s*mela\s*zebra/s);
+    },
+
+    "casi: ogni enigma di ogni caso si risolve nel gioco e lascia il suo indizio": async ({ page }) => {
+        await open(page, { settings: { speed: "istantanea" } });
+        await page.evaluate(() => { progress.levels = Object.fromEntries(levels.map(lvl => [lvl.id, { stars: 3, best: 1 }])); });
+        const puzzles = await page.evaluate(() => STORIES.flatMap(story => story.chapters.flatMap(chapter =>
+            chapter.puzzles.map((puzzle, index) => ({ story: story.id, chapter: chapter.id, index, key: chapter.id + "/" + puzzle.id })))));
+        assert.ok(puzzles.length >= 39);
+        for (const puzzle of puzzles) {
+            await page.evaluate(p => { clearTimeout(transitionTimer); closeStories(); playPuzzle(p.story, p.chapter, p.index); }, puzzle);
+            await solveCurrent(page);
+            await page.click("#btn-run");
+            await page.waitForFunction(() => /Indizio nel taccuino/.test(document.getElementById("console").innerText), null, { timeout: 6000 })
+                .catch(() => { throw new Error(`enigma non risolto: ${puzzle.story} ${puzzle.key}`); });
+            assert.ok(await page.evaluate(p => Boolean(progress.stories[p.story].puzzles[p.key]), puzzle), puzzle.key);
+        }
+        await page.evaluate(() => clearTimeout(transitionTimer));
     }
 };

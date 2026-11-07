@@ -909,5 +909,593 @@ const STORIES = [
                 }
             }
         ]
+    },
+    {
+        id: "caffe-scomparso",
+        title: "Il caffè scomparso",
+        synopsis: "Ogni mattina mancano capsule dalla macchinetta del caffè, e sono sempre quelle al ginseng. In ufficio iniziano i sospetti…",
+        requiresAct: 2,
+        epilogue: "Giulia chiama l'azienda dei distributori: «La calibrazione serale usa davvero quattro capsule?» «Certo, è nel contratto!» Da quel giorno Elena porta le sue capsule di prova, Marco smette di guardare storto i colleghi alla macchinetta e Tommaso scopre che il ginseng gli piace. Il caso più dolce della Pipe & Co. è chiuso.",
+        chapters: [
+            {
+                id: "capsule",
+                title: "Le capsule",
+                from: "Marco",
+                text: "Terza mattina di fila: mancano capsule di ginseng! La macchinetta registra ogni caffè con l'ora e il badge di chi lo prende. Ecco il registro di ieri.",
+                puzzles: [
+                    {
+                        id: "badge",
+                        clue: "Il badge che ha preso più capsule",
+                        level: {
+                            title: "Chi Beve di Più?",
+                            source: "cat registro-macchinetta.log",
+                            slots: 6,
+                            mission: "Ogni riga è <code>ora badge bevanda</code>. Quale badge ha preso <strong>più</strong> capsule? Mostra <code>uniq -c</code> del primo in classifica.",
+                            nudge: "Ti serve solo il badge, poi una classifica.",
+                            hint: "cut -d' ' -f2, sort, uniq -c, sort -rn, head -n 1.",
+                            stdin: ["08:15 B07 espresso", "08:20 B15 cappuccino", "09:02 B50 espresso", "10:30 B07 espresso", "13:10 B21 orzo", "14:45 B15 cappuccino", "21:05 B42 ginseng", "21:06 B50 espresso", "21:07 B42 ginseng", "21:09 B42 ginseng", "21:12 B42 ginseng"],
+                            target: ["      4 B42"],
+                            allowedCommands: [
+                                { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+                                { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numerico decrescente" },
+                                { cmd: "head", args: { n: 1 }, desc: "Prendi la prima" },
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "bevanda",
+                        clue: "Cosa prende il badge B42",
+                        level: {
+                            title: "Che Cosa?",
+                            source: "cat registro-macchinetta.log",
+                            mission: "Che bevanda prende il badge <code>B42</code>? Una riga sola.",
+                            nudge: "Tieni le sue righe, poi la bevanda.",
+                            hint: "grep 'B42', cut -d' ' -f3, uniq.",
+                            stdin: ["08:15 B07 espresso", "08:20 B15 cappuccino", "09:02 B50 espresso", "10:30 B07 espresso", "13:10 B21 orzo", "14:45 B15 cappuccino", "21:05 B42 ginseng", "21:06 B50 espresso", "21:07 B42 ginseng", "21:09 B42 ginseng", "21:12 B42 ginseng"],
+                            target: ["ginseng"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "B42" }, desc: "Tieni le righe con 'B42'" },
+                                { cmd: "grep", args: { pattern: "espresso" }, desc: "Tieni le righe con 'espresso'" },
+                                { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "wc", desc: "Conta le righe" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "orari",
+                        clue: "Orari del badge B42",
+                        level: {
+                            title: "Quando?",
+                            source: "cat registro-macchinetta.log",
+                            mission: "A che ore il badge <code>B42</code> ha preso le capsule? Solo gli orari, nell'ordine del registro.",
+                            nudge: "L'ora è il primo campo.",
+                            hint: "grep 'B42', poi cut -d' ' -f1.",
+                            stdin: ["08:15 B07 espresso", "08:20 B15 cappuccino", "09:02 B50 espresso", "10:30 B07 espresso", "13:10 B21 orzo", "14:45 B15 cappuccino", "21:05 B42 ginseng", "21:06 B50 espresso", "21:07 B42 ginseng", "21:09 B42 ginseng", "21:12 B42 ginseng"],
+                            target: ["21:05", "21:07", "21:09", "21:12"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "B42" }, desc: "Tieni le righe con 'B42'" },
+                                { cmd: "grep", args: { pattern: "ginseng", invert: true }, desc: "Scarta le righe con 'ginseng'" },
+                                { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+                                { cmd: "cut", args: { delim: ":", field: 1 }, desc: "Campo 1 (:)" },
+                                { cmd: "sort", args: { reverse: true }, desc: "Ordine decrescente" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa succede alle capsule?",
+                    options: [
+                        "Il badge B42 prende quattro ginseng in sette minuti, alle nove di sera, quando l'ufficio è vuoto",
+                        "Marco (B07) beve troppi espressi e fa sparire anche il ginseng",
+                        "Le capsule sono difettose e la macchinetta ne butta via una ogni tanto",
+                        "Qualcuno prende un ginseng ogni ora, tutto il giorno"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "B07 ha preso due espressi, di mattina: nessun ginseng. E anche B50, che beve espresso a tutte le ore, non c'entra.",
+                        "Il registro ha un badge per ogni capsula: nessuna è stata buttata.",
+                        "I ginseng sono tutti tra le 21:05 e le 21:12."
+                    ],
+                    explain: "Quattro ginseng in sette minuti, sempre lo stesso badge, a ufficio chiuso. Ma di chi è B42?",
+                    focus: ["capsule/badge", "capsule/bevanda", "capsule/orari"],
+                    hint: "Chi ha preso più capsule, quali, e a che ora?"
+                }
+            },
+            {
+                id: "b42",
+                title: "Il badge B42",
+                from: "Giulia",
+                text: "Nell'elenco dei badge dei dipendenti B42 non c'è. Alla reception però tengono un registro dei badge prestati agli ospiti. Proviamo lì.",
+                puzzles: [
+                    {
+                        id: "tipo",
+                        clue: "Tipo del badge B42",
+                        level: {
+                            title: "Che Badge È?",
+                            source: "cat badge.csv",
+                            mission: "L'elenco è <code>badge:tipo:intestatario</code>. Di che <strong>tipo</strong> è il badge <code>B42</code>?",
+                            nudge: "I campi sono separati dai due punti.",
+                            hint: "grep 'B42', poi cut -d':' -f2.",
+                            stdin: ["B07:dipendente:marco", "B15:dipendente:giulia", "B21:dipendente:irene", "B30:dipendente:tommaso", "B42:ospite:reception", "B43:ospite:reception"],
+                            target: ["ospite"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "B42" }, desc: "Tieni le righe con 'B42'" },
+                                { cmd: "grep", args: { pattern: "ospite" }, desc: "Tieni le righe con 'ospite'" },
+                                { cmd: "cut", args: { delim: ":", field: 2 }, desc: "Campo 2 (:)" },
+                                { cmd: "cut", args: { delim: ":", field: 3 }, desc: "Campo 3 (:)" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "prestito",
+                        clue: "A chi era prestato B42 ieri",
+                        level: {
+                            title: "Il Prestito",
+                            source: "cat prestiti-reception.txt",
+                            mission: "Il registro della reception è <code>giorno badge nome motivo</code>. A chi era prestato il badge <code>B42</code> <strong>ieri</strong> (<code>06/11</code>)? Solo il nome.",
+                            nudge: "Servono due condizioni: il badge e il giorno.",
+                            hint: "Due grep (B42 e 06/11, in qualsiasi ordine), poi cut -d' ' -f3.",
+                            stdin: ["05/11 B43 paolo corriere", "05/11 B42 elena distributori", "06/11 B43 sara consulenza", "06/11 B42 elena distributori", "07/11 B42 marta pulizie"],
+                            target: ["elena"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "B42" }, desc: "Tieni le righe con 'B42'" },
+                                { cmd: "grep", args: { pattern: "06/11" }, desc: "Tieni le righe con '06/11'" },
+                                { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 4 }, desc: "Campo 4 (spazio)" },
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Chi aveva il badge B42 ieri sera?",
+                    options: [
+                        "Elena, dell'azienda che gestisce i distributori: un badge da ospite prestato dalla reception",
+                        "Tommaso, che ha perso il suo badge",
+                        "Marta delle pulizie",
+                        "Nessuno: è un badge clonato"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Il badge di Tommaso è B30, e B42 è un badge da ospite.",
+                        "Marta ha avuto B42 oggi (07/11), non ieri.",
+                        "B42 è nell'elenco dei badge, e il registro dice a chi è stato prestato."
+                    ],
+                    explain: "Ieri B42 era di Elena, dell'azienda dei distributori. Cosa ci fa la tecnica della macchinetta con quattro ginseng?",
+                    focus: ["b42/tipo", "b42/prestito"],
+                    hint: "Il motivo del prestito, nel registro della reception, dice molto."
+                }
+            },
+            {
+                id: "manutenzione",
+                title: "La manutenzione",
+                from: "Tommaso",
+                text: "La macchinetta ha anche un registro tecnico! L'ho scaricato dal pannello di servizio. Ci sono parole in maiuscolo dappertutto.",
+                puzzles: [
+                    {
+                        id: "test",
+                        clue: "Capsule usate per i test",
+                        level: {
+                            title: "Quanti Test?",
+                            source: "cat registro-tecnico.log",
+                            mission: "Quante capsule ha usato la macchinetta per i <strong>test</strong> durante la manutenzione?",
+                            nudge: "Ogni test è una riga con TEST.",
+                            hint: "grep 'TEST', poi wc -l.",
+                            stdin: ["21:03 MANUTENZIONE avvio", "21:05 TEST capsula ginseng ok", "21:07 TEST capsula ginseng ok", "21:09 TEST capsula ginseng ok", "21:12 TEST capsula ginseng ok", "21:14 MANUTENZIONE COMPLETATA: CALIBRAZIONE OK"],
+                            target: ["4"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "TEST" }, desc: "Tieni le righe con 'TEST'" },
+                                { cmd: "grep", args: { pattern: "MANUTENZIONE" }, desc: "Tieni le righe con 'MANUTENZIONE'" },
+                                { cmd: "wc", desc: "Conta le righe" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "head", args: { n: 1 }, desc: "Prendi la prima" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "esito",
+                        clue: "L'ultimo messaggio della manutenzione",
+                        level: {
+                            title: "Senza Urlare",
+                            source: "cat registro-tecnico.log",
+                            mission: "Qual è l'<strong>ultimo</strong> messaggio del registro? Ottienilo tutto in minuscolo.",
+                            nudge: "L'ultima riga, poi le maiuscole diventano minuscole.",
+                            hint: "tail -n 1, poi tr 'A-Z' 'a-z'.",
+                            stdin: ["21:03 MANUTENZIONE avvio", "21:05 TEST capsula ginseng ok", "21:07 TEST capsula ginseng ok", "21:09 TEST capsula ginseng ok", "21:12 TEST capsula ginseng ok", "21:14 MANUTENZIONE COMPLETATA: CALIBRAZIONE OK"],
+                            target: ["21:14 manutenzione completata: calibrazione ok"],
+                            allowedCommands: [
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" },
+                                { cmd: "head", args: { n: 1 }, desc: "Prendi la prima" },
+                                { cmd: "tr", args: { from: "A-Z", to: "a-z" }, desc: "Maiuscole → minuscole" },
+                                { cmd: "tr", args: { from: "a-z", to: "A-Z" }, desc: "Minuscole → maiuscole" },
+                                { cmd: "grep", args: { pattern: "TEST" }, desc: "Tieni le righe con 'TEST'" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Perché spariscono le capsule di ginseng?",
+                    options: [
+                        "Ogni sera Elena fa la manutenzione della macchinetta, e per calibrarla usa quattro capsule di ginseng",
+                        "Elena si porta a casa le capsule di nascosto",
+                        "La macchinetta è rotta e sbaglia a contare le capsule",
+                        "I test usano capsule di espresso, non di ginseng"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Il registro tecnico dice che le quattro capsule sono state usate nei test, alla stessa ora dei ginseng.",
+                        "L'ultimo messaggio dice che la calibrazione è andata bene.",
+                        "Ogni riga TEST dice: capsula ginseng."
+                    ],
+                    explain: "Quattro test, quattro capsule di ginseng, dalle 21:05 alle 21:12: nessun ladro, solo una calibrazione.",
+                    focus: ["capsule/orari", "manutenzione/test", "manutenzione/esito"],
+                    hint: "Confronta gli orari dei test con quelli dei ginseng del primo capitolo."
+                }
+            },
+            {
+                id: "caso-chiuso",
+                title: "Caso chiuso",
+                from: "Giulia",
+                text: "Prima di scrivere all'azienda dei distributori voglio essere sicura che succeda tutte le sere. Ho il registro dei ginseng di tutta la settimana.",
+                puzzles: [
+                    {
+                        id: "settimana",
+                        clue: "Ginseng serali, giorno per giorno",
+                        level: {
+                            title: "Tutte le Sere?",
+                            source: "grep ginseng registro-settimana.log",
+                            mission: "Ogni riga è <code>giorno ora badge</code>. Quante capsule di ginseng sono state prese <strong>la sera</strong> (alle 21) di ogni giorno? Mostra <code>uniq -c</code> per giorno, nell'ordine della settimana.",
+                            nudge: "Tieni le righe delle 21, poi il giorno, poi conta.",
+                            hint: "grep ' 21:', cut -d' ' -f1, uniq -c. Le righe sono già in ordine di giorno: non ordinare, o i giorni finirebbero in ordine alfabetico.",
+                            stdin: ["lun 10:12 B15", "lun 21:04 B42", "lun 21:06 B42", "lun 21:08 B42", "lun 21:11 B42", "mar 21:05 B42", "mar 21:07 B42", "mar 21:10 B42", "mar 21:12 B42", "mer 16:30 B21", "mer 21:05 B42", "mer 21:07 B42", "mer 21:09 B42", "mer 21:12 B42"],
+                            target: ["      4 lun", "      4 mar", "      4 mer"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 21:" }, desc: "Tieni le righe con ' 21:'" },
+                                { cmd: "grep", args: { pattern: "B42", invert: true }, desc: "Scarta le righe con 'B42'" },
+                                { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+                                { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale messaggio mandi all'azienda dei distributori? Uno solo è giusto in ogni dettaglio.",
+                    options: [
+                        "Ogni sera alle 21 la vostra tecnica Elena (badge ospite B42) calibra la macchinetta e usa 4 capsule di ginseng nostre. Potete usare capsule di prova vostre?",
+                        "Ogni sera alle 21 la vostra tecnica Elena (badge ospite B42) calibra la macchinetta e usa 4 capsule di espresso nostre. Potete usare capsule di prova vostre?",
+                        "Ogni sera alle 21 la vostra tecnica Marta (badge ospite B42) calibra la macchinetta e usa 4 capsule di ginseng nostre. Potete usare capsule di prova vostre?",
+                        "Ogni sera alle 21 la vostra tecnica Elena (badge ospite B42) calibra la macchinetta e usa 2 capsule di ginseng nostre. Potete usare capsule di prova vostre?"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Capitoli 1 e 3: le capsule dei test sono di ginseng.",
+                        "Capitolo 2: ieri B42 era di Elena; Marta l'ha avuto oggi, per le pulizie.",
+                        "Capitoli 3 e 4: i test sono quattro, tutte le sere."
+                    ],
+                    explain: "Ginseng, quattro capsule, tutte le sere alle 21, la tecnica Elena con il badge B42: il mistero del caffè è risolto!",
+                    focus: ["capsule/bevanda", "b42/prestito", "manutenzione/test", "caso-chiuso/settimana"],
+                    hint: "I messaggi cambiano un solo dettaglio: la bevanda, il nome o il numero di capsule."
+                }
+            }
+        ]
+    },
+    {
+        id: "ultimo-commit",
+        title: "L'ultimo commit",
+        synopsis: "Ieri mattina, dopo un rilascio, il negozio online ha iniziato a rispondere «500 Internal Server Error». Nessuno ammette di aver toccato niente.",
+        requiresAct: 7,
+        epilogue: "Tommaso, rosso come un pomodoro, corregge i prezzi e aggiunge un test che rifiuta le virgole. Giulia non lo sgrida: «Il punto decimale l'hanno inventato per farci litigare.» Marco aggiunge al rilascio un controllo con grep: se un prezzo ha la virgola, il deploy si ferma. Il negozio torna a vendere mouse e webcam, e la Pipe & Co. ha un nuovo detto: «Prima di committare, grep la virgola.»",
+        chapters: [
+            {
+                id: "errori",
+                title: "Errore 500",
+                from: "Giulia",
+                text: "I clienti scrivono che il negozio non funziona: carrello e catalogo si rompono. Ecco il log del server web di ieri mattina: ora, metodo, pagina, codice di risposta.",
+                puzzles: [
+                    {
+                        id: "pagine",
+                        clue: "Pagine che rispondono 500",
+                        level: {
+                            title: "Pagine Rotte",
+                            source: "cat /var/log/nginx/access.log",
+                            mission: "Ogni riga è <code>ora metodo pagina codice</code>. Quali pagine hanno risposto <code>500</code>? Senza ripetizioni, in ordine alfabetico.",
+                            nudge: "Il codice è in fondo alla riga; la pagina è il terzo campo.",
+                            hint: "grep ' 500', awk '{print $3}', sort, uniq.",
+                            stdin: ["10:15 GET /home 200", "10:31 GET /prodotti 200", "10:42 GET /prodotti 500", "10:43 POST /carrello 500", "10:44 GET /home 200", "10:46 GET /prodotti 500", "10:50 GET /contatti 200", "10:52 POST /carrello 500"],
+                            target: ["/carrello", "/prodotti"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 500" }, desc: "Tieni le righe con ' 500'" },
+                                { cmd: "grep", args: { pattern: " 200" }, desc: "Tieni le righe con ' 200'" },
+                                { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+                                { cmd: "awk", args: { field: 1 }, desc: "Campo 1 di awk" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "inizio",
+                        clue: "Ora del primo errore 500",
+                        level: {
+                            title: "Da Quando?",
+                            source: "cat /var/log/nginx/access.log",
+                            mission: "A che ora è comparso il <strong>primo</strong> errore <code>500</code>? Solo l'ora.",
+                            nudge: "Il log è in ordine di tempo: il primo errore è il primo che trovi.",
+                            hint: "grep ' 500', head -n 1, awk '{print $1}'.",
+                            stdin: ["10:15 GET /home 200", "10:31 GET /prodotti 200", "10:42 GET /prodotti 500", "10:43 POST /carrello 500", "10:44 GET /home 200", "10:46 GET /prodotti 500", "10:50 GET /contatti 200", "10:52 POST /carrello 500"],
+                            target: ["10:42"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: " 500" }, desc: "Tieni le righe con ' 500'" },
+                                { cmd: "head", args: { n: 1 }, desc: "Prendi la prima" },
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" },
+                                { cmd: "awk", args: { field: 1 }, desc: "Campo 1 di awk" },
+                                { cmd: "awk", args: { field: 4 }, desc: "Campo 4 di awk" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa sai finora del guasto?",
+                    options: [
+                        "Dalle 10:42 si rompono le pagine dei prodotti e del carrello: la home e i contatti funzionano",
+                        "Il server è spento: non risponde nessuna pagina",
+                        "Si è rotta solo la home, dalle 10:15",
+                        "Gli errori sono casuali, su tutte le pagine"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "La home risponde 200 anche alle 10:44: il server è acceso.",
+                        "La home risponde sempre 200.",
+                        "Gli errori sono solo su /prodotti e /carrello, e solo dalle 10:42."
+                    ],
+                    explain: "Due pagine che hanno a che fare con i prezzi, rotte dalle 10:42. Cos'è successo poco prima?",
+                    focus: ["errori/pagine", "errori/inizio"],
+                    hint: "Quali pagine danno errore, e da che ora? Le altre pagine come rispondono?"
+                }
+            },
+            {
+                id: "rilascio",
+                title: "Il rilascio delle 10:41",
+                from: "Marco",
+                text: "Il server di deploy registra ogni versione messa online, con l'ora e il codice del commit. E da git ho preso l'elenco dei commit di ieri: codice, autore, messaggio.",
+                puzzles: [
+                    {
+                        id: "commit",
+                        clue: "Commit messo online alle 10:41",
+                        level: {
+                            title: "Online alle 10:41",
+                            source: "cat deploy.log",
+                            mission: "Ogni riga è <code>ora deploy commit</code>. Quale commit è andato online alle <code>10:41</code>, un minuto prima del primo errore?",
+                            nudge: "Tieni la riga dell'ora giusta, poi il codice del commit.",
+                            hint: "grep '10:41', awk '{print $3}'.",
+                            stdin: ["09:16 deploy 4f5e6d7", "10:41 deploy a1b2c3d", "11:30 deploy 9c8b7a6"],
+                            target: ["a1b2c3d"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "10:41" }, desc: "Tieni le righe con '10:41'" },
+                                { cmd: "grep", args: { pattern: "09:16" }, desc: "Tieni le righe con '09:16'" },
+                                { cmd: "awk", args: { field: 3 }, desc: "Campo 3 di awk" },
+                                { cmd: "awk", args: { field: 1 }, desc: "Campo 1 di awk" },
+                                { cmd: "tail", args: { n: 1 }, desc: "Prendi l'ultima" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "autore",
+                        clue: "Il commit delle 10:41 con autore e messaggio",
+                        level: {
+                            title: "Chi e Cosa?",
+                            source: "git log --format='%h %an %s'",
+                            mission: "Unisci l'elenco dei commit con le ore di deploy (<code>ore-deploy.txt</code>) e tieni solo la riga delle <code>10:41</code>: <code>commit autore messaggio ora</code>.",
+                            nudge: "join unisce le righe con lo stesso codice di commit, se gli elenchi sono ordinati.",
+                            hint: "sort, join - ore-deploy.txt, grep '10:41'.",
+                            stdin: ["9c8b7a6 giulia nuove-immagini", "a1b2c3d tommaso aggiorna-prezzi", "4f5e6d7 marco correggi-footer", "77aa310 irene ottimizza-query"],
+                            target: ["a1b2c3d tommaso aggiorna-prezzi 10:41"],
+                            allowedCommands: [
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "join", args: { file: "ore-deploy.txt", lines: ["4f5e6d7 09:16", "9c8b7a6 11:30", "a1b2c3d 10:41"] }, desc: "Unisci con ore-deploy.txt" },
+                                { cmd: "comm", args: { mode: "12", file: "ore-deploy.txt", lines: ["4f5e6d7 09:16", "9c8b7a6 11:30", "a1b2c3d 10:41"] }, desc: "In comune con ore-deploy.txt" },
+                                { cmd: "grep", args: { pattern: "10:41" }, desc: "Tieni le righe con '10:41'" },
+                                { cmd: "tac", desc: "Rovescia l'ordine delle righe" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale modifica è sospetta?",
+                    options: [
+                        "Il commit a1b2c3d di Tommaso, «aggiorna-prezzi», online alle 10:41: un minuto dopo le pagine con i prezzi si rompono",
+                        "Il commit 9c8b7a6 di Giulia, «nuove-immagini»",
+                        "Il commit 77aa310 di Irene, «ottimizza-query»",
+                        "Il commit 4f5e6d7 di Marco, «correggi-footer», delle 9:16"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "È andato online alle 11:30, quando gli errori c'erano già da un'ora.",
+                        "Non è in ore-deploy.txt: quel commit non è mai andato online.",
+                        "Alle 9:16 è andato online, ma fino alle 10:42 il negozio ha funzionato."
+                    ],
+                    explain: "«aggiorna-prezzi» va online alle 10:41, e alle 10:42 si rompono proprio prodotti e carrello.",
+                    focus: ["errori/inizio", "rilascio/commit", "rilascio/autore"],
+                    hint: "Quale commit è andato online subito prima del primo errore?"
+                }
+            },
+            {
+                id: "diff",
+                title: "Il diff",
+                from: "Tommaso",
+                text: "Sì, a1b2c3d è mio… ho solo aggiornato i prezzi del catalogo, giuro! Ecco il diff: le righe con - sono quelle vecchie, quelle con + le nuove.",
+                puzzles: [
+                    {
+                        id: "mouse",
+                        clue: "Il prezzo del mouse, prima e dopo",
+                        level: {
+                            title: "Il Mouse",
+                            source: "git show a1b2c3d",
+                            mission: "Mostra le righe del diff che riguardano il <code>mouse</code>, <strong>numerate</strong> come <code>1. ...</code>.",
+                            nudge: "Prima filtra, poi numera.",
+                            hint: "grep 'mouse', poi nl -w1 -s'. '.",
+                            stdin: ["- mouse;19.90", "+ mouse;19,90", "- tastiera;49.90", "+ tastiera;47.90", "- cavo;4,50", "+ cavo;4.50", "- monitor;199.00", "+ monitor;189,00", "- webcam;59.90", "+ webcam;54,90"],
+                            target: ["1. - mouse;19.90", "2. + mouse;19,90"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "mouse" }, desc: "Tieni le righe con 'mouse'" },
+                                { cmd: "grep", args: { pattern: "+" }, desc: "Tieni le righe con '+'" },
+                                { cmd: "nl", args: { width: 1, separator: ". " }, desc: "Numera: 1. 2. 3." },
+                                { cmd: "nl", desc: "Numera (formato standard)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "virgole",
+                        clue: "Righe nuove con la virgola",
+                        level: {
+                            title: "Punti e Virgole",
+                            source: "git show a1b2c3d",
+                            mission: "Quante righe <strong>nuove</strong> (quelle con <code>+</code>) hanno il prezzo scritto con la virgola?",
+                            nudge: "Due condizioni: riga nuova, e una virgola. Attenzione: anche una riga vecchia ha la virgola.",
+                            hint: "grep '+', grep ',', wc -l.",
+                            stdin: ["- mouse;19.90", "+ mouse;19,90", "- tastiera;49.90", "+ tastiera;47.90", "- cavo;4,50", "+ cavo;4.50", "- monitor;199.00", "+ monitor;189,00", "- webcam;59.90", "+ webcam;54,90"],
+                            target: ["3"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "+" }, desc: "Tieni le righe con '+'" },
+                                { cmd: "grep", args: { pattern: "," }, desc: "Tieni le righe con ','" },
+                                { cmd: "grep", args: { pattern: "cavo", invert: true }, desc: "Scarta le righe con 'cavo'" },
+                                { cmd: "wc", desc: "Conta le righe" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa c'è di sbagliato nel commit di Tommaso?",
+                    options: [
+                        "Ha scritto alcuni prezzi con la virgola, all'italiana: il programma del negozio si aspetta il punto decimale",
+                        "Ha cancellato dei prodotti dal catalogo",
+                        "Ha alzato tutti i prezzi",
+                        "Ha sbagliato solo il prezzo della tastiera"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Ogni riga tolta (-) ha la sua riga nuova (+): nessun prodotto è sparito.",
+                        "Il mouse resta a 19,90 e gli altri scendono: nessun aumento.",
+                        "Tastiera e cavo hanno il punto: sono proprio le righe giuste (il cavo, anzi, prima aveva la virgola)."
+                    ],
+                    explain: "19.90 diventa 19,90: per una persona è lo stesso prezzo, per il programma del negozio non è più un numero.",
+                    focus: ["diff/mouse", "diff/virgole"],
+                    hint: "Confronta la riga vecchia e quella nuova del mouse, carattere per carattere."
+                }
+            },
+            {
+                id: "catalogo",
+                title: "Quali prodotti",
+                from: "Giulia",
+                text: "Devo avvisare il reparto vendite. Dal catalogo online di adesso mi serve sapere quanti prodotti hanno il prezzo sbagliato, e vedere i loro nomi.",
+                puzzles: [
+                    {
+                        id: "prodotti",
+                        clue: "Prodotti con la virgola (stdout: quanti; stderr: quali)",
+                        level: {
+                            title: "Il Catalogo",
+                            source: "curl -s https://negozio.example/catalogo.csv",
+                            slots: 5,
+                            mission: "Ogni riga è <code>nome;prezzo</code>. Allo stdout serve <strong>quanti</strong> prezzi hanno la virgola; sul terminale (stderr) i <strong>nomi</strong> di quei prodotti, in ordine alfabetico.",
+                            nudge: "Un raccordo a T: i nomi sul terminale, il conteggio nella pipe.",
+                            hint: "grep ',', cut -d';' -f1, sort, tee /dev/stderr, wc -l.",
+                            stdin: ["mouse;19,90", "tastiera;47.90", "monitor;189,00", "cavo;4.50", "webcam;54,90", "cuffie;29.90"],
+                            target: ["3"],
+                            targetStderr: ["monitor", "mouse", "webcam"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "," }, desc: "Tieni le righe con ','" },
+                                { cmd: "cut", args: { delim: ";", field: 1 }, desc: "Campo 1 (;)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "tee", args: { file: "/dev/stderr" }, desc: "Copia sul terminale" },
+                                { cmd: "tee", args: { file: "sbagliati.txt" }, desc: "Copia in un file" },
+                                { cmd: "wc", desc: "Conta le righe" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Perché si rompono proprio prodotti e carrello, e non la home?",
+                    options: [
+                        "Sono le pagine che leggono i prezzi: con la virgola il prezzo di monitor, mouse e webcam non è più un numero e il programma va in errore",
+                        "La home è in cache e non si aggiorna mai",
+                        "Il carrello ha un bug da sempre, non c'entra il commit",
+                        "Sono le pagine più visitate, e il server non regge il traffico"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "La home semplicemente non mostra prezzi: non le serve leggerli.",
+                        "Prima delle 10:42 il carrello funzionava.",
+                        "Il traffico è basso, e gli errori iniziano esattamente dopo il rilascio."
+                    ],
+                    explain: "Le pagine che leggono i prezzi trovano tre prezzi che non sono numeri: errore 500.",
+                    focus: ["errori/pagine", "catalogo/prodotti"],
+                    hint: "Cosa hanno in comune le pagine rotte, rispetto a home e contatti?"
+                }
+            },
+            {
+                id: "caso-chiuso",
+                title: "Caso chiuso",
+                from: "Marco",
+                text: "Ho preparato la correzione per il catalogo: cambiare la virgola in punto. Nel file la virgola compare solo nei prezzi sbagliati, quindi si può fare in un colpo solo. Controlliamo il risultato prima di rimetterlo online.",
+                puzzles: [
+                    {
+                        id: "correzione",
+                        clue: "Il catalogo corretto",
+                        level: {
+                            title: "La Correzione",
+                            source: "curl -s https://negozio.example/catalogo.csv",
+                            mission: "Correggi il catalogo: ogni virgola diventa un punto. Lascia tutte le righe, nello stesso ordine.",
+                            nudge: "Un carattere da cambiare con un altro, ovunque.",
+                            hint: "tr ',' '.' cambia ogni virgola in un punto, su tutte le righe.",
+                            stdin: ["mouse;19,90", "tastiera;47.90", "monitor;189,00", "cavo;4.50", "webcam;54,90", "cuffie;29.90"],
+                            target: ["mouse;19.90", "tastiera;47.90", "monitor;189.00", "cavo;4.50", "webcam;54.90", "cuffie;29.90"],
+                            allowedCommands: [
+                                { cmd: "tr", args: { from: ",", to: "." }, desc: ", → ." },
+                                { cmd: "tr", args: { from: ".", to: "," }, desc: ". → ," },
+                                { cmd: "grep", args: { pattern: "," }, desc: "Tieni le righe con ','" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale rapporto mandi alla direzione? Uno solo è giusto in ogni dettaglio.",
+                    options: [
+                        "Alle 10:41 è andato online il commit a1b2c3d (aggiorna-prezzi) di Tommaso: 3 prezzi scritti con la virgola (monitor, mouse, webcam) hanno rotto /prodotti e /carrello dalle 10:42. Corretti cambiando la virgola in punto.",
+                        "Alle 10:41 è andato online il commit 9c8b7a6 (aggiorna-prezzi) di Tommaso: 3 prezzi scritti con la virgola (monitor, mouse, webcam) hanno rotto /prodotti e /carrello dalle 10:42. Corretti cambiando la virgola in punto.",
+                        "Alle 10:41 è andato online il commit a1b2c3d (aggiorna-prezzi) di Tommaso: 4 prezzi scritti con la virgola (monitor, mouse, webcam, tastiera) hanno rotto /prodotti e /carrello dalle 10:42. Corretti cambiando la virgola in punto.",
+                        "Alle 10:41 è andato online il commit a1b2c3d (aggiorna-prezzi) di Tommaso: 3 prezzi scritti con la virgola (monitor, mouse, webcam) hanno rotto /home e /contatti dalle 10:42. Corretti cambiando la virgola in punto."
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Capitolo 2: alle 10:41 è andato online a1b2c3d; 9c8b7a6 è di Giulia, delle 11:30.",
+                        "Capitoli 3 e 4: le virgole sono 3; la tastiera ha il punto.",
+                        "Capitolo 1: home e contatti hanno sempre risposto 200."
+                    ],
+                    explain: "Commit, ora, prezzi, prodotti e pagine: ogni dettaglio torna. Caso chiuso!",
+                    focus: ["errori/pagine", "rilascio/autore", "diff/virgole", "catalogo/prodotti"],
+                    hint: "I rapporti cambiano un dettaglio: il codice del commit, quanti prezzi o quali pagine."
+                }
+            }
+        ]
     }
 ];

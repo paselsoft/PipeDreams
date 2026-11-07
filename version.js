@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.10.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.10.0", date: "2026-11-07", items: [
+            "☕ Nuovo caso: «Il caffè scomparso» (dopo l'Atto II, 4 capitoli). Ogni mattina mancano le capsule di ginseng… Un giallo leggero con i comandi base.",
+            "🐛 Nuovo caso: «L'ultimo commit» (dopo l'Atto VII, 5 capitoli). Dopo un rilascio il negozio online risponde 500: log, deploy, join, diff e tee per trovare il colpevole.",
+            "📚 I casi sono in ordine di atto: si comincia da quelli che si aprono prima."
+        ]
+    },
     {
         version: "1.9.0", date: "2026-11-05", items: [
             "📚 Due nuovi casi a puntate, 4 capitoli ciascuno.",

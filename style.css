@@ -31,8 +31,12 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
     padding-bottom: 8px;
     margin-bottom: 12px;
     font-size: 16px;
+    /* Titoli lunghi (sfide, casi): il contatore va a capo invece di uscire dallo schermo */
+    flex-wrap: wrap;
+    gap: 4px 10px;
 }
-.level-indicator { color: #f0883e; font-weight: bold; }
+.level-indicator { color: #f0883e; font-weight: bold; min-width: 0; overflow-wrap: anywhere; }
+#score-display { margin-left: auto; }
 
 .mission-box {
     background: #0d1117;
@@ -1009,7 +1013,9 @@ body.coaching { padding-bottom: 220px; }
 .gallery-propose a { color: #58a6ff; }
 .ed-propose { margin-top: 8px; width: 100%; }
 
-.stdin-source { color: #8b949e; font-weight: normal; }
+.stdin-source { color: #8b949e; font-weight: normal; overflow-wrap: anywhere; }
+.io-panel strong { overflow-wrap: anywhere; }
+.terminal-prompt { overflow-wrap: anywhere; }
 #level-files strong, #row-target-stderr strong { color: #79c0ff; }
 #row-target-stderr[hidden] { display: none; }
 .ed-param-lines textarea { width: 100%; box-sizing: border-box; font-family: inherit; }

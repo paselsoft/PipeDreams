@@ -50,6 +50,18 @@ module.exports = {
                 await page.evaluate(i => loadLevel(i), index);
                 assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px, livello ${index + 1}`);
             }
+            // Sfide di giorni diversi (titoli di lunghezze diverse) e un enigma dei casi
+            for (let d = 0; d < 7; d++) {
+                await page.evaluate(day => {
+                    stopMarathon();
+                    const key = dateKey(new Date(2026, 10, 1 + day));
+                    dailyLevel = generateDaily(key);
+                    showLevel(dailyLevel, `📅 SFIDA DEL ${formatDate(key)} (${dailyLevel.daily.difficulty}): ${dailyLevel.title}`);
+                }, d);
+                assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px, sfida ${d + 1}`);
+            }
+            await page.evaluate(() => playPuzzle("ultimo-commit", "catalogo", 0));
+            assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px, enigma`);
             await page.evaluate(() => { loadDaily(); openManual("sed"); });
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px, manuale`);
             await page.goto(fileUrl("editor.html"));

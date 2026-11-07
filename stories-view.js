@@ -40,7 +40,9 @@ function showStoriesPanel(title, nodes, back) {
 function openStories() {
     closeMenu();
     const nodes = [el("p", "manual-hint", "Gialli a puntate: in ogni capitolo le pipeline trovano gli indizi, e tu deduci cosa è successo. Lo stdout atteso è nascosto: è proprio l'indizio da scoprire.")];
-    for (const story of STORIES) {
+    // Dal caso che si apre prima a quello che richiede più atti
+    const ordered = [...STORIES].sort((a, b) => a.requiresAct - b.requiresAct);
+    for (const story of ordered) {
         const item = el("div", "gallery-item story-item");
         const info = el("div", "gallery-info");
         const solved = solvedChapters(story);
