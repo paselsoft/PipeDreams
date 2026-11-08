@@ -128,9 +128,13 @@ EOF
     ifup "$NAT_BRIDGE"
 }
 
+# Modello Alpine più recente per l'architettura di Proxmox (amd64 su un PC Intel o AMD):
+# l'elenco contiene anche i modelli per arm64, che su Intel non partono
 latest_template() {
     pveam update >/dev/null
-    pveam available --section system | awk '{print $2}' | grep '^alpine-3' | sort -V | tail -n 1
+    local arch
+    arch="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
+    pveam available --section system | awk '{print $2}' | grep '^alpine-3' | grep "_${arch}\.tar" | sort -V | tail -n 1
 }
 
 rootfs_storage() {
@@ -232,7 +236,7 @@ installa() {
     fi
 
     template="$(latest_template)"
-    [ -n "$template" ] || fail "non trovo il modello Alpine (pveam available)"
+    [ -n "$template" ] || fail "non trovo il modello Alpine per $(dpkg --print-architecture 2>/dev/null || echo amd64) (pveam available)"
     if ! pveam list local | grep -q "$template"; then
         say "Scarico il modello $template"
         pveam download local "$template"
@@ -245,7 +249,7 @@ installa() {
         --rootfs "$storage:1" --net0 "$net0" \
         --unprivileged 1 --features nesting=1 --onboot 1 \
         --description "Pipe Dreams: https://github.com/paselsoft/PipeDreams"
-    pct start "$CTID"
+    pct start "$CTID" || fail "il container $CTID non parte (vedi il messaggio sopra). Per riprovare: pct destroy $CTID e poi di nuovo bash $0"
     save_state
     wait_for_network
     run_setup --ip "$(access_ip)" --https-port "$HTTPS_PORT" --repo "$REPO"
