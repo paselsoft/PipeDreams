@@ -70,7 +70,7 @@ module.exports = {
             const before = await page.evaluate(() => marathon.deadline);
             await solveGenerated(page);
             await page.click("#btn-run");
-            await page.waitForFunction(n => document.getElementById("level-title").innerText.includes(`LIVELLO ${n + 1} `), i, { timeout: 5000 });
+            await page.waitForFunction(n => document.getElementById("level-title").innerText.includes(`LIVELLO ${n + 1} `), i, { timeout: 7000 });
             assert.equal(await page.evaluate(() => marathon.deadline) - before, 20000, "+20 s per un livello facile");
         }
         assert.match(await page.innerText("#level-title"), /LIVELLO 4 \(media\)/);

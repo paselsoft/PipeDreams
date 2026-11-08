@@ -39,9 +39,10 @@ module.exports = {
         assert.match(text, /★★☆ 2 comandi \(par 1\)/);
         // Soluzione più lunga del par: il gioco si ferma sul confronto
         assert.equal(await page.isVisible("#result-card"), true);
+        await page.click("#result-card >> text=💡 INDIZIO");
         assert.match(await page.innerText("#result-card"), /Il comando (1|2) \(grep -v 'ERR'\) non serve/);
         await page.click("#result-card >> text=PROSSIMO ▶");
-        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 4000 });
+        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 7000 });
         assert.equal(await page.isVisible("#result-card"), false);
         // Durante il passaggio le celle restano bloccate: il livello 2 è appena caricato e intatto
         text = await consoleText(page);

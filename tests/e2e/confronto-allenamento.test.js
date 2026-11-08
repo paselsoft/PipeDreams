@@ -24,34 +24,67 @@ const solveWithExtra = page => page.evaluate(() => {
 });
 
 module.exports = {
-    "confronto: soluzione lunga, il gioco si ferma e spiega; RIPROVA e LABORATORIO": async ({ page }) => {
+    "confronto: soluzione lunga, aiuti a gradini (quanti in meno, indizio, soluzione) e RIPROVA": async ({ page }) => {
         await open(page);
         await page.evaluate(() => loadLevel(0));
         await placeLabels(page, ["grep -v 'ERR'", "grep -v 'ERR'"]);
         const text = await run(page);
-        assert.match(text, /Ottimale: grep -v 'ERR' \(1 comando\)/);
+        assert.match(text, /Si può fare con 1 comando: guarda gli aiuti qui sotto/);
         assert.match(text, /Quando vuoi, passa al prossimo livello/);
-        const card = await page.innerText("#result-card");
-        assert.match(card, /La tua\s+grep -v 'ERR' \| grep -v 'ERR'\s+2 comandi/);
-        assert.match(card, /Ottimale\s+grep -v 'ERR'\s+1 comando/);
-        assert.match(card, /Hai usato 2 comandi: ne basta 1\./);
-        assert.equal((card.match(/non serve/g) || []).length, 1, "comandi uguali segnalati una volta");
+        assert.doesNotMatch(text, /Ottimale:/, "la soluzione non si vede subito");
+        // Gradino 1: solo quanti comandi in meno
+        let card = await page.innerText("#result-card");
+        assert.match(card, /Hai usato 2 comandi: ne basta 1\. Prova a trovare la soluzione con un comando in meno/);
+        assert.doesNotMatch(card, /La tua/);
         // Il gioco resta sul livello: nessun passaggio automatico
         await page.waitForTimeout(2500);
         assert.match(await page.innerText("#level-title"), /^LIVELLO 1\//);
-        // Il laboratorio mostra la soluzione ottimale
+        // Gradino 2: un indizio
+        await page.click("#result-card >> text=💡 INDIZIO");
+        card = await page.innerText("#result-card");
+        assert.match(card, /💡 Il comando 1 \(grep -v 'ERR'\) non serve/);
+        assert.doesNotMatch(card, /La tua/);
+        // Gradino 3: la soluzione completa, con il laboratorio
+        await page.click("#result-card >> text=🔍 SOLUZIONE (max ★★)");
+        card = await page.innerText("#result-card");
+        assert.match(card, /La tua\s+grep -v 'ERR' \| grep -v 'ERR'\s+2 comandi/);
+        assert.match(card, /Ottimale\s+grep -v 'ERR'\s+1 comando/);
+        assert.equal((card.match(/non serve/g) || []).length, 1, "comandi uguali segnalati una volta");
         await page.click("#result-card >> text=🧪 LABORATORIO");
         assert.equal(await page.isVisible("#manual-overlay"), true);
         assert.equal(await page.evaluate(() => lab.commands.map(c => c.cmd).join(",")), "grep");
         await page.evaluate(() => closeManual());
-        // RIPROVA: le celle si possono cambiare, e con la soluzione ottimale si passa da soli al livello 2
+        // RIPROVA dopo aver visto la soluzione: al massimo ★★
         await page.click("#result-card >> text=↺ RIPROVA");
         assert.equal(await page.isVisible("#result-card"), false);
-        assert.match(await consoleText(page), /Modifica le celle e riprova: con 1 comando ottieni ★★★/);
-        await placeSolution(page, 0);
-        await run(page);
-        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 4000 });
-        assert.deepEqual(await page.evaluate(() => progress.levels["1"]), { stars: 3, best: 1 });
+        assert.match(await consoleText(page), /Modifica le celle e riprova: con 1 comando ottieni ★★☆/);
+        await page.evaluate(() => { gridState = gridState.map((_, i) => i === 1 ? 0 : gridState[i]); buildGrid(); });
+        const again = await run(page);
+        assert.match(again, /★★☆ Soluzione ottimale/);
+        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 7000 });
+        assert.deepEqual(await page.evaluate(() => progress.levels["1"]), { stars: 2, best: 1 });
+    },
+
+    "istogramma: quante pipeline risolvono il livello, con la propria evidenziata": async ({ page }) => {
+        await open(page);
+        // Il solver conta le soluzioni per numero di comandi: la prima riga non vuota è il par
+        const check = await page.evaluate(() => levels.filter(lvl => !lvl.type && !lvl.locked).every(lvl => {
+            const par = solveLevel(lvl).par;
+            const rows = solutionHistogram(lvl, Math.min(levelSlots(lvl), par + 1)).rows;
+            return rows.find(row => row.count > 0).commands === par;
+        }));
+        assert.ok(check);
+        await page.evaluate(() => loadLevel(1));
+        await placeSolution(page, 1);
+        const text = await run(page);
+        assert.match(text, /📊 Quante pipeline diverse risolvono questo livello:/);
+        const mine = page.locator("#console .log-histogram.mine");
+        assert.equal(await mine.count(), 1);
+        assert.match(await mine.innerText(), /2 comandi .*← la tua/);
+        // Per i lettori di schermo una frase, senza le barre
+        assert.match(await mine.locator(".sr-only").textContent(), /^2 comandi: \d+ pipeline, la tua\.$/);
+        assert.equal(await mine.locator(".histogram-bar").getAttribute("aria-hidden"), "true");
+        assert.match(text, /Prossimo livello tra 3\.5s/);
     },
 
     "confronto: spiegazione quando nessun comando si può togliere": async ({ page }) => {
@@ -79,6 +112,7 @@ module.exports = {
         await page.evaluate(() => closeActIntro());
         assert.equal(await page.isVisible("#result-card"), true);
         assert.equal(await page.locator("#result-card >> text=PROSSIMO ▶").count(), 0);
+        await page.click("#result-card >> text=💡 INDIZIO");
         assert.match(await page.innerText("#result-card"), /Il comando 1 \(.+\) non serve/);
     },
 

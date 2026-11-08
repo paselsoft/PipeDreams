@@ -507,7 +507,8 @@ const HINT_STEPS = [
 ];
 
 // Massimo di stelle ancora ottenibili dopo gli aiuti chiesti
-const hintStarCap = () => levelSession.hintTier ? HINT_STEPS[levelSession.hintTier - 1].cap : 3;
+// Aiuti chiesti durante il livello; dopo aver visto la soluzione ottimale, riprovando, al massimo ★★
+const hintStarCap = () => Math.min(levelSession.hintTier ? HINT_STEPS[levelSession.hintTier - 1].cap : 3, levelSession.sawSolution ? 2 : 3);
 
 function updateHintButton() {
     const tier = Math.min(levelSession.hintTier + 1, HINT_STEPS.length);

@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.13.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.13.0", date: "2026-11-08", items: [
+            "📊 Dopo ogni vittoria, un istogramma: quante pipeline diverse risolvono il livello con 2, 3, 4… comandi, e dove si colloca la tua. Lo calcola il gioco, senza raccogliere dati.",
+            "💡 Aiuti per l'ottimizzazione a gradini: prima quanti comandi in meno servono, poi un indizio, infine la soluzione (chi la guarda, riprovando, prende al massimo ★★)."
+        ]
+    },
     {
         version: "1.12.0", date: "2026-11-07", items: [
             "🖨️ Nuovo caso: «Le stampe di mezzanotte» (dopo l'Atto IV, 4 capitoli). Ogni notte alle 00:00 la stampante del secondo piano si accende da sola…",

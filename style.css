@@ -1073,3 +1073,12 @@ body.cvd .deduction-option.wrong { border-color: #f0883e; }
 .act-heading { display: flex; align-items: center; gap: 12px; }
 .deduction-asker { display: flex; gap: 10px; align-items: flex-start; }
 .gallery-item > .avatar { align-self: center; }
+
+/* Istogramma delle soluzioni in console */
+.log-histogram { white-space: pre-wrap; color: #8b949e; font-size: 13px; }
+.log-histogram .histogram-bar { color: #3fb950; }
+.log-histogram.mine { color: #e3b341; font-weight: bold; }
+.log-histogram.mine .histogram-bar { color: #e3b341; }
+body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
+.result-clue { margin: 8px 0 0; padding: 6px 10px; border-left: 3px solid #e3b341; background: #2b2111; color: #e6edf3; font-size: 14px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

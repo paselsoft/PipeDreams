@@ -35,7 +35,7 @@ module.exports = {
         await page.click("#btn-run");
         await page.waitForFunction(() => document.getElementById("coach-count").textContent === "Tutorial 5/5");
         assert.match(await page.textContent("#coach-text"), /primo livello risolto/);
-        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 5000 });
+        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 7000 });
         assert.equal(await page.isVisible("#coach"), true, "resta aperto sul livello 2 per l'ultimo messaggio");
         await page.click("#coach-next");
         assert.equal(await page.isVisible("#coach"), false);

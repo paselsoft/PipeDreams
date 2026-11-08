@@ -58,6 +58,35 @@ function solveLevel(lvl, slotCount = levelSlots(lvl)) {
     return { solvable: false, par: null, optimalCount: 0, optimal: [] };
 }
 
+// Istogramma delle soluzioni: per ogni numero di comandi k (fino a maxLength), quante pipeline
+// diverse di esattamente k comandi danno il risultato giusto. Le celle vuote non contano.
+// Programmazione dinamica sugli stati: le sequenze che arrivano allo stesso stato si sommano.
+// Se gli stati diventano troppi si ferma (complete: false) per non bloccare il browser.
+const HISTOGRAM_STATE_LIMIT = 20000;
+
+function solutionHistogram(lvl, maxLength = levelSlots(lvl)) {
+    let layer = new Map([[stateKey(initialState(lvl.stdin)), { state: initialState(lvl.stdin), count: 1 }]]);
+    const rows = [];
+    for (let length = 1; length <= maxLength; length++) {
+        const next = new Map();
+        for (const node of layer.values()) {
+            for (const step of lvl.allowedCommands) {
+                const state = applyStep(node.state, step);
+                const key = stateKey(state);
+                const entry = next.get(key);
+                if (entry) entry.count += node.count;
+                else next.set(key, { state, count: node.count });
+            }
+        }
+        if (next.size > HISTOGRAM_STATE_LIMIT) return { rows, complete: false };
+        let solved = 0;
+        for (const node of next.values()) if (isSolved(lvl, finishState(node.state))) solved += node.count;
+        rows.push({ commands: length, count: solved });
+        layer = next;
+    }
+    return { rows, complete: true };
+}
+
 // --- Tipi di livello oltre a "componi la pipeline" ---
 // type "debug": start è la griglia iniziale (indici in slotOptions), da correggere cambiando
 //   al massimo maxChanges celle; type "quiz": start è la pipeline da leggere e wrong elenca

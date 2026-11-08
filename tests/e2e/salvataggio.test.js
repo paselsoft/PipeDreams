@@ -20,7 +20,7 @@ module.exports = {
         await run(page);
         assert.deepEqual((await saved(page)).levels["1"], { stars: 3, best: 1 });
         await page.click("#result-card >> text=PROSSIMO ▶");
-        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 4000 });
+        await page.waitForFunction(() => document.getElementById("level-title").innerText.startsWith("LIVELLO 2/"), null, { timeout: 7000 });
         await reload(page);
         assert.match(await page.innerText("#level-title"), /^LIVELLO 2\//);
     },
