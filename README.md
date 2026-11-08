@@ -98,6 +98,12 @@ workflow cambia il nome della cache in `sw.js`: chi ha il gioco aperto vede «È
 
 Per una nuova versione: aumenta `APP_VERSION` in `version.js` e aggiungi una voce in cima a `CHANGELOG`.
 
+## Pipe Dreams su Proxmox
+
+In `deploy/` c'è uno script che crea un container LXC Alpine su Proxmox VE: serve il gioco in
+HTTPS sulla rete di casa e offre bash con i comandi GNU per provare le righe di shell. Istruzioni in
+[`deploy/README.md`](deploy/README.md).
+
 ## Casi a puntate
 
 Ogni caso in `stories.js` ha dei capitoli; ogni capitolo ha un racconto, degli enigmi (livelli
