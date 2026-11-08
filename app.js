@@ -102,6 +102,7 @@ function showLevel(lvl, titleText) {
     // L'obiettivo dei livelli condivisi o di prova ammette solo tag semplici: può arrivare da chiunque
     const mission = TEST_MODE || lvl.community ? safeMissionHtml(lvl.mission) : lvl.mission;
     document.getElementById("mission-desc").innerHTML = `<strong>OBIETTIVO:</strong> ${mission}`;
+    renderManRefs(lvl);
     renderChips(document.getElementById("txt-stdin"), normalizeInput(lvl.stdin));
     // Nel quiz lo stdout è proprio la domanda
     // Nel quiz lo stdout è la domanda; negli enigmi dei casi è l'indizio da scoprire
@@ -260,6 +261,26 @@ function currentSteps() {
     if (terminalActive()) return parsePipeline(terminalText(), levelFiles(currentLevel())).steps || [];
     const options = slotOptions(currentLevel());
     return gridState.map(idx => options[idx]);
+}
+
+// Pagine man da leggere per il livello (campo man: ["sort", "fold"]): pulsanti sotto l'obiettivo
+function renderManRefs(lvl) {
+    const box = document.getElementById("level-man");
+    box.innerHTML = "";
+    const names = Array.isArray(lvl.man) ? lvl.man.filter(name => typeof name === "string") : [];
+    box.hidden = !names.length;
+    if (!names.length) return;
+    box.append("📄 Da leggere: ");
+    names.forEach(name => {
+        const button = document.createElement("button");
+        button.className = "man-ref";
+        button.textContent = `man ${name}`;
+        button.onclick = () => {
+            const entry = manEntryFor(name);
+            if (entry) openManPage(entry.id);
+        };
+        box.append(button, " ");
+    });
 }
 
 // --- Modalità terminale: si sblocca per i livelli "componi" di un atto completato ---

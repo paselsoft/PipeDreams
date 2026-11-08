@@ -1763,5 +1763,309 @@ const STORIES = [
                 }
             }
         ]
+    },
+    {
+        id: "pagine-cerchiate",
+        title: "Le pagine cerchiate",
+        synopsis: "Ogni mattina, sulla stampante del secondo piano, compare una pila di pagine di manuale con delle opzioni cerchiate a penna. Nessuno ammette di averle stampate.",
+        requiresAct: 8,
+        finale: "Nadia",
+        epilogue: "Giulia chiama Nadia nel suo ufficio, con la pila di fogli sul tavolo. Nadia arrossisce: «Volevo farvi una sorpresa. Di notte il palazzo è tranquillo, e le pagine man stampate le posso sottolineare.» Giulia le crea un account vero, Marco le regala il suo vecchio libro di LPIC con le orecchie alle pagine, e Tommaso le prepara cento domande di prova. Il 30 novembre Nadia passa l'esame con 720 punti su 800. Il lunedì dopo, sulla stampante del secondo piano c'è un foglio solo: la pagina di man man, con un cuore disegnato a penna.",
+        chapters: [
+            {
+                id: "pila",
+                title: "La pila sulla stampante",
+                from: "Marco",
+                text: "Da una settimana, ogni mattina, sulla stampante del secondo piano trovo una pila di fogli: pagine di manuale, con alcune opzioni cerchiate a penna. Nessuno dice di averle stampate. Ecco il registro delle stampe di CUPS: campi separati da uno spazio, e il nome del documento è il decimo.",
+                puzzles: [
+                    {
+                        id: "documenti",
+                        clue: "Documenti stampati alle 2 di notte",
+                        level: {
+                            title: "Stampe Notturne",
+                            source: "cat /var/log/cups/page_log",
+                            slots: 6,
+                            mission: "Quali documenti sono stati stampati tra le 2 e le 3 di notte (<code>2026:02:</code>)? Senza ripetizioni, in ordine alfabetico, <strong>tutti in una riga</strong> separati da uno spazio.",
+                            man: ["xargs"],
+                            nudge: "Il nome del documento è il decimo campo; per mettere le parole in una riga c'è un comando che le passa tutte a echo.",
+                            hint: "grep '2026:02:', awk '{print $10}', sort, uniq, xargs.",
+                            stdin: [
+                                "stampante-2 marco 401 [05/Nov/2026:10:02:11 +0100] total 2 - 10.0.0.12 preventivo.pdf A4 one-sided",
+                                "stampante-2 guardia 402 [06/Nov/2026:02:13:44 +0100] total 4 - 10.0.0.77 man-sort.pdf A4 one-sided",
+                                "stampante-2 guardia 403 [06/Nov/2026:02:20:05 +0100] total 3 - 10.0.0.77 man-tr.pdf A4 one-sided",
+                                "stampante-2 giulia 404 [06/Nov/2026:11:45:30 +0100] total 1 - 10.0.0.15 ferie.pdf A4 one-sided",
+                                "stampante-2 guardia 405 [07/Nov/2026:02:31:12 +0100] total 2 - 10.0.0.77 man-xargs.pdf A4 one-sided",
+                                "stampante-2 tommaso 406 [07/Nov/2026:15:02:40 +0100] total 6 - 10.0.0.20 scraper.py A4 one-sided",
+                                "stampante-2 guardia 407 [08/Nov/2026:02:08:59 +0100] total 2 - 10.0.0.77 man-fold.pdf A4 one-sided",
+                                "stampante-2 guardia 408 [08/Nov/2026:02:16:21 +0100] total 4 - 10.0.0.77 man-sort.pdf A4 one-sided"
+                            ],
+                            target: ["man-fold.pdf man-sort.pdf man-tr.pdf man-xargs.pdf"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "2026:02:" }, desc: "Tieni le righe con '2026:02:'" },
+                                { cmd: "awk", args: { field: 10 }, desc: "Campo 10 di awk" },
+                                { cmd: "awk", args: { field: 9 }, desc: "Campo 9 di awk" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "xargs", desc: "xargs (cosa fa? man xargs)" },
+                                { cmd: "xargs", args: { n: 2 }, desc: "xargs -n 2 (cosa fa -n? man xargs)" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "utente",
+                        clue: "Utente delle stampe notturne",
+                        level: {
+                            title: "Chi Stampa?",
+                            source: "cat /var/log/cups/page_log",
+                            mission: "Con quale <strong>utente</strong> sono state fatte le stampe delle 2 di notte? Solo il nome, una volta.",
+                            nudge: "L'utente è il secondo campo, subito dopo il nome della stampante.",
+                            hint: "grep '2026:02:', cut -d' ' -f2, uniq.",
+                            stdin: [
+                                "stampante-2 marco 401 [05/Nov/2026:10:02:11 +0100] total 2 - 10.0.0.12 preventivo.pdf A4 one-sided",
+                                "stampante-2 guardia 402 [06/Nov/2026:02:13:44 +0100] total 4 - 10.0.0.77 man-sort.pdf A4 one-sided",
+                                "stampante-2 guardia 403 [06/Nov/2026:02:20:05 +0100] total 3 - 10.0.0.77 man-tr.pdf A4 one-sided",
+                                "stampante-2 giulia 404 [06/Nov/2026:11:45:30 +0100] total 1 - 10.0.0.15 ferie.pdf A4 one-sided",
+                                "stampante-2 guardia 405 [07/Nov/2026:02:31:12 +0100] total 2 - 10.0.0.77 man-xargs.pdf A4 one-sided",
+                                "stampante-2 tommaso 406 [07/Nov/2026:15:02:40 +0100] total 6 - 10.0.0.20 scraper.py A4 one-sided",
+                                "stampante-2 guardia 407 [08/Nov/2026:02:08:59 +0100] total 2 - 10.0.0.77 man-fold.pdf A4 one-sided",
+                                "stampante-2 guardia 408 [08/Nov/2026:02:16:21 +0100] total 4 - 10.0.0.77 man-sort.pdf A4 one-sided"
+                            ],
+                            target: ["guardia"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "2026:02:" }, desc: "Tieni le righe con '2026:02:'" },
+                                { cmd: "grep", args: { pattern: "2026:02:", invert: true }, desc: "Scarta le righe con '2026:02:'" },
+                                { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "wc", desc: "Conta le righe" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa dicono gli indizi sulle stampe?",
+                    options: [
+                        "Di notte qualcuno usa l'account guardia per stampare pagine di manuale",
+                        "Marco stampa le pagine di giorno e si dimentica di ritirarle",
+                        "La stampante è guasta e ristampa sempre gli stessi lavori",
+                        "Tommaso stampa di notte il suo script"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Marco ha stampato solo un preventivo, alle 10 del mattino.",
+                        "Ogni lavoro ha un numero nuovo (402, 403...) e i documenti cambiano: non sono ristampe.",
+                        "scraper.py è stato stampato alle 15:02, con l'account tommaso."
+                    ],
+                    explain: "Tutte le stampe delle 2 di notte sono pagine di manuale (man-sort, man-tr, man-xargs, man-fold) e partono dall'account guardia.",
+                    hint: "Guarda insieme i nomi dei documenti notturni e l'utente che li ha stampati.",
+                    focus: ["pila/documenti", "pila/utente"]
+                }
+            },
+            {
+                id: "opzioni",
+                title: "Le opzioni cerchiate",
+                from: "Giulia",
+                text: "Ho sfogliato i fogli: su man sort è cerchiata -h, su man xargs -n, su man fold -s, su man tr ancora -s. Nella home dell'account guardia ci sono degli appunti e una cartella enorme. Chi li ha scritti usa proprio quelle opzioni: leggi le pagine man anche tu, ti servono.",
+                puzzles: [
+                    {
+                        id: "appunti",
+                        clue: "Riga degli appunti sull'esame",
+                        level: {
+                            title: "Gli Appunti",
+                            source: "cat /home/guardia/appunti.txt",
+                            mission: "Gli appunti sono una riga sola, lunghissima. Va' a capo ogni <strong>28 caratteri senza spezzare le parole</strong>, come sul quaderno, e tieni solo la riga che parla dell'<code>esame</code>.",
+                            man: ["fold"],
+                            nudge: "Una delle due opzioni di fold taglia anche a metà parola: la pagina man dice quale opzione va a capo dopo uno spazio.",
+                            hint: "fold -s -w 28 va a capo tra le parole, poi grep 'esame'.",
+                            stdin: ["lezione 9: tr -s comprime gli spazi, sort -h legge K M G, xargs -n 2 fa coppie. esame LPIC-1 il 30 novembre"],
+                            target: ["esame LPIC-1 il 30 novembre"],
+                            allowedCommands: [
+                                { cmd: "fold", args: { width: 28, spaces: true }, desc: "fold -s -w 28 (cosa fa -s? man fold)" },
+                                { cmd: "fold", args: { width: 28 }, desc: "fold -w 28 (man fold)" },
+                                { cmd: "grep", args: { pattern: "esame" }, desc: "Tieni le righe con 'esame'" },
+                                { cmd: "grep", args: { pattern: "lezione" }, desc: "Tieni le righe con 'lezione'" },
+                                { cmd: "squeeze", args: { set: " " }, desc: "tr -s ' ' (man tr)" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "dimensioni",
+                        clue: "La cartella più grande di guardia",
+                        level: {
+                            title: "Cosa Pesa di Più",
+                            source: "du -sh /home/guardia/*",
+                            mission: "Cosa occupa più spazio nella home di guardia? Solo il <strong>nome</strong>, senza <code>/home/guardia/</code>.",
+                            man: ["sort"],
+                            nudge: "du -h scrive le dimensioni con le unità. Due opzioni di sort sembrano uguali: la pagina man dice quale capisce K, M e G.",
+                            hint: "sort -rh, head -n 1, poi cut -d'/' -f4.",
+                            stdin: ["12K\t/home/guardia/appunti.txt", "350M\t/home/guardia/foto-gatto", "1.4G\t/home/guardia/simulazioni-lpic", "980K\t/home/guardia/turni.ods", "24M\t/home/guardia/pdf-manuali"],
+                            target: ["simulazioni-lpic"],
+                            allowedCommands: [
+                                { cmd: "sort", args: { human: true, reverse: true }, desc: "sort -rh (cosa fa -h? man sort)" },
+                                { cmd: "sort", args: { numeric: true, reverse: true }, desc: "sort -rn (cosa fa -n? man sort)" },
+                                { cmd: "head", args: { n: 1 }, desc: "Prima riga" },
+                                { cmd: "cut", args: { delim: "/", field: 4 }, desc: "Campo 4 (/)" },
+                                { cmd: "cut", args: { delim: "/", field: 3 }, desc: "Campo 3 (/)" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa fa chi usa l'account guardia di notte?",
+                    options: [
+                        "Studia per l'esame LPIC-1 da sistemista, del 30 novembre",
+                        "Copia di nascosto dati riservati",
+                        "Prepara un nuovo trasloco dei server",
+                        "Fa il backup delle foto del suo gatto"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "La cartella più grande sono simulazioni d'esame, e di notte stampa solo pagine di manuale.",
+                        "Gli appunti parlano di lezioni, ripasso ed esame, non di traslochi.",
+                        "Le foto del gatto pesano 350M: la cartella più grande è simulazioni-lpic."
+                    ],
+                    explain: "Gli appunti finiscono con l'esame LPIC-1 del 30 novembre, e la cartella più pesante è simulazioni-lpic: qualcuno si prepara all'esame da sistemista.",
+                    hint: "Metti insieme la riga degli appunti e il nome della cartella più grande.",
+                    focus: ["opzioni/appunti", "opzioni/dimensioni"]
+                }
+            },
+            {
+                id: "badge",
+                title: "Il badge",
+                from: "Tommaso",
+                text: "Non guardate me! Sì, il server l'ho sfinito io con lo script, ma di notte io ero in sala server, non in sala stampa. Ecco il registro dei badge delle porte: colonne allineate con gli spazi, come piace al vecchio sistema. E l'anagrafica dei badge, in ordine.",
+                puzzles: [
+                    {
+                        id: "orari",
+                        clue: "Orari del badge-0417",
+                        level: {
+                            title: "Porte di Notte",
+                            source: "cat /var/log/porte.log",
+                            mission: "A che ore passa il <code>badge-0417</code>? Solo le ore (<code>01:58</code>), dalla prima all'ultima del giorno.",
+                            man: ["tr"],
+                            nudge: "Le colonne sono separate da gruppi di spazi: per cut ogni spazio conta.",
+                            hint: "grep 'badge-0417', tr -s ' ', cut -d' ' -f2, sort.",
+                            stdin: [
+                                "06/11  01:58  sala-stampa   badge-0417",
+                                "06/11  09:02  ingresso      badge-0233",
+                                "07/11  01:10  sala-server   badge-0520",
+                                "07/11  02:25  sala-stampa   badge-0417",
+                                "08/11  01:55  sala-stampa   badge-0417",
+                                "08/11  10:15  sala-stampa   badge-0102"
+                            ],
+                            target: ["01:55", "01:58", "02:25"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "badge-0417" }, desc: "Tieni le righe con 'badge-0417'" },
+                                { cmd: "squeeze", args: { set: " " }, desc: "tr -s ' ' (cosa fa -s? man tr)" },
+                                { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 3 }, desc: "Campo 3 (spazio)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "sort", args: { reverse: true }, desc: "Ordine inverso" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "anagrafica",
+                        clue: "Di chi sono i badge della sala stampa",
+                        level: {
+                            title: "L'Anagrafica",
+                            source: "grep sala-stampa /var/log/porte.log",
+                            slots: 6,
+                            mission: "Di chi sono i badge entrati in sala stampa? Unisci i codici, una volta sola, con <code>anagrafica.txt</code>: ogni riga <code>badge nome ruolo</code>.",
+                            man: ["tr", "join"],
+                            nudge: "join vuole i codici ordinati e senza doppioni, e il codice è l'ultima colonna.",
+                            hint: "tr -s ' ', cut -d' ' -f4, sort, uniq, join - anagrafica.txt.",
+                            stdin: [
+                                "06/11  01:58  sala-stampa   badge-0417",
+                                "07/11  02:25  sala-stampa   badge-0417",
+                                "08/11  01:55  sala-stampa   badge-0417",
+                                "08/11  10:15  sala-stampa   badge-0102"
+                            ],
+                            target: ["badge-0102 Marco sistemista", "badge-0417 Nadia guardia-notturna"],
+                            allowedCommands: [
+                                { cmd: "squeeze", args: { set: " " }, desc: "Comprimi gli spazi in fila" },
+                                { cmd: "cut", args: { delim: " ", field: 4 }, desc: "Campo 4 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" },
+                                { cmd: "join", args: { file: "anagrafica.txt", lines: ["badge-0102 Marco sistemista", "badge-0233 Giulia responsabile-IT", "badge-0417 Nadia guardia-notturna", "badge-0520 Tommaso stagista"] }, desc: "Unisci con anagrafica.txt" },
+                                { cmd: "comm", args: { mode: "12", file: "anagrafica.txt", lines: ["badge-0102 Marco sistemista", "badge-0233 Giulia responsabile-IT", "badge-0417 Nadia guardia-notturna", "badge-0520 Tommaso stagista"] }, desc: "In comune con anagrafica.txt" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Chi stampa le pagine di notte?",
+                    options: [
+                        "Nadia, la guardia notturna: il suo badge entra in sala stampa poco prima delle stampe",
+                        "Tommaso, che di notte era in ufficio per il suo script",
+                        "Marco, che ha il badge della sala stampa",
+                        "Qualcuno con una copia del badge di Giulia"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Il badge di Tommaso (0520) passa solo dalla sala server, alle 01:10.",
+                        "Marco entra in sala stampa alle 10:15, di giorno.",
+                        "Il badge di Giulia (0233) passa solo dall'ingresso, alle 9:02."
+                    ],
+                    explain: "Il badge-0417 è di Nadia ed entra in sala stampa alle 01:55, 01:58 e 02:25: pochi minuti prima o durante le stampe delle 2.",
+                    hint: "Confronta gli orari del badge-0417 con quelli delle stampe, e guarda di chi è.",
+                    focus: ["badge/orari", "badge/anagrafica", "pila/documenti"]
+                }
+            },
+            {
+                id: "esame",
+                title: "Il 30 novembre",
+                from: "Irene",
+                text: "Prima di parlare con Nadia, Giulia vuole un rapporto preciso. Ho esportato dal gestionale i turni di novembre, ma il vecchio programma scrive le parole in fila e va a capo dove capita. Per fortuna a man xargs c'è una pagina cerchiata.",
+                puzzles: [
+                    {
+                        id: "turni",
+                        clue: "Turni di Nadia a novembre",
+                        level: {
+                            title: "I Turni",
+                            source: "cat turni-novembre.txt",
+                            mission: "I turni sono parole in fila, sempre <code>data turno nome</code>, con gli a capo nel posto sbagliato. Rimettili <strong>uno per riga</strong> e tieni quelli di <code>Nadia</code>.",
+                            man: ["xargs"],
+                            nudge: "Ogni turno è fatto di tre parole: c'è un'opzione di xargs che decide quante parole per riga.",
+                            hint: "xargs -n 3, poi grep 'Nadia'.",
+                            stdin: ["06/11 notte Nadia 07/11", "notte Nadia 07/11 giorno Marco", "08/11 notte", "Nadia 29/11 notte Nadia 30/11", "ferie Nadia 30/11 notte Bruno"],
+                            target: ["06/11 notte Nadia", "07/11 notte Nadia", "08/11 notte Nadia", "29/11 notte Nadia", "30/11 ferie Nadia"],
+                            allowedCommands: [
+                                { cmd: "xargs", args: { n: 3 }, desc: "xargs -n 3 (man xargs)" },
+                                { cmd: "xargs", args: { n: 2 }, desc: "xargs -n 2 (man xargs)" },
+                                { cmd: "xargs", desc: "xargs (man xargs)" },
+                                { cmd: "grep", args: { pattern: "Nadia" }, desc: "Tieni le righe con 'Nadia'" },
+                                { cmd: "grep", args: { pattern: "notte" }, desc: "Tieni le righe con 'notte'" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale rapporto è giusto in ogni dettaglio?",
+                    options: [
+                        "Nadia usa l'account guardia alle 2 di notte per stampare le pagine man di fold, sort, tr e xargs: studia per l'esame LPIC-1 del 30 novembre, giorno in cui ha chiesto ferie.",
+                        "Nadia usa l'account guardia alle 10 del mattino per stampare le pagine man di fold, sort, tr e xargs: studia per l'esame LPIC-1 del 30 novembre, giorno in cui ha chiesto ferie.",
+                        "Nadia usa l'account guardia alle 2 di notte per stampare le pagine man di grep e awk: studia per l'esame LPIC-1 del 30 novembre, giorno in cui ha chiesto ferie.",
+                        "Nadia usa l'account guardia alle 2 di notte per stampare le pagine man di fold, sort, tr e xargs: studia per l'esame LPIC-1 del 30 dicembre, giorno in cui ha chiesto ferie.",
+                        "Tommaso usa l'account guardia alle 2 di notte per stampare le pagine man di fold, sort, tr e xargs: studia per l'esame LPIC-1 del 30 novembre, giorno in cui ha chiesto ferie."
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Le stampe sono tra le 2:08 e le 2:31 di notte (capitolo 1).",
+                        "I documenti sono man-fold, man-sort, man-tr e man-xargs (capitolo 1).",
+                        "Gli appunti dicono 30 novembre (capitolo 2), e le ferie sono il 30/11 (capitolo 4).",
+                        "Il badge che entra in sala stampa di notte è il 0417, di Nadia (capitolo 3)."
+                    ],
+                    explain: "Le stampe delle 2 sono le pagine man di fold, sort, tr e xargs; gli appunti fissano l'esame al 30 novembre; il badge è di Nadia; e il 30/11 Nadia è in ferie.",
+                    hint: "Ogni rapporto sbagliato ha un solo dettaglio falso: controllalo con il taccuino, capitolo per capitolo.",
+                    focus: ["pila/documenti", "opzioni/appunti", "badge/anagrafica", "esame/turni"]
+                }
+            }
+        ]
     }
 ];

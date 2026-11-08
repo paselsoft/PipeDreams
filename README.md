@@ -103,8 +103,9 @@ Per una nuova versione: aumenta `APP_VERSION` in `version.js` e aggiungi una voc
 Ogni caso in `stories.js` ha dei capitoli; ogni capitolo ha un racconto, degli enigmi (livelli
 «componi» con lo stdout atteso nascosto: il risultato è l'indizio) e una domanda a scelta multipla
 con il perché di ogni risposta sbagliata. I capitoli si sbloccano uno dopo l'altro; `release`
-(AAAA-MM-GG) rimanda un capitolo a una data, per pubblicare un caso a puntate. Dopo ogni modifica:
-`node tools/check-stories.js`.
+(AAAA-MM-GG) rimanda un capitolo a una data, per pubblicare un caso a puntate. Un livello o un
+enigma può indicare le pagine man da leggere (`man: ["sort", "fold"]`): diventano pulsanti sotto
+l'obiettivo. Dopo ogni modifica: `node tools/check-stories.js`.
 
 ## Galleria della community
 

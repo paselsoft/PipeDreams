@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.17.0";
+const APP_VERSION = "1.18.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.18.0", date: "2026-11-08", items: [
+            "📄 Nuovo caso: «Le pagine cerchiate» (dopo l'Atto VIII, 4 capitoli). Ogni mattina sulla stampante compare una pila di pagine di manuale con delle opzioni cerchiate a penna. Chi le stampa, e perché?",
+            "🔎 In questo caso le pagine man sono indizi: sotto l'obiettivo trovi i pulsanti «📄 man sort», «📄 man fold»… e certe opzioni le capisci solo leggendole. I pulsanti ci sono anche nei livelli dell'Atto VIII, e nell'editor si possono aggiungere ai propri livelli."
+        ]
+    },
     {
         version: "1.17.0", date: "2026-11-08", items: [
             "🌙 Atto VIII «Reperibilità notturna»: 7 livelli (44-50) con gli output veri di ps aux, du -sh, auth.log di SSH, /etc/motd, ss e df -h.",

@@ -94,5 +94,22 @@ module.exports = {
             const violations = await page.evaluate(async () => (await axe.run(document.getElementById("manual-overlay"), { resultTypes: ["violations"] })).violations.map(v => v.id));
             assert.deepEqual(violations, []);
         }
+    },
+
+    "man: i pulsanti «📄 man» sotto l'obiettivo, nei livelli e negli enigmi dei casi": async ({ page }) => {
+        await open(page, { progress: { levels: Object.fromEntries([...Array(50)].map((_, i) => [i + 1, { stars: 3, best: 1 }])) } });
+        // Ogni nome indicato nei livelli e negli enigmi apre una pagina che esiste
+        const missing = await page.evaluate(() => [...levels, ...STORIES.flatMap(story => story.chapters.flatMap(chapter => chapter.puzzles.map(puzzle => puzzle.level)))]
+            .flatMap(lvl => (lvl.man || []).filter(name => !manEntryFor(name)).map(name => `${lvl.title}: ${name}`)));
+        assert.deepEqual(missing, []);
+        await page.evaluate(() => loadLevel(levels.findIndex(lvl => lvl.id === 45)));
+        assert.equal(await page.isVisible("#level-man"), true);
+        await page.click("#level-man .man-ref >> text=man sort");
+        assert.equal(await page.textContent("#manual-title"), "📄 man sort");
+        await page.click("#manual-overlay .menu-close");
+        await page.evaluate(() => loadLevel(0));
+        assert.equal(await page.isVisible("#level-man"), false);
+        await page.evaluate(() => playPuzzle("pagine-cerchiate", "opzioni", 0));
+        assert.match(await page.innerText("#level-man"), /man fold/);
     }
 };

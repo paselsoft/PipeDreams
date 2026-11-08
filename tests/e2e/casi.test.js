@@ -162,11 +162,11 @@ module.exports = {
         const unlocked = () => page.evaluate(() => STORIES.map(story => storyOpen(story)));
         await page.evaluate(() => { progress.levels = Object.fromEntries(levels.filter(lvl => lvl.act <= 6).map(lvl => [lvl.id, { stars: 3, best: 1 }])); });
         const byId = async () => Object.fromEntries(await page.evaluate(() => STORIES.map(story => [story.id, storyOpen(story)])));
-        assert.deepEqual(await byId(), { "server-fantasma": true, "messaggio-nascosto": true, "pacchetto-avvelenato": false, "caffe-scomparso": true, "ultimo-commit": false, "stampe-mezzanotte": true });
+        assert.deepEqual(await byId(), { "server-fantasma": true, "messaggio-nascosto": true, "pacchetto-avvelenato": false, "caffe-scomparso": true, "ultimo-commit": false, "stampe-mezzanotte": true, "pagine-cerchiate": false });
         await page.evaluate(() => { progress.levels = Object.fromEntries(levels.map(lvl => [lvl.id, { stars: 3, best: 1 }])); persistProgress(); });
         assert.ok((await unlocked()).every(Boolean));
         await page.evaluate(() => openStories());
-        assert.equal(await page.locator("#stories-body .gallery-play:not([disabled])").count(), 6);
+        assert.equal(await page.locator("#stories-body .gallery-play:not([disabled])").count(), 7);
         // In ordine di atto: il caffè (Atto II) per primo
         assert.match(await page.textContent("#stories-body .story-item strong"), /Il caffè scomparso/);
         // Enigma con tee: anche lo stderr atteso è nascosto, e l'indizio lo comprende
@@ -189,7 +189,7 @@ module.exports = {
         await page.evaluate(() => { progress.levels = Object.fromEntries(levels.map(lvl => [lvl.id, { stars: 3, best: 1 }])); });
         const puzzles = await page.evaluate(() => STORIES.flatMap(story => story.chapters.flatMap(chapter =>
             chapter.puzzles.map((puzzle, index) => ({ story: story.id, chapter: chapter.id, index, key: chapter.id + "/" + puzzle.id })))));
-        assert.ok(puzzles.length >= 46);
+        assert.ok(puzzles.length >= 53);
         for (const puzzle of puzzles) {
             await page.evaluate(p => { clearTimeout(transitionTimer); closeStories(); playPuzzle(p.story, p.chapter, p.index); }, puzzle);
             await solveCurrent(page);

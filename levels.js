@@ -837,6 +837,7 @@ const levels = [
         source: "ps aux",
         slots: 5,
         mission: "Sono le 3 di notte e il server web è al 100% di CPU. Trova i <strong>PID</strong> (la seconda colonna) dei processi <code>python3</code>, per fermarli con <code>kill</code>.",
+        man: ["tr", "cut"],
         stdin: [
             "USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND",
             "root           1  0.0  0.1 167744 13088 ?        Ss   21:04   0:02 /sbin/init",
@@ -863,6 +864,7 @@ const levels = [
         title: "Disco Pieno",
         source: "du -sh /var/*",
         mission: "🚨 Il disco di <code>/var</code> è quasi pieno! Mostrami le <strong>tre cartelle più pesanti</strong>, dalla più grande, con la loro dimensione.",
+        man: ["sort"],
         stdin: ["4.0K\t/var/backups", "1.3G\t/var/cache", "48K\t/var/crash", "212M\t/var/lib", "4.0K\t/var/local", "2.7G\t/var/log", "980M\t/var/mail", "36K\t/var/tmp"],
         target: ["2.7G\t/var/log", "1.3G\t/var/cache", "980M\t/var/mail"],
         nudge: "du -h scrive le dimensioni con le unità: K, M, G. Per sort -n 980 è più di 2.7.",
@@ -882,6 +884,7 @@ const levels = [
         source: "grep sshd /var/log/auth.log",
         slots: 6,
         mission: "Qualcuno prova a indovinare le password via SSH. Blocca gli IP dei tentativi <strong>falliti</strong>: il firewall vuole <strong>due IP per riga</strong>, in ordine e senza ripetizioni.",
+        man: ["xargs", "sed"],
         stdin: [
             "Nov  8 02:14:01 web sshd[811]: Failed password for root from 203.0.113.7 port 52211 ssh2",
             "Nov  8 02:15:22 web sshd[902]: Accepted publickey for marco from 192.0.2.10 port 40022 ssh2",
@@ -909,6 +912,7 @@ const levels = [
         title: "Il Display del Rack",
         source: "cat /etc/motd",
                 mission: "Il display del rack mostra <strong>16 caratteri</strong> per riga. Prepara l'avviso: spazi doppi tolti, a capo <strong>solo tra una parola e l'altra</strong> e niente spazio in fondo alle righe.",
+        man: ["fold", "tr"],
         stdin: ["Manutenzione  stanotte alle 23:   zebra resta  spento fino alle 6"],
         target: ["Manutenzione", "stanotte alle", "23: zebra resta", "spento fino", "alle 6"],
         nudge: "fold -w spezza a 16 caratteri anche a metà parola; fold -s va a capo dopo l'ultimo spazio, che però resta in fondo alla riga.",
@@ -928,6 +932,7 @@ const levels = [
         source: "ss -Htln",
         slots: 7,
         mission: "Il firewall nuovo ha bisogno delle porte in ascolto <strong>raggiungibili da fuori</strong> (non quelle su 127.x), in ordine numerico, senza ripetizioni e <strong>in una riga sola</strong>.",
+        man: ["xargs"],
         stdin: [
             "LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*",
             "LISTEN 0      511          0.0.0.0:80         0.0.0.0:*",
@@ -978,6 +983,7 @@ const levels = [
         source: "df -h",
         slots: 7,
         mission: "🚨 Giulia vuole i <strong>punti di montaggio</strong> dei dischi NVMe, dal più grande al più piccolo, <strong>in una riga</strong>, per il rapporto della notte. Niente tmpfs, niente intestazione, e il NAS che non risponde non deve comparire.",
+        man: ["sort", "xargs"],
         stdin: [
             { err: "df: /mnt/nas: Stale file handle" },
             "Filesystem      Size  Used Avail Use% Mounted on",
