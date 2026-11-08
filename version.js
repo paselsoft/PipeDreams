@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.14.0";
+const APP_VERSION = "1.15.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.15.0", date: "2026-11-08", items: [
+            "📄 Le pagine man: ogni comando del manuale ha la sua pagina nello stile dei terminali veri (NOME, SINOSSI, DESCRIZIONE, OPZIONI, ESEMPI, VEDI ANCHE). Si apre con il pulsante «📄 man» in ogni scheda.",
+            "⌨️ In modalità terminale scrivi man sort (o man head, man pacman…) e premi Invio: si apre la pagina invece di eseguire, e non conta come tentativo."
+        ]
+    },
     {
         version: "1.14.0", date: "2026-11-08", items: [
             "🧑‍💻 Dopo tre tentativi sbagliati, il personaggio del livello ti dà un consiglio mirato: guarda la tua uscita e ti dice cosa non va (doppioni, ordine, numeri ordinati come testo, righe in più o in meno…) senza svelare la soluzione.",

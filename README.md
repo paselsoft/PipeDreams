@@ -43,6 +43,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `compare.js` | Confronto della soluzione con quella ottimale |
 | `story.js` | Storia: introduzioni degli atti, messaggi dei personaggi, epilogo |
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
+| `manpage.js` | Pagine man di ogni comando, anche con `man X` nel terminale |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |

@@ -1094,3 +1094,72 @@ body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
 .advisor-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .advisor-buttons button { flex: 1 1 120px; }
 .advisor-buttons button[hidden] { display: none; }
+
+/* Pagine man */
+.manual-man {
+    display: inline-block;
+    margin-bottom: 8px;
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    cursor: pointer;
+}
+.manual-man:hover, .manual-man:focus-visible { border-color: #58a6ff; }
+.man-page {
+    font-family: 'Courier New', Courier, monospace;
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #c9d1d9;
+    font-size: 14px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+.man-header, .man-footer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    color: #c9d1d9;
+    font-weight: bold;
+}
+.man-footer { margin-top: 14px; font-weight: normal; color: #8b949e; }
+.man-section { margin-top: 12px; }
+.man-heading { margin: 0; font-size: 14px; font-weight: bold; color: #f0f6fc; letter-spacing: 0.04em; }
+.man-text { margin: 2px 0 6px 0; padding-left: 4ch; }
+.man-pre {
+    margin: 4px 0 6px 4ch;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 13px;
+    color: #7ee787;
+}
+.man-synopsis { color: #f0f6fc; font-weight: bold; }
+.man-stderr { color: #f85149; }
+.man-example-title { margin: 8px 0 0 4ch; color: #e3b341; }
+.man-options { margin: 2px 0 0 4ch; }
+.man-options dt { font-weight: bold; color: #f0f6fc; }
+.man-options dd { margin: 0 0 6px 4ch; }
+.man-traps { margin: 2px 0 0 4ch; padding-left: 2ch; }
+.man-see-also { margin: 2px 0 0 4ch; }
+.man-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #58a6ff;
+    text-decoration: underline;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+}
+@media (max-width: 480px) {
+    .man-header-center { display: none; }
+    .man-text, .man-pre, .man-example-title, .man-options, .man-traps, .man-see-also { margin-left: 2ch; padding-left: 0; }
+    .man-text { padding-left: 0; }
+    .man-traps { padding-left: 2ch; }
+}

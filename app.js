@@ -326,7 +326,8 @@ function refreshTerminal() {
         return;
     }
     const text = terminalText();
-    const result = text.trim() ? parsePipeline(text, levelFiles(currentLevel())) : { steps: [] };
+    // «man sort» non è una pipeline: con Invio apre la pagina del manuale
+    const result = !text.trim() || parseManCommand(text) ? { steps: [] } : parsePipeline(text, levelFiles(currentLevel()));
     document.getElementById("terminal-error").textContent = result.error || "";
     updateShellLine();
     updateSlotCounter();
@@ -590,12 +591,31 @@ function describeLines(lines) {
     return `[${out.join(", ")}]` + (err.length ? ` · stderr: [${err.join(", ")}]` : "");
 }
 
+// «man X» nel terminale apre la pagina man invece di eseguire (non conta come tentativo).
+// Restituisce true se la riga era un comando man.
+function runManCommand() {
+    const man = parseManCommand(terminalText());
+    if (!man) return false;
+    document.getElementById("console").innerHTML = "";
+    logToConsole(`$ ${terminalText().trim()}`, "log-stdin");
+    if (man.error) {
+        logToConsole(man.error, "log-error");
+        return true;
+    }
+    logToConsole(`Pagina man di ${MAN_PAGES[man.entry.id].names[0]} aperta.`, "log-step");
+    document.getElementById("terminal-input").value = "";
+    refreshTerminal();
+    openManPage(man.entry.id);
+    return true;
+}
+
 async function runPipeline() {
     if (isAnimating) {
         skipAnimation();
         return;
     }
     if (isBusy) return;
+    if (terminalActive() && runManCommand()) return;
     if (terminalActive()) {
         const parsed = parsePipeline(terminalText(), levelFiles(currentLevel()));
         if (parsed.error) {

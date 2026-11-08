@@ -46,6 +46,7 @@ function setManualContent(title, nodes, showBack, backTarget = null) {
     document.getElementById("manual-back").hidden = !showBack;
     const body = document.getElementById("manual-body");
     body.innerHTML = "";
+    body.classList.remove("man-page");
     body.append(...nodes);
     document.querySelector(".manual-panel").scrollTop = 0;
 }
@@ -101,6 +102,9 @@ function renderExample(example, entry) {
 function renderManualEntry(entry) {
     noteManualRead(entry.id);
     const nodes = [];
+    const man = el("button", "manual-man", `📄 man ${MAN_PAGES[entry.id].names[0]}`);
+    man.onclick = () => openManPage(entry.id, entry.id);
+    nodes.push(man);
     nodes.push(el("code", "manual-syntax", entry.syntax));
     nodes.push(el("p", "manual-description", entry.description));
 
