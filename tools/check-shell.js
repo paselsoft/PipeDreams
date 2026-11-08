@@ -132,5 +132,22 @@ for (let seed = 1; seed <= runs * 5; seed++) {
     }
 }
 
-console.log(`${total - failures}/${total} pipeline identiche a bash (${examples.length} esempi del manuale, ${fuzzed} pipeline casuali)`);
+// Righe «sul sistema vero» (comando di origine + pipeline): l'output dipende dal sistema, ma la
+// sintassi deve essere bash valida, per ogni livello e ogni enigma con il campo source
+vm.runInContext(fs.readFileSync(path.join(root, "stories.js"), "utf8"), context, { filename: "stories.js" });
+const realLines = vm.runInContext(`[...levels, ...STORIES.flatMap(story => story.chapters.flatMap(chapter => chapter.puzzles.map(puzzle => puzzle.level)))]
+    .filter(lvl => lvl.source && !lvl.type)
+    .map(lvl => ({ title: lvl.title, line: realShellLine(lvl.source, referenceSolution(lvl)) }))`, context);
+const { spawnSync } = require("child_process");
+for (const { title, line } of realLines) {
+    total++;
+    const syntax = spawnSync("bash", ["-n", "-c", line]);
+    if (syntax.status !== 0) {
+        failures++;
+        console.log(`Riga sul sistema vero, ${title}: ${line}`);
+        console.log(`  ${syntax.stderr.toString().trim()}`);
+    }
+}
+
+console.log(`${total - failures}/${total} pipeline identiche a bash (${examples.length} esempi del manuale, ${fuzzed} pipeline casuali, ${realLines.length} righe sul sistema vero)`);
 if (failures) process.exit(1);

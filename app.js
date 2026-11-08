@@ -399,9 +399,31 @@ function updateCellUI(index) {
     cellElem.classList.toggle("changed", lvl.type === "debug" && gridState[index] !== lvl.start[index]);
 }
 
+// Riga di shell sotto le celle. Nei livelli con il comando di origine (source) si può scegliere:
+// «riproducibile» (printf con l'input del livello: stesso output del gioco) oppure «sul sistema
+// vero» (il comando vero seguito dalla pipeline). La scelta resta nelle preferenze.
+const showRealLine = lvl => Boolean(lvl.source) && settings.shellView === "real";
+
 function updateShellLine() {
-    document.getElementById("shell-line").textContent =
-        buildShellLine(currentLevel().stdin, currentSteps(), " |\n  ");
+    const lvl = currentLevel();
+    const real = showRealLine(lvl);
+    document.getElementById("shell-view").hidden = !lvl.source;
+    document.querySelectorAll("#shell-view button").forEach(button => {
+        button.setAttribute("aria-pressed", String((button.dataset.view === "real") === real));
+    });
+    document.getElementById("shell-line").textContent = real
+        ? realShellLine(lvl.source, currentSteps(), " |\n  ")
+        : buildShellLine(lvl.stdin, currentSteps(), " |\n  ");
+    const files = Object.keys(levelFiles(lvl));
+    document.getElementById("shell-note").textContent = real
+        ? `Il comando vero, come lo scriveresti al lavoro: sul tuo sistema l'output sarà diverso (i tuoi processi, i tuoi dischi, i tuoi log).${files.length ? ` Prima crea ${files.join(" e ")} con le righe del livello.` : ""}`
+        : "Provala in bash su Linux (GNU coreutils): dà lo stesso output del gioco.";
+}
+
+function setShellView(view) {
+    settings.shellView = view === "real" ? "real" : "riproducibile";
+    saveSettings(settings);
+    updateShellLine();
 }
 
 // Copia negli appunti; restituisce true se è riuscito

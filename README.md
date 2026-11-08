@@ -10,7 +10,8 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
   `nl`, `tee`, `comm`, `join` (con i file del livello), `tr -s`, `sort -h`, `xargs`, `fold`; l'Atto VII analizza l'output di apt, pacman, dnf e rpm,
   l'Atto VIII quello di ps, du, df, ss e dei log di SSH
 - la simulazione segue GNU coreutils e bash: per ogni pipeline il gioco mostra la riga di shell
-  equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato
+  equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato; nei livelli con il
+  comando di origine (`ps aux`, `df -h`...) anche la riga «sul sistema vero», da provare sul tuo Linux
 - un solver calcola il par (numero minimo di comandi) di ogni livello e assegna le stelle
 - una storia in 5 atti, obiettivi, una **sfida del giorno** e la **Maratona** contro il tempo
 - **allenamento** per comando: livelli generati senza fine su grep, sort, sed...

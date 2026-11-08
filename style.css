@@ -1175,3 +1175,9 @@ body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
     padding: 3px 8px; font-family: 'Courier New', Courier, monospace; font-size: 14px; cursor: pointer;
 }
 .man-ref:hover, .man-ref:focus-visible { border-color: #58a6ff; }
+
+/* Riga di shell: riproducibile o sul sistema vero */
+.shell-header { flex-wrap: wrap; gap: 6px; }
+.shell-view { display: inline-flex; gap: 4px; }
+.shell-view[hidden] { display: none; }
+.shell-view button[aria-pressed="true"] { background: #1f6feb; color: #fff; border-color: #1f6feb; }

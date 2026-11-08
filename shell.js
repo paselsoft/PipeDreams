@@ -38,3 +38,16 @@ function buildShellLine(stdin, steps, separator = " | ") {
     }
     return segments.join(separator);
 }
+
+// Riga «sul sistema vero»: il comando che ha prodotto l'input (campo source del livello) seguito
+// dalla pipeline, senza printf. È la riga che scriveresti al lavoro: l'output dipende dal sistema
+// su cui la lanci (i tuoi processi, i tuoi dischi, i tuoi log).
+function realShellLine(source, steps, separator = " | ") {
+    const segments = [source];
+    for (const step of steps) {
+        if (step.cmd === null) continue;
+        if (COMMANDS[step.cmd].redirect) segments[segments.length - 1] += ` ${stepLabel(step)}`;
+        else segments.push(stepLabel(step));
+    }
+    return segments.join(separator);
+}

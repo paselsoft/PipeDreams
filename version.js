@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.18.0";
+const APP_VERSION = "1.19.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.19.0", date: "2026-11-08", items: [
+            "💻 Riga di shell «sul sistema vero»: nei livelli che dicono da dove arriva l'input (ps aux, df -h, apt list…) puoi scegliere tra la riga riproducibile, con lo stesso output del gioco, e il comando vero seguito dalla tua pipeline, come lo scriveresti al lavoro. Per esempio: ps aux | grep 'python3' | tr -s ' ' | cut -d' ' -f2.",
+            "🧰 Pipe Dreams su Proxmox: in deploy/ c'è uno script che crea un container Linux con il gioco in HTTPS e un terminale vero dove provare le righe."
+        ]
+    },
     {
         version: "1.18.0", date: "2026-11-08", items: [
             "📄 Nuovo caso: «Le pagine cerchiate» (dopo l'Atto VIII, 4 capitoli). Ogni mattina sulla stampante compare una pila di pagine di manuale con delle opzioni cerchiate a penna. Chi le stampa, e perché?",

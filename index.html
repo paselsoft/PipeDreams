@@ -114,13 +114,17 @@
         <div class="shell-box">
             <div class="shell-header">
                 <span>$ riga di shell equivalente</span>
+                <span class="shell-view" id="shell-view" role="group" aria-label="Quale riga di shell" hidden>
+                    <button class="btn-copy" data-view="riproducibile" aria-pressed="true" onclick="setShellView('riproducibile')" title="Con printf e l'input del livello: stesso output del gioco">riproducibile</button>
+                    <button class="btn-copy" data-view="real" aria-pressed="false" onclick="setShellView('real')" title="Il comando vero seguito dalla pipeline">sul sistema vero</button>
+                </span>
                 <span class="shell-actions">
                     <button class="btn-copy" id="btn-lab" onclick="openLevelInLab()">🧪 LABORATORIO</button>
                     <button class="btn-copy" id="btn-copy" onclick="copyShellLine()">COPIA</button>
                 </span>
             </div>
             <code id="shell-line"></code>
-            <div class="shell-note">Provala in bash su Linux (GNU coreutils): dà lo stesso output del gioco.</div>
+            <div class="shell-note" id="shell-note">Provala in bash su Linux (GNU coreutils): dà lo stesso output del gioco.</div>
         </div>
 
         <div class="action-buttons">
