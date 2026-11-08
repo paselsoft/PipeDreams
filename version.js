@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.13.0";
+const APP_VERSION = "1.14.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.14.0", date: "2026-11-08", items: [
+            "🧑‍💻 Dopo tre tentativi sbagliati, il personaggio del livello ti dà un consiglio mirato: guarda la tua uscita e ti dice cosa non va (doppioni, ordine, numeri ordinati come testo, righe in più o in meno…) senza svelare la soluzione.",
+            "💡 Dal fumetto puoi chiedere la spinta, il primo aiuto gratuito. I consigli si spengono con il pulsante «🧑‍💻 Consigli» sotto Effetti."
+        ]
+    },
     {
         version: "1.13.0", date: "2026-11-08", items: [
             "📊 Dopo ogni vittoria, un istogramma: quante pipeline diverse risolvono il livello con 2, 3, 4… comandi, e dove si colloca la tua. Lo calcola il gioco, senza raccogliere dati.",

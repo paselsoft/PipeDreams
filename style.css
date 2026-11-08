@@ -1082,3 +1082,15 @@ body.cvd .deduction-option.wrong { border-color: #f0883e; }
 body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
 .result-clue { margin: 8px 0 0; padding: 6px 10px; border-left: 3px solid #e3b341; background: #2b2111; color: #e6edf3; font-size: 14px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Il consigliere: fumetto del personaggio dopo qualche tentativo sbagliato */
+.advisor {
+    display: flex; gap: 10px; align-items: flex-start; margin-top: 10px;
+    background: #161b22; border: 1px solid #e3b341; border-radius: 8px; padding: 10px;
+}
+.advisor[hidden] { display: none; }
+.advisor-body { min-width: 0; flex: 1; }
+.advisor-message { margin: 0 0 8px; font-size: 14px; line-height: 1.45; color: #e6edf3; }
+.advisor-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.advisor-buttons button { flex: 1 1 120px; }
+.advisor-buttons button[hidden] { display: none; }

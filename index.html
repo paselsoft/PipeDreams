@@ -140,9 +140,21 @@
             <button id="btn-sound" onclick="toggleSetting('sound')">🔊 Suoni</button>
             <button id="btn-crt" onclick="toggleSetting('crt')">📺 CRT</button>
             <button id="btn-cvd" onclick="toggleSetting('cvd')" title="Blu e arancione al posto di verde e rosso">👁 Daltonici</button>
+            <button id="btn-advisor" onclick="toggleSetting('advisor')" title="Un personaggio ti dà un consiglio dopo qualche tentativo sbagliato">🧑‍💻 Consigli</button>
         </div>
 
         <div id="console" role="log" aria-live="polite" aria-label="Console">> Pronto. Tocca una cella e premi Esegui.</div>
+
+        <div class="advisor" id="advisor" role="status" aria-live="polite" hidden>
+            <span class="avatar-slot" id="advisor-avatar"></span>
+            <div class="advisor-body">
+                <p class="advisor-message"><strong class="story-from" id="advisor-from"></strong> <span id="advisor-text"></span></p>
+                <div class="advisor-buttons">
+                    <button class="btn-hint" id="advisor-nudge" onclick="advisorNudge()">💡 DAMMI LA SPINTA (gratis)</button>
+                    <button class="btn-hint" onclick="closeAdvisor()">GRAZIE</button>
+                </div>
+            </div>
+        </div>
 
         <div class="result-card" id="result-card" hidden></div>
 
@@ -318,6 +330,7 @@
     <script src="compare.js"></script>
     <script src="training.js"></script>
     <script src="tutorial.js"></script>
+    <script src="advisor.js"></script>
     <script src="community.js"></script>
     <script src="gallery.js"></script>
     <script src="stories.js"></script>

@@ -94,6 +94,7 @@ function showLevel(lvl, titleText) {
     stopAnimation();
     setBusy(false);
     hideSolutionCard();
+    closeAdvisor();
 
     currentSolution = analyzeLevel(lvl);
     startLevelSession();
@@ -193,7 +194,9 @@ function setSpeed(speed) {
 }
 
 function toggleSetting(key) {
-    settings[key] = !settings[key];
+    // I consigli sono accesi finché non si spengono (valore assente = acceso)
+    settings[key] = key === "advisor" ? settings.advisor === false : !settings[key];
+    if (key === "advisor" && settings.advisor === false) closeAdvisor();
     saveSettings(settings);
     renderFxControl();
     applyCrt();
@@ -209,6 +212,9 @@ function renderFxControl() {
     const crt = document.getElementById("btn-crt");
     crt.setAttribute("aria-pressed", String(settings.crt));
     crt.classList.toggle("active", settings.crt);
+    const advisor = document.getElementById("btn-advisor");
+    advisor.setAttribute("aria-pressed", String(settings.advisor !== false));
+    advisor.classList.toggle("active", settings.advisor !== false);
     const cvd = document.getElementById("btn-cvd");
     cvd.setAttribute("aria-pressed", String(Boolean(settings.cvd)));
     cvd.classList.toggle("active", Boolean(settings.cvd));
@@ -667,6 +673,7 @@ function showResult(lvl, result) {
         bumpStat("failures");
         playFail();
         tutorialEvent("fail");
+        adviseAfterFailure(lvl, result);
         // Negli enigmi lo stdout atteso è nascosto: almeno il numero di righe aiuta a orientarsi
         if (lvl.hiddenTarget && result.output.length !== lvl.target.length) {
             logToConsole(`> L'indizio ha ${lvl.target.length} ${lvl.target.length === 1 ? "riga" : "righe"}, la tua uscita ${result.output.length}.`, "log-hint");
