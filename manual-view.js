@@ -56,7 +56,7 @@ function renderManualList() {
     const forLevel = manualEntriesForLevel(lvl);
     const nodes = [];
     const labLink = el("button", "manual-link lab-link");
-    labLink.append(el("code", "", "🧪 Laboratorio"), el("span", "", "Prova i comandi su dati tuoi e guarda il risultato passo per passo."));
+    labLink.append(el("code", "", "⚗️ Laboratorio"), el("span", "", "Prova i comandi su dati tuoi e guarda il risultato passo per passo."));
     labLink.onclick = () => openLab();
     nodes.push(labLink);
     if (forLevel.length) {
@@ -93,7 +93,7 @@ function renderExample(example, entry) {
         box.appendChild(el("div", "stream-terminal", `⚠ Finito sul terminale (stderr): ${result.stderr.join(", ")}`));
     }
     if (example.note) box.appendChild(el("p", "manual-note", example.note));
-    const tryIt = el("button", "manual-try", "🧪 Prova nel laboratorio");
+    const tryIt = el("button", "manual-try", "⚗️ Prova nel laboratorio");
     tryIt.onclick = () => openLab(example, entry.id);
     box.appendChild(tryIt);
     return box;

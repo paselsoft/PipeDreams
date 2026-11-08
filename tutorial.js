@@ -25,7 +25,7 @@ const TUTORIAL_STEPS = [
     },
     {
         target: ".action-buttons",
-        text: () => "Fatto: primo livello risolto! Quando sei bloccato, AIUTO dà un indizio (il primo è gratis), 📖 MANUALE spiega ogni comando con esempi e 🧪 LABORATORIO ti lascia provare liberamente. Buon divertimento!"
+        text: () => "Fatto: primo livello risolto! Quando sei bloccato, AIUTO dà un indizio (il primo è gratis), 📖 MANUALE spiega ogni comando con esempi e ⚗️ LABORATORIO ti lascia provare liberamente. Buon divertimento!"
     }
 ];
 

@@ -37,7 +37,7 @@ module.exports = {
         await open(page);
         await page.evaluate(() => openManual("uniq"));
         await page.locator(".manual-example", { hasText: "Doppioni lontani" }).locator(".manual-try").click();
-        assert.equal(await page.textContent("#manual-title"), "🧪 LABORATORIO");
+        assert.equal(await page.textContent("#manual-title"), "⚗️ LABORATORIO");
         await page.click("#manual-body button:has-text('+ Aggiungi comando')");
         await page.locator("#lab-commands .ed-cmd").nth(1).locator(".lab-move").click();
         const final = page.locator("#lab-result .lab-final .chip");
@@ -60,7 +60,7 @@ module.exports = {
         await page.evaluate(() => loadLevel(13));
         await placeLabels(page, ["sort", "uniq -c", "sort -rn", "cut -d' ' -f2"]);
         const text = await run(page);
-        assert.match(text, /Per esaminare la pipeline: 🧪 LABORATORIO/);
+        assert.match(text, /Per esaminare la pipeline: ⚗️ LABORATORIO/);
         const cells = await page.evaluate(() => gridState.join(","));
         await page.click("#btn-lab");
         assert.match(await page.textContent(".lab-verdict"), /Diverso dallo stdout atteso/);

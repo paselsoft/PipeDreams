@@ -103,7 +103,7 @@ function showSolutionCard(lvl, report, actions = {}) {
         rows.append(el("span", "result-label", "La tua"), el("code", "result-mine", report.mine), el("span", "result-count", commandCount(report.used)));
         rows.append(el("span", "result-label", "Ottimale"), el("code", "result-best", pipelineText(report.best)), el("span", "result-count", commandCount(report.par)));
         extra.replaceChildren(rows, ...explainReport(report).slice(1).map(line => el("p", "result-why", line)));
-        const labButton = el("button", "btn-hint", "🧪 LABORATORIO");
+        const labButton = el("button", "btn-hint", "⚗️ LABORATORIO");
         labButton.onclick = () => openLab({ input: lvl.stdin, steps: report.best }, LAB_BACK_TO_LEVEL, { target: lvl.target, targetStderr: lvl.targetStderr });
         buttons.insertBefore(labButton, retry);
     };

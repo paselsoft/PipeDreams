@@ -10,7 +10,7 @@ const ACHIEVEMENTS = [
     { id: "perfezionista", icon: "⭐", title: "Perfezionista", desc: "Ottieni ★★★ in tutti i livelli di un atto." },
     { id: "guru", icon: "🏆", title: "Guru delle pipeline", desc: "Completa tutti i livelli." },
     { id: "rtfm", icon: "📖", title: "RTFM", desc: "Leggi 5 schede diverse del manuale." },
-    { id: "scienziato", icon: "🧪", title: "Scienziato", desc: "Porta la pipeline di un livello nel laboratorio." },
+    { id: "scienziato", icon: "⚗️", title: "Scienziato", desc: "Porta la pipeline di un livello nel laboratorio." },
     { id: "terminale", icon: "💻", title: "Pronto per il terminale", desc: "Copia una riga di shell." },
     { id: "terminalista", icon: "⌨️", title: "Terminalista", desc: "Risolvi un livello in modalità terminale, scrivendo la pipeline." },
     { id: "maratoneta", icon: "🏃", title: "Maratoneta", desc: "Risolvi 5 livelli in una sola Maratona." },

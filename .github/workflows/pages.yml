@@ -47,6 +47,9 @@ jobs:
       - name: L'interprete della modalità terminale rilegge ogni comando
         run: node tools/check-terminal.js
 
+      - name: Emoji visibili anche su macOS High Sierra
+        run: node tools/check-emoji.js
+
       - name: Script per Proxmox e Alpine (shellcheck)
         run: shellcheck deploy/proxmox-lxc.sh && shellcheck -s sh deploy/pipedreams-setup.sh
 

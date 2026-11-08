@@ -61,7 +61,7 @@ function renderLab(backTarget) {
     root.appendChild(el("h3", "manual-section", "Risultato"));
     root.appendChild(el("div", "lab-result")).id = "lab-result";
 
-    setManualContent("🧪 LABORATORIO", [root], true, backTarget);
+    setManualContent("⚗️ LABORATORIO", [root], true, backTarget);
     renderLabCommands();
     refreshLab();
 }

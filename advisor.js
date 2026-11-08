@@ -63,7 +63,7 @@ function diagnoseFailure(lvl, result) {
     if (result.stderr.length && !expectedErr.length) {
         return "Degli errori finiscono sul terminale: vanno cestinati o portati nella pipe?";
     }
-    return "Esegui un comando alla volta e guarda il flusso dopo ogni cella: dove si allontana da quello che ti serve? Con 🧪 LABORATORIO vedi ogni passaggio.";
+    return "Esegui un comando alla volta e guarda il flusso dopo ogni cella: dove si allontana da quello che ti serve? Con ⚗️ LABORATORIO vedi ogni passaggio.";
 }
 
 // Chi consiglia: il personaggio che ha dato la missione, altrimenti Marco

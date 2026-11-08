@@ -1,15 +1,20 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.19.0";
+const APP_VERSION = "1.19.1";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
     {
+        version: "1.19.1", date: "2026-11-08", items: [
+            "🔲 Le icone si vedono anche sui Mac con macOS High Sierra: le quattro emoji troppo recenti (Celle, Laboratorio, Consigli e una delle novità) sono state sostituite con simboli più vecchi, e un controllo impedisce che ne tornino di nuove."
+        ]
+    },
+    {
         version: "1.19.0", date: "2026-11-08", items: [
             "💻 Riga di shell «sul sistema vero»: nei livelli che dicono da dove arriva l'input (ps aux, df -h, apt list…) puoi scegliere tra la riga riproducibile, con lo stesso output del gioco, e il comando vero seguito dalla tua pipeline, come lo scriveresti al lavoro. Per esempio: ps aux | grep 'python3' | tr -s ' ' | cut -d' ' -f2.",
-            "🧰 Pipe Dreams su Proxmox: in deploy/ c'è uno script che crea un container Linux con il gioco in HTTPS e un terminale vero dove provare le righe."
+            "🔧 Pipe Dreams su Proxmox: in deploy/ c'è uno script che crea un container Linux con il gioco in HTTPS e un terminale vero dove provare le righe."
         ]
     },
     {
@@ -21,7 +26,7 @@ const CHANGELOG = [
     {
         version: "1.17.0", date: "2026-11-08", items: [
             "🌙 Atto VIII «Reperibilità notturna»: 7 livelli (44-50) con gli output veri di ps aux, du -sh, auth.log di SSH, /etc/motd, ss e df -h.",
-            "🧰 Nuovi comandi: tr -s per comprimere gli spazi (prima di cut sulle colonne di ps e df), sort -h per le dimensioni con K, M e G, xargs (anche -n N) per mettere le parole in fila, fold -w (e -s) per andare a capo.",
+            "🔧 Nuovi comandi: tr -s per comprimere gli spazi (prima di cut sulle colonne di ps e df), sort -h per le dimensioni con K, M e G, xargs (anche -n N) per mettere le parole in fila, fold -w (e -s) per andare a capo.",
             "📖 Manuale e pagine man di fold e xargs; tr e sort spiegano le nuove opzioni."
         ]
     },
@@ -40,8 +45,8 @@ const CHANGELOG = [
     },
     {
         version: "1.14.0", date: "2026-11-08", items: [
-            "🧑‍💻 Dopo tre tentativi sbagliati, il personaggio del livello ti dà un consiglio mirato: guarda la tua uscita e ti dice cosa non va (doppioni, ordine, numeri ordinati come testo, righe in più o in meno…) senza svelare la soluzione.",
-            "💡 Dal fumetto puoi chiedere la spinta, il primo aiuto gratuito. I consigli si spengono con il pulsante «🧑‍💻 Consigli» sotto Effetti."
+            "💬 Dopo tre tentativi sbagliati, il personaggio del livello ti dà un consiglio mirato: guarda la tua uscita e ti dice cosa non va (doppioni, ordine, numeri ordinati come testo, righe in più o in meno…) senza svelare la soluzione.",
+            "💡 Dal fumetto puoi chiedere la spinta, il primo aiuto gratuito. I consigli si spengono con il pulsante «💬 Consigli» sotto Effetti."
         ]
     },
     {
@@ -58,7 +63,7 @@ const CHANGELOG = [
     },
     {
         version: "1.11.0", date: "2026-11-07", items: [
-            "🧑‍💻 I personaggi hanno un volto: Marco, Giulia, Tommaso, Irene, Elena e Bruno in pixel art, ognuno con tre espressioni.",
+            "💬 I personaggi hanno un volto: Marco, Giulia, Tommaso, Irene, Elena e Bruno in pixel art, ognuno con tre espressioni.",
             "🚨 Nelle emergenze chi scrive è preoccupato; nelle deduzioni l'espressione cambia con la tua risposta.",
             "📚 Nei casi a puntate il ritratto di chi racconta ogni capitolo, e nel finale il personaggio della rivelazione."
         ]
@@ -97,7 +102,7 @@ const CHANGELOG = [
     {
         version: "1.6.0", date: "2026-11-04", items: [
             "🛠 Atto VII, «Patch Tuesday»: 7 nuovi livelli sugli aggiornamenti di Debian (apt), Arch (pacman, yay) e Fedora (dnf, rpm). L'input è il vero output dei gestori di pacchetti.",
-            "🧰 Nuovi comandi: nl (numerare), tee (vedere i dati a metà pipeline con tee /dev/stderr), comm e join (confrontare e unire con un file del livello).",
+            "🔧 Nuovi comandi: nl (numerare), tee (vedere i dati a metà pipeline con tee /dev/stderr), comm e join (confrontare e unire con un file del livello).",
             "📁 I livelli possono avere dei file: li vedi sotto l'input, e nel terminale li usi per nome (comm -12 - critici.txt).",
             "📖 Manuale: schede per nl, tee, comm, join e per i gestori di pacchetti (apt, pacman, yay, paru, dnf, rpm).",
             "🎯 Allenamento: nuovi argomenti «nl» e «comm e join»."
@@ -122,14 +127,14 @@ const CHANGELOG = [
     {
         version: "1.3.0", date: "2026-11-03", items: [
             "🚚 Atto VI, «Il grande trasloco»: 7 nuovi livelli e un nuovo finale della storia.",
-            "🧰 Nuovi comandi: tac e rev, sort -t -k (ordinare per un campo), grep -o (contare le occorrenze), uniq -d (solo i doppioni), cut -c (tenere dei caratteri).",
+            "🔧 Nuovi comandi: tac e rev, sort -t -k (ordinare per un campo), grep -o (contare le occorrenze), uniq -d (solo i doppioni), cut -c (tenere dei caratteri).",
             "📖 Manuale aggiornato: nuova scheda tac / rev ed esempi per le nuove opzioni.",
             "🎯 Allenamento: nuovo argomento «tac e rev» e nuovi livelli per sort, grep, uniq e cut."
         ]
     },
     {
         version: "1.2.0", date: "2026-11-03", items: [
-            "📊 Confronto dopo la vittoria: se la tua pipeline è più lunga del necessario, il gioco si ferma, la mette accanto a quella ottimale e ti dice quale comando non serve. Con 🧪 LABORATORIO la vedi passo per passo.",
+            "📊 Confronto dopo la vittoria: se la tua pipeline è più lunga del necessario, il gioco si ferma, la mette accanto a quella ottimale e ti dice quale comando non serve. Con ⚗️ LABORATORIO la vedi passo per passo.",
             "✨ Con una soluzione ottimale vedi anche le altre soluzioni ottimali.",
             "🎯 Allenamento: scegli un comando (grep, sort, uniq, sed...) e gioca livelli generati senza fine, prima brevi e poi più complessi.",
             "🏅 Nuovo obiettivo: In palestra."

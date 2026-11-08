@@ -76,6 +76,7 @@ node tools/check-daily.js 366   # sfide dei prossimi 366 giorni, Maratona e alle
 node tools/check-terminal.js    # l'interprete della modalità terminale rilegge ogni comando?
 node tools/check-community.js   # i livelli della galleria sono validi e coincidono con bash?
 node tools/check-stories.js     # gli enigmi dei casi sono validi, coincidono con bash e usano comandi già visti?
+node tools/check-emoji.js       # solo emoji che si vedono anche su macOS High Sierra (versione 5.0)?
 ```
 
 I test nel browser (Playwright) giocano davvero il gioco: tutti i livelli, salvataggio, storia,

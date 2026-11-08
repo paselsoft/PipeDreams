@@ -749,7 +749,7 @@ function showResult(lvl, result) {
             logToConsole(`> [FALLIMENTO] Lo stdout è giusto, ma degli errori sono finiti sul terminale.`, "log-error");
         } else {
             logToConsole(`> [FALLIMENTO] Riprova o usa AIUTO.`, "log-error");
-            logToConsole(`> Per esaminare la pipeline: 🧪 LABORATORIO, sopra i pulsanti.`, "log-hint");
+            logToConsole(`> Per esaminare la pipeline: ⚗️ LABORATORIO, sopra i pulsanti.`, "log-hint");
         }
         setBusy(false);
     }

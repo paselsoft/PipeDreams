@@ -50,7 +50,7 @@ module.exports = {
         assert.match(card, /La tua\s+grep -v 'ERR' \| grep -v 'ERR'\s+2 comandi/);
         assert.match(card, /Ottimale\s+grep -v 'ERR'\s+1 comando/);
         assert.equal((card.match(/non serve/g) || []).length, 1, "comandi uguali segnalati una volta");
-        await page.click("#result-card >> text=🧪 LABORATORIO");
+        await page.click("#result-card >> text=⚗️ LABORATORIO");
         assert.equal(await page.isVisible("#manual-overlay"), true);
         assert.equal(await page.evaluate(() => lab.commands.map(c => c.cmd).join(",")), "grep");
         await page.evaluate(() => closeManual());
