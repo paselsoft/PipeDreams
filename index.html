@@ -99,7 +99,8 @@
             <input id="terminal-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                    placeholder="2>&1 | grep 'ERR' | sort | uniq">
             <div class="terminal-error" id="terminal-error" role="alert"></div>
-            <div class="terminal-help">Invio per eseguire. Comandi del livello (tocca per aggiungere):</div>
+            <div class="terminal-hint" id="terminal-hint" aria-live="polite"></div>
+            <div class="terminal-help">Invio per eseguire · ↑↓ righe precedenti · Tab completa · man sort, man -k parola, sort --help. Comandi del livello (tocca per aggiungere):</div>
             <div class="terminal-suggest" id="terminal-suggest"></div>
         </div>
 
@@ -338,6 +339,7 @@
     <script src="app.js"></script>
     <script src="manual-view.js"></script>
     <script src="manpage.js"></script>
+    <script src="terminal-keys.js"></script>
     <script src="lab.js"></script>
     <script src="a11y.js"></script>
 </body>

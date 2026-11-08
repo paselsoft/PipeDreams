@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.15.0";
+const APP_VERSION = "1.16.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.16.0", date: "2026-11-08", items: [
+            "⌨️ Il terminale si comporta di più come bash: ↑ e ↓ richiamano le righe già eseguite (anche dopo aver chiuso il gioco), Tab completa i nomi dei comandi, dei reindirizzamenti, dei file e delle pagine di man.",
+            "❓ sort --help (o qualunque comando seguito da --help) stampa in console la sintassi e le opzioni.",
+            "🔎 man -k parola e apropos parola cercano tra le pagine man, whatis sort dà la descrizione in una riga. Prova man -k ordina."
+        ]
+    },
     {
         version: "1.15.0", date: "2026-11-08", items: [
             "📄 Le pagine man: ogni comando del manuale ha la sua pagina nello stile dei terminali veri (NOME, SINOSSI, DESCRIZIONE, OPZIONI, ESEMPI, VEDI ANCHE). Si apre con il pulsante «📄 man» in ogni scheda.",

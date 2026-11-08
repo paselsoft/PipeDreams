@@ -327,7 +327,7 @@ function refreshTerminal() {
     }
     const text = terminalText();
     // «man sort» non è una pipeline: con Invio apre la pagina del manuale
-    const result = !text.trim() || parseManCommand(text) ? { steps: [] } : parsePipeline(text, levelFiles(currentLevel()));
+    const result = !text.trim() || parseHelpCommand(text) ? { steps: [] } : parsePipeline(text, levelFiles(currentLevel()));
     document.getElementById("terminal-error").textContent = result.error || "";
     updateShellLine();
     updateSlotCounter();
@@ -591,21 +591,25 @@ function describeLines(lines) {
     return `[${out.join(", ")}]` + (err.length ? ` · stderr: [${err.join(", ")}]` : "");
 }
 
-// «man X» nel terminale apre la pagina man invece di eseguire (non conta come tentativo).
-// Restituisce true se la riga era un comando man.
-function runManCommand() {
-    const man = parseManCommand(terminalText());
-    if (!man) return false;
+// Comandi di aiuto nel terminale (man, man -k, apropos, whatis, --help): non eseguono la
+// pipeline e non contano come tentativo. Restituisce true se la riga era uno di questi.
+function runHelpCommand() {
+    const help = parseHelpCommand(terminalText());
+    if (!help) return false;
     document.getElementById("console").innerHTML = "";
     logToConsole(`$ ${terminalText().trim()}`, "log-stdin");
-    if (man.error) {
-        logToConsole(man.error, "log-error");
+    if (help.error) {
+        logToConsole(help.error, "log-error");
         return true;
     }
-    logToConsole(`Pagina man di ${MAN_PAGES[man.entry.id].names[0]} aperta.`, "log-step");
+    if (help.lines) {
+        help.lines.forEach(line => logToConsole(line, "log-step log-pre"));
+    } else {
+        logToConsole(`Pagina man di ${MAN_PAGES[help.entry.id].names[0]} aperta.`, "log-step");
+    }
     document.getElementById("terminal-input").value = "";
     refreshTerminal();
-    openManPage(man.entry.id);
+    if (help.entry) openManPage(help.entry.id);
     return true;
 }
 
@@ -615,7 +619,7 @@ async function runPipeline() {
         return;
     }
     if (isBusy) return;
-    if (terminalActive() && runManCommand()) return;
+    if (terminalActive() && runHelpCommand()) return;
     if (terminalActive()) {
         const parsed = parsePipeline(terminalText(), levelFiles(currentLevel()));
         if (parsed.error) {
@@ -1002,7 +1006,10 @@ document.querySelectorAll("#speed-control button").forEach(button => {
 });
 document.getElementById("terminal-input").addEventListener("input", refreshTerminal);
 document.getElementById("terminal-input").addEventListener("keydown", event => {
-    if (event.key === "Enter") runPipeline();
+    if (event.key === "Enter") {
+        rememberCommand(terminalText());
+        runPipeline();
+    }
 });
 document.querySelectorAll("#mode-toggle button").forEach(button => {
     button.onclick = () => setInputMode(button.dataset.mode);

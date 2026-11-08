@@ -129,15 +129,68 @@ function openManPage(entryId, back = null) {
     document.getElementById("manual-overlay").hidden = false;
 }
 
-// Riga del terminale «man X»: restituisce null se non è un comando man, altrimenti
-// { entry } oppure { error } con un messaggio come quello di man
-function parseManCommand(text) {
-    const match = /^\s*man(?:\s+(.*?))?\s*$/.exec(text);
-    if (!match) return null;
-    const words = (match[1] || "").replace(/['"]/g, "").split(/\s+/).filter(Boolean);
-    if (!words.length) return { error: "Quale pagina di manuale vuoi? Per esempio: man sort" };
-    if (words.length > 1) return { error: "Una pagina alla volta: per esempio man sort" };
-    const entry = manEntryFor(words[0]);
-    if (!entry) return { error: `Nessuna voce di manuale per ${words[0]}` };
-    return { entry };
+// Testo senza accenti e in minuscolo, per cercare «perche» e trovare «perché»
+const foldText = text => String(text).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+// Riga di man -k / apropos e di whatis: «sort (1)  - Ordina le righe...»
+function manIndexLine(entry) {
+    return `${(MAN_PAGES[entry.id].nome || MAN_PAGES[entry.id].names.join(", ")).padEnd(18)} (1)  - ${entry.summary}`;
+}
+
+// Come apropos: cerca la parola nei nomi, nella descrizione breve e nelle opzioni
+function manSearch(word) {
+    const wanted = foldText(word);
+    return MANUAL.filter(entry => {
+        const page = MAN_PAGES[entry.id];
+        const haystack = [...page.names, page.nome || "", entry.summary, ...(entry.options || []).map(option => option.text)];
+        return haystack.some(text => foldText(text).includes(wanted));
+    });
+}
+
+// Riepilogo di «comando --help», con la sintassi e le opzioni della scheda
+function helpLines(name) {
+    const entry = manEntryFor(name);
+    if (!entry) return null;
+    const lines = [`Uso: ${entry.syntax}`, entry.summary];
+    (entry.options || []).forEach(option => lines.push(`  ${option.flag.padEnd(12)} ${option.text}`));
+    lines.push(`Pagina completa: man ${MAN_PAGES[entry.id].names[0]}`);
+    return lines;
+}
+
+// Comandi «di aiuto» scritti nel terminale, che non sono pipeline:
+//   man X · man -k parola · apropos parola · whatis X · comando --help
+// Restituisce null se la riga è una pipeline normale, altrimenti
+// { entry } (apre la pagina), { lines } (testo per la console) oppure { error }
+function parseHelpCommand(text) {
+    const words = text.replace(/['"]/g, "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return null;
+    const [first, ...rest] = words;
+
+    if (first === "apropos" || (first === "man" && rest[0] === "-k")) {
+        const terms = first === "apropos" ? rest : rest.slice(1);
+        if (terms.length !== 1) return { error: `${first === "apropos" ? "apropos" : "man -k"}: serve una parola da cercare, es. ${first === "apropos" ? "apropos" : "man -k"} ordina` };
+        const found = manSearch(terms[0]);
+        if (!found.length) return { error: `${terms[0]}: nulla di adatto.` };
+        return { lines: found.map(manIndexLine) };
+    }
+    if (first === "whatis") {
+        if (rest.length !== 1) return { error: "whatis: serve il nome di un comando, es. whatis sort" };
+        const entry = manEntryFor(rest[0]);
+        return entry ? { lines: [manIndexLine(entry)] } : { error: `${rest[0]}: nulla di adatto.` };
+    }
+    if (first === "man") {
+        if (!rest.length) return { error: "Quale pagina di manuale vuoi? Per esempio: man sort" };
+        if (rest.length > 1) return { error: "Una pagina alla volta: per esempio man sort" };
+        const entry = manEntryFor(rest[0]);
+        if (!entry) return { error: `Nessuna voce di manuale per ${rest[0]}` };
+        return { entry };
+    }
+    if (words.includes("--help")) {
+        // Il comando è la prima parola del pezzo di pipeline che contiene --help
+        const segment = text.split("|").find(part => /(^|\s)--help(\s|$)/.test(part)) || "";
+        const name = segment.trim().split(/\s+/).find(word => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word)) || "";
+        const lines = helpLines(name);
+        return lines ? { lines } : { error: `bash: ${name}: comando non trovato` };
+    }
+    return null;
 }
