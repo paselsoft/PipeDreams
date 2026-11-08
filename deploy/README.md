@@ -70,6 +70,13 @@ con la password scelta durante l'installazione (si cambia con `pct enter ID` e p
 Senza password: dalla shell di Proxmox `pct enter ID`, poi `bash -l`. Metti il browser del gioco a sinistra
 e la console a destra: copia la riga `$ ...` sotto la pipeline e incollala nella console.
 
+Ci sono anche le pagine del manuale vere: `man sort`, `man xargs`, `man -k parola`, `whatis`.
+Confrontale con le pagine man del gioco: quelle vere hanno tutte le opzioni.
+
+Se incollando una riga compaiono `[200~` all'inizio e `~` alla fine, è la «incolla protetta»
+del terminale che arriva spezzata: lo script la disattiva in `/root/.inputrc`
+(`set enable-bracketed-paste off`), anche con `aggiorna`.
+
 Oltre ai comandi GNU ci sono `ps` completo (procps) e `ss` (iproute2), così anche le righe
 «sul sistema vero» dei livelli con `ps aux` e `ss -Htln` girano come su un server.
 Una trappola classica da provare: `ps aux | grep 'python3'` trova anche la riga di `grep`

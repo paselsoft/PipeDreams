@@ -30,14 +30,25 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Comandi GNU come nelle verifiche del gioco, più ps completo (procps) e ss (iproute2-ss):
-# senza, ps aux e ss sarebbero quelli ridotti di BusyBox
-PACCHETTI="nginx openssl git bash coreutils grep sed gawk findutils diffutils less procps iproute2-ss"
+# Comandi GNU come nelle verifiche del gioco, più ps completo (procps) e ss (iproute2-ss, pagina in iproute2-doc):
+# senza, ps aux e ss sarebbero quelli ridotti di BusyBox. Pagine del manuale: mandoc è il
+# comando man, man-pages le pagine generali, docs installa la documentazione (-doc) di ogni
+# pacchetto installato, mandoc-apropos aggiunge man -k, apropos e whatis.
+PACCHETTI="nginx openssl git bash coreutils grep sed gawk findutils diffutils less procps iproute2-ss mandoc mandoc-apropos man-pages docs iproute2-doc"
 
 installa_pacchetti() {
     apk update >/dev/null
     # shellcheck disable=SC2086 # l'elenco va diviso in parole
     apk add --no-progress $PACCHETTI >/dev/null
+    # Indice di man -k e apropos. mandoc lo rifà in background durante l'installazione, a volte
+    # prima che arrivino tutte le pagine: si aspetta che finisca (al massimo 2 minuti) e lo si
+    # rifà con tutte le pagine installate. Due makewhatis insieme rovinerebbero l'indice.
+    attesa=0
+    while pgrep -x makewhatis >/dev/null 2>&1 && [ "$attesa" -lt 120 ]; do
+        sleep 1
+        attesa=$((attesa + 1))
+    done
+    makewhatis >/dev/null 2>&1 || true
 }
 
 say() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
@@ -138,6 +149,12 @@ avvia_nginx() {
     fi
 }
 
+# Niente «incolla protetta» (bracketed paste): passando per ssh e pct exec i suoi segnali
+# arrivano spezzati e bash li legge come testo ([200~ ... ~), rompendo le righe incollate dal gioco
+incolla_semplice() {
+    grep -qs 'enable-bracketed-paste' /root/.inputrc || echo 'set enable-bracketed-paste off' >> /root/.inputrc
+}
+
 shell_gnu() {
     say "Shell di root: bash con i comandi GNU (come nel gioco)"
     sed -i 's#^\(root:.*:\)/bin/sh$#\1/bin/bash#' /etc/passwd
@@ -152,12 +169,14 @@ EOF
 PS1='\[\e[1;32m\]\u@pipedreams\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
 EOF
     printf '[ -f ~/.bashrc ] && . ~/.bashrc\n' > /root/.bash_profile
+    incolla_semplice
 }
 
 case "$ACTION" in
     aggiorna)
         say "Aggiorno i pacchetti"
         installa_pacchetti
+        incolla_semplice
         aggiorna_gioco
         ;;
     certificato)
