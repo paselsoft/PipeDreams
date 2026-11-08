@@ -30,6 +30,16 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Comandi GNU come nelle verifiche del gioco, più ps completo (procps) e ss (iproute2-ss):
+# senza, ps aux e ss sarebbero quelli ridotti di BusyBox
+PACCHETTI="nginx openssl git bash coreutils grep sed gawk findutils diffutils less procps iproute2-ss"
+
+installa_pacchetti() {
+    apk update >/dev/null
+    # shellcheck disable=SC2086 # l'elenco va diviso in parole
+    apk add --no-progress $PACCHETTI >/dev/null
+}
+
 say() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
 
 aggiorna_gioco() {
@@ -146,6 +156,8 @@ EOF
 
 case "$ACTION" in
     aggiorna)
+        say "Aggiorno i pacchetti"
+        installa_pacchetti
         aggiorna_gioco
         ;;
     certificato)
@@ -155,8 +167,7 @@ case "$ACTION" in
         ;;
     installa)
         say "Installo i pacchetti"
-        apk update >/dev/null
-        apk add --no-progress nginx openssl git bash coreutils grep sed gawk findutils diffutils less >/dev/null
+        installa_pacchetti
         aggiorna_gioco
         certificati
         configura_nginx

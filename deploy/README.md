@@ -68,6 +68,11 @@ con la password scelta durante l'installazione (si cambia con `pct enter ID` e p
 Senza password: dalla shell di Proxmox `pct enter ID`, poi `bash -l`. Metti il browser del gioco a sinistra
 e la console a destra: copia la riga `$ ...` sotto la pipeline e incollala nella console.
 
+Oltre ai comandi GNU ci sono `ps` completo (procps) e `ss` (iproute2), così anche le righe
+«sul sistema vero» dei livelli con `ps aux` e `ss -Htln` girano come su un server.
+Una trappola classica da provare: `ps aux | grep 'python3'` trova anche la riga di `grep`
+stesso, perché anche grep è un processo con «python3» nella sua riga di comando.
+
 ## Comandi utili
 
 ```bash
@@ -82,7 +87,7 @@ bash proxmox-lxc.sh certificato
 bash proxmox-lxc.sh stato
 ```
 
-`aggiorna` scarica l'ultima versione del gioco; `certificato` rifà il certificato se l'indirizzo
+`aggiorna` scarica l'ultima versione del gioco e installa i pacchetti che mancano; `certificato` rifà il certificato se l'indirizzo
 di Proxmox è cambiato (la CA resta la stessa: sul Mac non serve reinstallarla).
 Variabili: `CTID`, `MEMORY`, `HTTPS_PORT`, `HTTP_PORT`, `UPLINK`, `NAT_BRIDGE`, `NAT_NET`,
 `STORAGE` (vedi in cima a `proxmox-lxc.sh`).
