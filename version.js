@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.16.0";
+const APP_VERSION = "1.17.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.17.0", date: "2026-11-08", items: [
+            "🌙 Atto VIII «Reperibilità notturna»: 7 livelli (44-50) con gli output veri di ps aux, du -sh, auth.log di SSH, /etc/motd, ss e df -h.",
+            "🧰 Nuovi comandi: tr -s per comprimere gli spazi (prima di cut sulle colonne di ps e df), sort -h per le dimensioni con K, M e G, xargs (anche -n N) per mettere le parole in fila, fold -w (e -s) per andare a capo.",
+            "📖 Manuale e pagine man di fold e xargs; tr e sort spiegano le nuove opzioni."
+        ]
+    },
     {
         version: "1.16.0", date: "2026-11-08", items: [
             "⌨️ Il terminale si comporta di più come bash: ↑ e ↓ richiamano le righe già eseguite (anche dopo aver chiuso il gioco), Tab completa i nomi dei comandi, dei reindirizzamenti, dei file e delle pagine di man.",

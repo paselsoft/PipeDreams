@@ -78,7 +78,16 @@ const report = vm.runInContext(`(() => {
         ["tee /dev/stderr | wc -l", [{ cmd: "tee", args: { file: "/dev/stderr" } }, { cmd: "wc" }]],
         ["comm -21 - critici.txt", [{ cmd: "comm", args: { mode: "12", file: "critici.txt", lines: ["bash", "sudo"] } }]],
         ["comm -1 -3 - critici.txt", [{ cmd: "comm", args: { mode: "13", file: "critici.txt", lines: ["bash", "sudo"] } }]],
-        ["join -t , - ultime.txt", [{ cmd: "join", args: { separator: ",", file: "ultime.txt", lines: ["bash,5.2", "curl,8.1"] } }]]
+        ["join -t , - ultime.txt", [{ cmd: "join", args: { separator: ",", file: "ultime.txt", lines: ["bash,5.2", "curl,8.1"] } }]],
+        ["sort -hr", [{ cmd: "sort", args: { human: true, reverse: true } }]],
+        ["tr -s ' ' | cut -d' ' -f2", [{ cmd: "squeeze", args: { set: " " } }, { cmd: "cut", args: { delim: " ", field: 2 } }]],
+        ["fold -w5", [{ cmd: "fold", args: { width: 5 } }]],
+        ["fold -sw 5", [{ cmd: "fold", args: { width: 5, spaces: true } }]],
+        ["fold -s -w 12", [{ cmd: "fold", args: { width: 12, spaces: true } }]],
+        ["fold -20", [{ cmd: "fold", args: { width: 20 } }]],
+        ["xargs echo", [{ cmd: "xargs" }]],
+        ["xargs -n2", [{ cmd: "xargs", args: { n: 2 } }]],
+        ["xargs -n 3 echo", [{ cmd: "xargs", args: { n: 3 } }]]
     ].filter(([, expected]) => expected);
     const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"] };
     for (const [text, expected] of variants) {
@@ -92,7 +101,8 @@ const report = vm.runInContext(`(() => {
         "sort > out.txt", "tr -d", "uniq -u", "", "sort -k2", "sort -t, -k2,3", "sort -k2,2", "sort -t,",
         "grep -vo x", "cut -c", "cut -c4-2", "cut -c1-3 -d,", "tac -s x", "rev file",
         "comm - critici.txt", "comm -3 - critici.txt", "comm -12 critici.txt -", "comm -12 - altro.txt", "join - ", "join -t,, - ultime.txt",
-        "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b"];
+        "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b",
+        "sort -nh", "tr -s", "tr -s a b", "fold", "fold -w 0", "fold -x", "xargs rm", "xargs -n", "xargs -n 0", "xargs -0"];
     for (const text of errors) {
         const result = parsePipeline(text, variantFiles);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));

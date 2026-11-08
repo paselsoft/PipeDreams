@@ -22,7 +22,9 @@ const MAN_PAGES = {
     comm: { names: ["comm"], seeAlso: ["join", "sort", "uniq"] },
     join: { names: ["join"], seeAlso: ["comm", "sort", "cut"] },
     pacchetti: { names: ["apt", "pacman", "yay", "paru", "dnf", "rpm", "dpkg", "dpkg-query"], seeAlso: ["grep", "cut", "devnull"] },
-    paste: { names: ["paste"], seeAlso: ["tr", "cut"] },
+    paste: { names: ["paste"], seeAlso: ["tr", "cut", "xargs"] },
+    fold: { names: ["fold"], seeAlso: ["tr", "cut", "sed"] },
+    xargs: { names: ["xargs", "echo"], seeAlso: ["paste", "tr"] },
     devnull: { names: ["null", "/dev/null", "stderr"], nome: "2>/dev/null", seeAlso: ["merge", "pipe"] },
     merge: { names: ["redirezioni", "2>&1"], nome: "2>&1", seeAlso: ["devnull", "pipe"] }
 };

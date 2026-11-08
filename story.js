@@ -30,6 +30,10 @@ const ACTS = {
     7: {
         title: "Patch Tuesday",
         intro: "Nel nuovo datacenter convivono tre famiglie di Linux: Debian con apt, Arch con pacman (e yay per l'AUR), Fedora con dnf e rpm. È il secondo martedì del mese, il giorno delle patch, e Giulia vuole tutto aggiornato entro sera. Non lancerai tu gli aggiornamenti: leggerai i loro output. Arrivano nl per numerare, tee per vedere i dati a metà strada, comm e join per confrontare due elenchi."
+    },
+    8: {
+        title: "Reperibilità notturna",
+        intro: "Giulia ti consegna il telefono della reperibilità: questa settimana, di notte, i server sono affar tuo. Alle tre il monitoraggio suona e davanti a te ci sono solo gli output dei comandi di sistema: ps, du, df, ss, i log di SSH. Sono colonne allineate con gruppi di spazi e dimensioni scritte con K, M e G. Nella cassetta degli attrezzi arrivano tr -s per comprimere gli spazi, sort -h per le dimensioni, xargs per mettere le parole in fila e fold per andare a capo."
     }
 };
 
@@ -77,8 +81,15 @@ const STORY = {
     40: { from: "Marco", text: "Su Debian dpkg-query mi dà le versioni installate, e ho un file con le ultime uscite. Mettile una accanto all'altra, che le confronto a occhio." },
     41: { from: "Tommaso", text: "Ultima domanda della giornata, promesso: cosa stampa comm -13? Io direi le righe in comune..." },
     42: { from: "Giulia", text: "Fedora: dnf check-update elenca tutto, ma il kernel lo aggiorniamo stanotte con un riavvio. Gli altri pacchetti, senza architettura, per favore." },
-    43: { from: "Giulia", text: "🚨 È uscito il bollettino delle vulnerabilità! Ho l'inventario di tutti i server: dimmi subito quali vanno patchati per primi." }
+    43: { from: "Giulia", text: "🚨 È uscito il bollettino delle vulnerabilità! Ho l'inventario di tutti i server: dimmi subito quali vanno patchati per primi." },
+    44: { from: "Marco", text: "🚨 Ti sveglio io: il server web è al 100% di CPU. Ho lanciato ps aux, guarda chi sta mangiando tutto. Ho un sospetto su Tommaso..." },
+    45: { from: "Giulia", text: "🚨 Allarme disco: /var è al 97%. Ecco du -sh /var/*. Prima di cancellare qualcosa voglio sapere dove sta lo spazio." },
+    46: { from: "Marco", text: "Nei log di SSH c'è qualcuno che prova password a raffica. Il firewall vecchio vuole due IP per regola, non chiedermi perché." },
+    47: { from: "Tommaso", text: "Scusa per lo script di stanotte... Per farmi perdonare scrivo io l'avviso per il display del rack, ma è minuscolo: 16 caratteri per riga!" },
+    48: { from: "Giulia", text: "Il nuovo firewall parte domattina. Mi serve l'elenco delle porte aperte verso l'esterno, in una riga, da incollare nella configurazione." },
+    49: { from: "Tommaso", text: "Domanda veloce prima di andare a dormire: sort -h cosa fa con queste dimensioni? Io direi che 1.5G è la più piccola..." },
+    50: { from: "Giulia", text: "🚨 Ultima notte di reperibilità, e il NAS non risponde. Prima del rapporto voglio i dischi NVMe in una riga, dal più grande: così vediamo dove spostare i backup." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Il secondo martedì del mese si chiude con tutti i server aggiornati, Debian, Arch e Fedora, e nessuno ha dovuto riavviare in orario di lavoro. Settimane prima, a mezzanotte e un minuto, il vecchio server si era spento e il trasloco era finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";
+const EPILOGUE = "La settimana di reperibilità finisce all'alba di lunedì: hai fermato lo script di Tommaso, liberato il disco, chiuso le porte e bloccato chi provava le password, e il rapporto della notte è pronto prima del caffè. Qualche settimana prima, il secondo martedì del mese si era chiuso con tutti i server aggiornati, Debian, Arch e Fedora, e nessuno ha dovuto riavviare in orario di lavoro. Settimane prima, a mezzanotte e un minuto, il vecchio server si era spento e il trasloco era finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";

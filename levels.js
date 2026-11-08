@@ -829,5 +829,177 @@ const levels = [
             { cmd: "uniq", desc: "Rimuovi duplicati" },
             { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati" }
         ]
+},
+    {
+        id: 44,
+        act: 8,
+        title: "Chi Mangia la CPU",
+        source: "ps aux",
+        slots: 5,
+        mission: "Sono le 3 di notte e il server web è al 100% di CPU. Trova i <strong>PID</strong> (la seconda colonna) dei processi <code>python3</code>, per fermarli con <code>kill</code>.",
+        stdin: [
+            "USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND",
+            "root           1  0.0  0.1 167744 13088 ?        Ss   21:04   0:02 /sbin/init",
+            "root         612  0.0  0.2 289316 18232 ?        Ssl  21:04   0:00 /usr/sbin/rsyslogd",
+            "www-data     812  0.1  0.6 213120 52304 ?        S    21:04   0:12 nginx: worker process",
+            "tommaso     4521 98.7 12.4 2954112 1015808 pts/2 R   01:12  41:07 python3 scraper.py",
+            "tommaso     4533 97.9 11.8 2898344 968704 pts/3  R    01:13  40:51 python3 scraper.py",
+            "backup      5100  0.3  0.1  10512  4096 ?        S    02:00   0:01 rsync -a /home /mnt/nas"
+        ],
+        target: ["4521", "4533"],
+        nudge: "Le colonne di ps sono separate da gruppi di spazi: per cut ogni spazio è un separatore, anche quelli in fila.",
+        hint: "Piano in 3 passi: 1) tieni le righe con python3, 2) tr -s ' ' comprime i gruppi di spazi in uno solo, 3) cut -d' ' -f2. Attenzione: senza tr -s, cut -f2 trova il vuoto tra due spazi.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "python3" }, desc: "Tieni le righe con 'python3'" },
+            { cmd: "squeeze", args: { set: " " }, desc: "Comprimi gli spazi in fila" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "sort", args: { numeric: true }, desc: "Ordine numerico" }
+        ]
+    },
+    {
+        id: 45,
+        act: 8,
+        title: "Disco Pieno",
+        source: "du -sh /var/*",
+        mission: "🚨 Il disco di <code>/var</code> è quasi pieno! Mostrami le <strong>tre cartelle più pesanti</strong>, dalla più grande, con la loro dimensione.",
+        stdin: ["4.0K\t/var/backups", "1.3G\t/var/cache", "48K\t/var/crash", "212M\t/var/lib", "4.0K\t/var/local", "2.7G\t/var/log", "980M\t/var/mail", "36K\t/var/tmp"],
+        target: ["2.7G\t/var/log", "1.3G\t/var/cache", "980M\t/var/mail"],
+        nudge: "du -h scrive le dimensioni con le unità: K, M, G. Per sort -n 980 è più di 2.7.",
+        hint: "Piano in 2 passi: sort -hr ordina dalla più grande capendo le unità (G viene dopo M), poi head -n 3. Attenzione: sort -rn mette prima 980M di 2.7G.",
+        allowedCommands: [
+            { cmd: "sort", args: { human: true, reverse: true }, desc: "Dimensioni, dalla più grande" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Numeri, dal più grande" },
+            { cmd: "sort", args: { human: true }, desc: "Dimensioni, dalla più piccola" },
+            { cmd: "head", args: { n: 3 }, desc: "Prime 3 righe" },
+            { cmd: "tail", args: { n: 3 }, desc: "Ultime 3 righe" }
+        ]
+    },
+    {
+        id: 46,
+        act: 8,
+        title: "Due per Regola",
+        source: "grep sshd /var/log/auth.log",
+        slots: 6,
+        mission: "Qualcuno prova a indovinare le password via SSH. Blocca gli IP dei tentativi <strong>falliti</strong>: il firewall vuole <strong>due IP per riga</strong>, in ordine e senza ripetizioni.",
+        stdin: [
+            "Nov  8 02:14:01 web sshd[811]: Failed password for root from 203.0.113.7 port 52211 ssh2",
+            "Nov  8 02:15:22 web sshd[902]: Accepted publickey for marco from 192.0.2.10 port 40022 ssh2",
+            "Nov  8 02:16:40 web sshd[930]: Failed password for admin from 198.51.100.23 port 61001 ssh2",
+            "Nov  8 02:16:52 web sshd[811]: Failed password for root from 203.0.113.7 port 52213 ssh2",
+            "Nov  8 02:17:02 web sshd[931]: Failed password for invalid user test from 203.0.113.99 port 33410 ssh2",
+            "Nov  8 02:18:15 web sshd[944]: Failed password for root from 192.0.2.77 port 50120 ssh2"
+        ],
+        target: ["192.0.2.77 198.51.100.23", "203.0.113.7 203.0.113.99"],
+        nudge: "L'IP viene sempre dopo «from», ma non è sempre nella stessa colonna: guarda il tentativo con «invalid user».",
+        hint: "Piano in 5 passi: grep 'Failed', sed -E 's/.* from ([0-9.]+) .*/\\1/' tiene l'IP, sort, uniq, poi xargs -n 2 mette due parole per riga. Attenzione: awk '{print $11}' sbaglia con «invalid user test».",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Tieni i tentativi falliti" },
+            { cmd: "sed", args: { pattern: ".* from ([0-9.]+) .*", replacement: "\\1" }, desc: "Tieni l'IP dopo 'from'" },
+            { cmd: "awk", args: { field: 11 }, desc: "Campo 11 di awk" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "xargs", args: { n: 2 }, desc: "Due parole per riga" },
+            { cmd: "xargs", desc: "Tutto in una riga" }
+        ]
+    },
+    {
+        id: 47,
+        act: 8,
+        title: "Il Display del Rack",
+        source: "cat /etc/motd",
+                mission: "Il display del rack mostra <strong>16 caratteri</strong> per riga. Prepara l'avviso: spazi doppi tolti, a capo <strong>solo tra una parola e l'altra</strong> e niente spazio in fondo alle righe.",
+        stdin: ["Manutenzione  stanotte alle 23:   zebra resta  spento fino alle 6"],
+        target: ["Manutenzione", "stanotte alle", "23: zebra resta", "spento fino", "alle 6"],
+        nudge: "fold -w spezza a 16 caratteri anche a metà parola; fold -s va a capo dopo l'ultimo spazio, che però resta in fondo alla riga.",
+        hint: "Piano in 3 passi: 1) tr -s ' ' toglie gli spazi doppi, 2) fold -s -w 16 va a capo tra le parole, 3) sed -E 's/ $//' toglie lo spazio rimasto in fondo.",
+        allowedCommands: [
+            { cmd: "squeeze", args: { set: " " }, desc: "Comprimi gli spazi in fila" },
+            { cmd: "fold", args: { width: 16 }, desc: "A capo ogni 16 caratteri" },
+            { cmd: "fold", args: { width: 16, spaces: true }, desc: "A capo tra le parole (16)" },
+            { cmd: "sed", args: { pattern: " $" }, desc: "Togli lo spazio in fondo" },
+            { cmd: "cutc", args: { from: 1, to: 16 }, desc: "Primi 16 caratteri" }
+        ]
+    },
+    {
+        id: 48,
+        act: 8,
+        title: "Porte Aperte",
+        source: "ss -Htln",
+        slots: 7,
+        mission: "Il firewall nuovo ha bisogno delle porte in ascolto <strong>raggiungibili da fuori</strong> (non quelle su 127.x), in ordine numerico, senza ripetizioni e <strong>in una riga sola</strong>.",
+        stdin: [
+            "LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*",
+            "LISTEN 0      511          0.0.0.0:80         0.0.0.0:*",
+            "LISTEN 0      128          0.0.0.0:22         0.0.0.0:*",
+            "LISTEN 0      511          0.0.0.0:443        0.0.0.0:*",
+            "LISTEN 0      128             [::]:22            [::]:*",
+            "LISTEN 0      244        127.0.0.1:5432       0.0.0.0:*",
+            "LISTEN 0      4096            [::]:8080          [::]:*"
+        ],
+        target: ["22 80 443 8080"],
+        nudge: "La porta è dopo l'ultimo «:» della quarta colonna. Occhio a [::]:22, che di «:» ne ha tre.",
+        hint: "Piano in 6 passi: grep -v '127.0.0', awk '{print $4}', sed -E 's/.*://' tiene quello dopo l'ultimo «:», sort -n, uniq, xargs. Attenzione: cut -d':' -f2 su [::]:22 dà il vuoto.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "127.0.0", invert: true }, desc: "Scarta le righe con '127.0.0'" },
+            { cmd: "awk", args: { field: 4 }, desc: "Campo 4 di awk" },
+            { cmd: "sed", args: { pattern: ".*:" }, desc: "Togli fino all'ultimo ':'" },
+            { cmd: "cut", args: { delim: ":", field: 2 }, desc: "Campo 2 (:)" },
+            { cmd: "sort", args: { numeric: true }, desc: "Ordine numerico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "xargs", desc: "Tutto in una riga" },
+            { cmd: "xargs", args: { n: 2 }, desc: "Due parole per riga" }
+        ]
+    },
+    {
+        id: 49,
+        act: 8,
+        title: "Unità di Misura",
+        type: "quiz",
+        mission: "Tommaso chiede: cosa stampa questa pipeline sulle dimensioni delle cartelle di <code>/home</code>?",
+        stdin: ["900M\tmarco", "1.5G\tgiulia", "20K\ttommaso"],
+        target: ["20K\ttommaso", "900M\tmarco", "1.5G\tgiulia"],
+        nudge: "Con -h sort guarda prima l'unità (K, M, G) e poi il numero.",
+        hint: "sort -h capisce le unità: K viene prima di M, che viene prima di G. Quindi 20K, 900M, 1.5G, dalla più piccola.",
+        explain: "sort -h ordina dalla più piccola alla più grande capendo le unità: 20K < 900M < 1.5G. Con -n avrebbe guardato solo i numeri: 1.5 < 20 < 900.",
+        allowedCommands: [
+            { cmd: "sort", args: { human: true }, desc: "Dimensioni, dalla più piccola" }
+        ],
+        start: [1],
+        wrong: [
+            { steps: [{ cmd: "sort", args: { numeric: true } }], why: "Questo è l'ordine di sort -n: guarda solo i numeri (1.5, 20, 900) e ignora le unità." },
+            { steps: [{ cmd: "sort", args: { human: true, reverse: true } }], why: "Questo è sort -hr, dalla più grande. Senza -r sort parte dalla più piccola." }
+        ]
+    },
+    {
+        id: 50,
+        act: 8,
+        title: "Boss Atto VIII",
+        source: "df -h",
+        slots: 7,
+        mission: "🚨 Giulia vuole i <strong>punti di montaggio</strong> dei dischi NVMe, dal più grande al più piccolo, <strong>in una riga</strong>, per il rapporto della notte. Niente tmpfs, niente intestazione, e il NAS che non risponde non deve comparire.",
+        stdin: [
+            { err: "df: /mnt/nas: Stale file handle" },
+            "Filesystem      Size  Used Avail Use% Mounted on",
+            "tmpfs           1.6G  2.1M  1.6G   1% /run",
+            "/dev/nvme0n1p2  450G  301G  127G  71% /",
+            "tmpfs           7.8G     0  7.8G   0% /dev/shm",
+            "/dev/nvme0n1p1  511M  6.1M  505M   2% /boot/efi",
+            "/dev/nvme1n1p1  1.8T  1.2T  540G  69% /srv",
+            "/dev/nvme0n1p3   98G   41G   52G  45% /home"
+        ],
+        target: ["/srv / /home /boot/efi"],
+        nudge: "La dimensione è la seconda colonna, scritta con le unità. Per ordinare su una colonna serve un separatore solo, non gruppi di spazi.",
+        hint: "Piano in 6 passi: 2>/dev/null, grep '/dev/nvme', tr -s ' ', sort -rh -t' ' -k2,2, cut -d' ' -f6, xargs. Attenzione: grep '/dev/' prende anche /dev/shm, e sort -n mette 511M prima di 1.8T.",
+        allowedCommands: [
+            { cmd: "devnull", desc: "Cestina lo stderr" },
+            { cmd: "grep", args: { pattern: "/dev/nvme" }, desc: "Tieni le righe con '/dev/nvme'" },
+            { cmd: "grep", args: { pattern: "/dev/" }, desc: "Tieni le righe con '/dev/'" },
+            { cmd: "squeeze", args: { set: " " }, desc: "Comprimi gli spazi in fila" },
+            { cmd: "sort", args: { human: true, reverse: true, separator: " ", key: 2 }, desc: "Colonna 2, dalla più grande (-h)" },
+            { cmd: "sort", args: { numeric: true, reverse: true, separator: " ", key: 2 }, desc: "Colonna 2, dal numero più grande (-n)" },
+            { cmd: "cut", args: { delim: " ", field: 6 }, desc: "Campo 6 (spazio)" },
+            { cmd: "xargs", desc: "Tutto in una riga" }
+        ]
     }
 ];

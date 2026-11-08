@@ -10,7 +10,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO VI");
         assert.equal(await page.textContent("#act-title"), "Il grande trasloco");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 30\/43: Log alla Rovescia/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 30\/50: Log alla Rovescia/);
         assert.match(await page.textContent("#story-text"), /log al contrario/);
         await placeSolution(page, 29);
         const text = await run(page);

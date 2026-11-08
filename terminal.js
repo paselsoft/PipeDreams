@@ -128,12 +128,13 @@ const PARSERS = {
                 }
                 args.key = Number(match[1]);
                 i += used;
-            } else if (/^-[rn]+$/.test(word)) {
+            } else if (/^-[rnh]+$/.test(word)) {
                 if (word.includes("n")) args.numeric = true;
+                if (word.includes("h")) args.human = true;
                 if (word.includes("r")) args.reverse = true;
                 i++;
             } else if (word.startsWith("-")) {
-                fail(`sort: opzione non valida '${word}' (nel gioco: -r -n -t -k)`);
+                fail(`sort: opzione non valida '${word}' (nel gioco: -r -n -h -t -k)`);
             } else {
                 fail(`sort: nel gioco sort legge solo dalla pipe (argomento in più: '${word}')`);
             }
@@ -236,6 +237,41 @@ const PARSERS = {
         if (!match || Number(match[1]) < 1) fail("awk: nel gioco awk stampa un solo campo: awk '{print $N}'");
         return separator === undefined ? { field: Number(match[1]) } : { field: Number(match[1]), separator };
     },
+    fold: words => {
+        const args = {};
+        for (let i = 0; i < words.length;) {
+            const word = words[i];
+            if (/^-s*w/.test(word) || /^-s+$/.test(word)) {
+                if (word.includes("s")) args.spaces = true;
+                if (word.includes("w")) {
+                    const { value, used } = optionValue(words, i, "w");
+                    if (!/^[0-9]+$/.test(value ?? "") || Number(value) < 1) fail(`fold: larghezza non valida: '${value ?? ""}'`);
+                    args.width = Number(value);
+                    i += used;
+                } else {
+                    i++;
+                }
+            } else if (/^-[0-9]+$/.test(word)) {
+                args.width = Number(word.slice(1));
+                i++;
+            } else {
+                fail(`fold: argomento non valido '${word}' (nel gioco: fold -w N, fold -s -w N)`);
+            }
+        }
+        if (!args.width) fail("fold: nel gioco serve la larghezza, es. fold -w 20 (senza -w GNU usa 80)");
+        return args;
+    },
+    xargs: words => {
+        // «xargs echo» è lo stesso di «xargs»: echo è il comando predefinito
+        if (words[words.length - 1] === "echo") words = words.slice(0, -1);
+        if (words.length === 0) return {};
+        const { value, used } = /^-n/.test(words[0]) ? optionValue(words, 0, "n") : { value: undefined, used: 0 };
+        if (used === 0 || used !== words.length) {
+            fail("xargs: nel gioco xargs lancia sempre echo: xargs oppure xargs -n N (senza un comando dopo)");
+        }
+        if (!/^[0-9]+$/.test(value ?? "") || Number(value) < 1) fail(`xargs: valore non valido per -n: '${value ?? ""}'`);
+        return { n: Number(value) };
+    },
     paste: words => {
         let serial = false;
         let delim;
@@ -332,6 +368,13 @@ function parseCommand(words, files = {}) {
     const [name, ...rest] = words;
     if (name === "sed") return parseSed(rest);
     if (name === "cut" && rest.some(word => /^-c/.test(word))) return parseCutChars(rest);
+    if (name === "tr" && rest[0] === "-s") {
+        if (rest.length !== 2) fail("tr: nel gioco -s si usa con un solo insieme, es. tr -s ' '");
+        const args = { set: rest[1].replace(/\\n/g, "\n") };
+        const error = COMMANDS.squeeze.validate(args);
+        if (error) fail(`tr: ${error}`);
+        return { cmd: "squeeze", args };
+    }
     if (name === "comm" || name === "join") {
         const args = parseTwoFiles(name, rest, files);
         const error = COMMANDS[name].validate(args);

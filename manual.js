@@ -52,11 +52,12 @@ const MANUAL = [
         name: "sort",
         cmds: ["sort"],
         summary: "Ordina le righe (alfabetico, numerico, crescente o decrescente).",
-        syntax: "sort [-r] [-n] [-t'X' -kN,N]",
+        syntax: "sort [-r] [-n | -h] [-t'X' -kN,N]",
         description: "Riordina le righe. Senza opzioni confronta i caratteri uno per uno nell'ordine dei byte: le cifre vengono prima delle maiuscole, che vengono prima delle minuscole.",
         options: [
             { flag: "-r", text: "ordine inverso (decrescente)" },
             { flag: "-n", text: "ordina per valore numerico del numero all'inizio della riga (o della chiave)" },
+            { flag: "-h", text: "ordina le dimensioni scritte con le unità, come quelle di du -h e df -h: 20K < 900M < 1.5G" },
             { flag: "-t'X' -kN,N", text: "ordina in base al solo campo N, con i campi separati dal carattere X" }
         ],
         examples: [
@@ -68,11 +69,14 @@ const MANUAL = [
             { title: "Dal più grande", input: ["5 anna", "12 luca", "8 eva"], steps: [{ cmd: "sort", args: { numeric: true, reverse: true } }] },
             { title: "Ordinare per un campo", input: ["anna,roma,30", "luca,bari,25", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 2 } }],
               note: "Le righe restano intere, ma l'ordine dipende solo dalla città (campo 2)." },
-            { title: "Per un campo numerico", input: ["anna,roma,30", "luca,bari,5", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 3, numeric: true, reverse: true } }] }
+            { title: "Per un campo numerico", input: ["anna,roma,30", "luca,bari,5", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 3, numeric: true, reverse: true } }] },
+            { title: "Dimensioni con le unità (-h)", input: ["1.5G\tvideo", "900M\tfoto", "20K\tnote"], steps: [{ cmd: "sort", args: { human: true, reverse: true } }],
+              note: "Con -n l'ordine sarebbe 900, 20, 1.5: le unità K, M, G verrebbero ignorate." }
         ],
         traps: [
             "Con -k scrivi sempre N,N: -k2 da solo vuol dire 'dal campo 2 fino a fine riga'.",
             "Senza -n i numeri si ordinano come testo: '10' prima di '9'.",
+            "Per le dimensioni di du -h e df -h usa -h, non -n: -n non conosce K, M e G.",
             "Ordina la riga intera: se ti interessa un solo campo, estrailo prima (cut, awk).",
             "Mette vicine le righe uguali: è il passo che serve prima di uniq."
         ]
@@ -187,19 +191,27 @@ const MANUAL = [
     {
         id: "tr",
         name: "tr",
-        cmds: ["tr"],
-        summary: "Sostituisce o cancella singoli caratteri.",
-        syntax: "tr 'DA' 'A'   /   tr -d 'CARATTERI'",
+        cmds: ["tr", "squeeze"],
+        summary: "Sostituisce, cancella o comprime singoli caratteri.",
+        syntax: "tr 'DA' 'A'   /   tr -d 'CARATTERI'   /   tr -s 'CARATTERI'",
         description: "Sostituisce ogni carattere della prima lista con quello nella stessa posizione della seconda. Le liste accettano intervalli come a-z. Con -d cancella i caratteri indicati. Se un carattere diventa \\n (a capo), la riga si spezza.",
-        options: [{ flag: "-d", text: "cancella i caratteri invece di sostituirli" }],
+        options: [
+            { flag: "-d", text: "cancella i caratteri invece di sostituirli" },
+            { flag: "-s", text: "comprime: ogni gruppo dello stesso carattere della lista diventa uno solo (tr -s ' ' per i gruppi di spazi)" }
+        ],
         examples: [
             { title: "Maiuscolo con gli intervalli", input: ["ciao mondo"], steps: [{ cmd: "tr", args: { from: "a-z", to: "A-Z" } }] },
             { title: "Cancellare le cifre", input: ["a1b2c3"], steps: [{ cmd: "tr", args: { delete: "0-9" } }] },
             { title: "Un elemento per riga", input: ["rosso,verde,blu"], steps: [{ cmd: "tr", args: { from: ",", to: "\n" } }] },
             { title: "Carattere per carattere, non parole", input: ["abba"], steps: [{ cmd: "tr", args: { from: "ab", to: "xy" } }],
-              note: "Ogni 'a' diventa 'x' e ogni 'b' diventa 'y': per sostituire parole intere usa sed." }
+              note: "Ogni 'a' diventa 'x' e ogni 'b' diventa 'y': per sostituire parole intere usa sed." },
+            { title: "Colonne allineate con gli spazi (-s)", input: ["root      1  init", "www-data  812  nginx"], steps: [{ cmd: "squeeze", args: { set: " " } }, { cmd: "cut", args: { delim: " ", field: 2 } }],
+              note: "Senza tr -s, cut vedrebbe un campo vuoto fra ogni coppia di spazi: è il passo che serve prima di cut con l'output di ps, df, ss." }
         ],
-        traps: ["Lavora sui singoli caratteri: tr 'gatto' 'cane' non sostituisce la parola."]
+        traps: [
+            "Lavora sui singoli caratteri: tr 'gatto' 'cane' non sostituisce la parola.",
+            "Gli spazi all'inizio della riga restano (compressi in uno): con cut il campo 1 diventa vuoto."
+        ]
     },
     {
         id: "upper",
@@ -360,6 +372,51 @@ const MANUAL = [
             "apt update non aggiorna i programmi: aggiorna solo l'elenco. Per installare serve apt upgrade.",
             "Su Arch non aggiornare mai a metà (pacman -Sy e poi installare): usa sempre pacman -Syu.",
             "yay e paru si usano senza sudo: lo chiedono loro quando serve."
+        ]
+    },
+    {
+        id: "fold",
+        name: "fold",
+        cmds: ["fold"],
+        summary: "Va a capo nelle righe troppo lunghe, ogni N caratteri.",
+        syntax: "fold -w N   /   fold -s -w N",
+        description: "Spezza ogni riga più lunga di N caratteri in più righe. Senza -s taglia esattamente a N caratteri, anche a metà parola; con -s va a capo dopo l'ultimo spazio che entra nella riga, e lo spazio resta in fondo alla riga.",
+        options: [
+            { flag: "-w N", text: "larghezza massima della riga (senza -w GNU usa 80)" },
+            { flag: "-s", text: "va a capo dopo uno spazio, così le parole restano intere" }
+        ],
+        examples: [
+            { title: "Ogni 4 caratteri", input: ["abcdefghij"], steps: [{ cmd: "fold", args: { width: 4 } }] },
+            { title: "Parole intere con -s", input: ["il gatto sul tetto"], steps: [{ cmd: "fold", args: { width: 10, spaces: true } }],
+              note: "La prima riga è 'il gatto ' con lo spazio finale: fold -s lascia lo spazio dove va a capo." },
+            { title: "Righe corte, nessun cambiamento", input: ["ok", "tutto bene"], steps: [{ cmd: "fold", args: { width: 20 } }] }
+        ],
+        traps: [
+            "Senza -s le parole vengono tagliate a metà.",
+            "Con -s lo spazio resta in fondo alla riga: se non lo vuoi, toglilo con sed -E 's/ $//'.",
+            "Conta anche gli spazi doppi: comprimili prima con tr -s ' '."
+        ]
+    },
+    {
+        id: "xargs",
+        name: "xargs",
+        cmds: ["xargs"],
+        summary: "Trasforma le righe in argomenti di un comando (nel gioco: echo), tutti insieme o N alla volta.",
+        syntax: "xargs   /   xargs -n N",
+        description: "Legge le parole dallo stdin (separate da spazi o a capo) e le passa come argomenti a un comando. Nel terminale vero si usa per lanciare comandi su un elenco, come in ... | xargs rm; nel gioco il comando è sempre echo, che stampa gli argomenti separati da uno spazio. Senza -n tutte le parole finiscono in una riga; con -n N echo parte ogni N parole. Le righe vuote e gli spazi in più spariscono.",
+        options: [
+            { flag: "-n N", text: "passa al comando al massimo N parole alla volta: N parole per riga" }
+        ],
+        examples: [
+            { title: "Tutto in una riga", input: ["anna", "luca", "eva"], steps: [{ cmd: "xargs" }] },
+            { title: "Due per riga", input: ["anna", "luca", "eva", "marco", "ugo"], steps: [{ cmd: "xargs", args: { n: 2 } }] },
+            { title: "Parole, non righe", input: ["a b", "", "  c   d"], steps: [{ cmd: "xargs", args: { n: 3 } }],
+              note: "xargs divide sugli spazi: «a b» sono due parole, e la riga vuota sparisce. paste -sd' ' invece unisce le righe come sono." }
+        ],
+        traps: [
+            "Lavora su parole, non su righe: una riga con uno spazio diventa due argomenti.",
+            "Le virgolette e \\ sono speciali per xargs: un apostrofo come in «it's» dà errore.",
+            "Nel terminale vero xargs rm cancella davvero: prima prova con xargs echo."
         ]
     },
     {

@@ -93,9 +93,31 @@ const fuzz = vm.runInContext(`(seed) => {
     const result = executePipeline(input, steps);
     return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
 }`, context);
+// Atto VIII: tr -s, fold, xargs (virgolette chiuse, parole come -n che echo prende per opzioni), sort -h
+const fuzz8 = vm.runInContext(`(seed) => {
+    let state = seed;
+    const rand = n => { state = (state * 1103515245 + 12345) % 2147483648; return state % n; };
+    const pickOne = list => list[rand(list.length)];
+    const words = ["a", "bb  cc", "  dd", "e\tf", "hello world foo", "1.5K", "2K", "900", "1G", "1.2M", "512", "0", "", "-1K", "3k",
+        "10M  /var", " 4G /home", "x 1K", "'a b' c", "\\"q r\\"", "-n", "-e x", "-E", "a\\\\ b", "zz", "12 34 56 78"];
+    const pool = [
+        { cmd: "squeeze", args: { set: " " } }, { cmd: "squeeze", args: { set: "a-c" } },
+        { cmd: "fold", args: { width: 1 } }, { cmd: "fold", args: { width: 4 } }, { cmd: "fold", args: { width: 5, spaces: true } }, { cmd: "fold", args: { width: 9, spaces: true } },
+        { cmd: "xargs" }, { cmd: "xargs", args: { n: 1 } }, { cmd: "xargs", args: { n: 2 } }, { cmd: "xargs", args: { n: 3 } },
+        { cmd: "sort", args: { human: true } }, { cmd: "sort", args: { human: true, reverse: true } },
+        { cmd: "sort", args: { human: true, separator: " ", key: 2 } }, { cmd: "sort", args: { human: true, separator: " ", key: 1, reverse: true } },
+        { cmd: "cut", args: { delim: " ", field: 1 } }, { cmd: "awk", args: { field: 2 } }, { cmd: "tac" }, { cmd: "merge" }
+    ];
+    const input = Array.from({ length: 1 + rand(6) }, () => pickOne(words));
+    const steps = Array.from({ length: 1 + rand(3) }, () => pickOne(pool));
+    const result = executePipeline(input, steps);
+    return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
+}`, context);
+
 let fuzzed = 0;
 for (let seed = 1; seed <= runs * 5; seed++) {
-    const sim = fuzz(seed);
+    for (const generate of [fuzz, fuzz8]) {
+    const sim = generate(seed);
     const real = runBash(sim.line);
     const output = real.stdout;
     const stderr = real.stderr;
@@ -106,6 +128,7 @@ for (let seed = 1; seed <= runs * 5; seed++) {
         console.log(`Casuale ${seed}: ${sim.line}`);
         console.log(`  gioco: ${JSON.stringify(sim.output)} stderr ${JSON.stringify(sim.stderr)}`);
         console.log(`  bash:  ${JSON.stringify(output)} stderr ${JSON.stringify(stderr)}`);
+    }
     }
 }
 

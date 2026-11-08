@@ -49,10 +49,10 @@ module.exports = {
     },
 
     "non disponibile per quiz, debug, celle bloccate e sfida": async ({ page }) => {
-        const all = Object.fromEntries([...Array(43)].map((_, i) => [i + 1, { stars: 3, best: 1 }]));
+        const all = Object.fromEntries([...Array(50)].map((_, i) => [i + 1, { stars: 3, best: 1 }]));
         await open(page, { progress: { levels: all }, settings: { inputMode: "terminal" } });
         const special = await page.evaluate(() => levels.map((lvl, i) => lvl.type || lvl.locked ? i : -1).filter(i => i >= 0));
-        assert.equal(special.length, 7);
+        assert.equal(special.length, 8);
         for (const index of special) {
             await page.evaluate(i => loadLevel(i), index);
             assert.equal(await page.isVisible("#mode-toggle"), false, `livello ${index + 1}`);

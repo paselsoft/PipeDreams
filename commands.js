@@ -31,6 +31,144 @@ function expandSet(set) {
     return chars;
 }
 
+// sort -h, come GNU: prima conta il suffisso (niente < K < M < G < T...), poi il numero.
+// 1500 viene prima di 1K: chi usa -h si aspetta numeri scritti tutti con le unità (du -h, df -h)
+const HUMAN_UNITS = "KMGTPEZYRQ";
+function humanKey(text) {
+    const match = /^[ \t]*(-?)([0-9]*)(\.[0-9]*)?/.exec(text);
+    const negative = match[1] === "-";
+    const hasNumber = /[0-9]/.test((match[2] || "") + (match[3] || ""));
+    const unit = text[match[0].length];
+    const order = hasNumber ? (unit === "k" ? 1 : HUMAN_UNITS.indexOf(unit) + 1) : 0;
+    const value = hasNumber ? parseFloat((match[2] || "0") + (match[3] && match[3].length > 1 ? match[3] : "")) : 0;
+    return { order: negative ? -order : order, value: negative ? -value : value };
+}
+const humanCompare = (x, y) => {
+    const a = humanKey(x);
+    const b = humanKey(y);
+    return a.order - b.order || a.value - b.value;
+};
+
+// echo di coreutils, come lo lancia xargs: le prime parole come -n, -e, -E sono opzioni
+function echoText(args) {
+    let newline = true;
+    let escapes = false;
+    let i = 0;
+    while (i < args.length && /^-[neE]+$/.test(args[i])) {
+        for (const c of args[i].slice(1)) {
+            if (c === "n") newline = false;
+            else escapes = c === "e";
+        }
+        i++;
+    }
+    let text = args.slice(i).join(" ");
+    if (escapes) {
+        const map = { "\\": "\\", a: "\x07", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v" };
+        let out = "";
+        for (let k = 0; k < text.length; k++) {
+            if (text[k] === "\\" && k + 1 < text.length) {
+                if (text[k + 1] === "c") return out;
+                if (map[text[k + 1]] !== undefined) {
+                    out += map[text[k + 1]];
+                    k++;
+                    continue;
+                }
+            }
+            out += text[k];
+        }
+        text = out;
+    }
+    return text + (newline ? "\n" : "");
+}
+
+const textToLines = text => text === "" ? [] : text.replace(/\n$/, "").split("\n");
+
+// xargs (con echo, il comando predefinito): spezza l'input su spazi e a capo, rispetta
+// virgolette e \, e lancia echo con N parole alla volta (-n N) o con tutte.
+// Con l'input vuoto echo parte lo stesso una volta e stampa una riga vuota, come in GNU.
+function runXargs(lines, perCall) {
+    const text = lines.map(line => line + "\n").join("");
+    const written = [];
+    let batch = [];
+    let word = "";
+    let started = false;
+    let error = null;
+    const call = () => {
+        written.push(echoText(batch));
+        batch = [];
+    };
+    const endWord = () => {
+        if (!started) return;
+        // GNU lancia il comando quando arriva la parola dopo l'ultima che ci sta
+        if (perCall && batch.length === perCall) call();
+        batch.push(word);
+        word = "";
+        started = false;
+    };
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === " " || c === "\t" || c === "\n") {
+            endWord();
+        } else if (c === "\\") {
+            word += text[i + 1] ?? "";
+            started = true;
+            i++;
+        } else if (c === "'" || c === '"') {
+            const end = text.indexOf(c, i + 1);
+            const newline = text.indexOf("\n", i + 1);
+            if (end === -1 || newline < end) {
+                error = `xargs: unmatched ${c === "'" ? "single" : "double"} quote; by default quotes are special to xargs unless you use the -0 option`;
+                break;
+            }
+            word += text.slice(i + 1, end);
+            started = true;
+            i = end;
+        } else {
+            word += c;
+            started = true;
+        }
+    }
+    if (error) {
+        const before = textToLines(written.join(""));
+        const after = batch.length ? textToLines(echoText(batch)) : [];
+        return [...before, { err: error }, ...after];
+    }
+    endWord();
+    if (batch.length || written.length === 0) call();
+    return textToLines(written.join(""));
+}
+
+// fold di GNU: spezza le righe più larghe di N colonne (tab fino al multiplo di 8 successivo);
+// con -s va a capo dopo l'ultimo spazio, se c'è
+function foldLine(line, width, atSpaces) {
+    const advance = (column, c) => c === "\t" ? column + 8 - (column % 8) : c === "\b" ? Math.max(0, column - 1) : c === "\r" ? 0 : column + 1;
+    const out = [];
+    const chars = [...line];
+    let buffer = "";
+    let column = 0;
+    for (let i = 0; i < chars.length;) {
+        const next = advance(column, chars[i]);
+        if (next > width && buffer !== "") {
+            const space = atSpaces ? Math.max(buffer.lastIndexOf(" "), buffer.lastIndexOf("\t")) : -1;
+            if (space !== -1) {
+                out.push(buffer.slice(0, space + 1));
+                buffer = buffer.slice(space + 1);
+                column = [...buffer].reduce(advance, 0);
+            } else {
+                out.push(buffer);
+                buffer = "";
+                column = 0;
+            }
+            continue;
+        }
+        buffer += chars[i];
+        column = next;
+        i++;
+    }
+    out.push(buffer);
+    return out;
+}
+
 // Mostra i caratteri speciali come li scriveresti nella shell
 const shellQuote = set => `'${set.replace(/\n/g, "\\n")}'`;
 
@@ -266,16 +404,20 @@ const COMMANDS = {
     sort: {
         params: [
             { key: "reverse", type: "flag", label: "-r" }, { key: "numeric", type: "flag", label: "-n" },
+            { key: "human", type: "flag", label: "-h" },
             { key: "separator", type: "char", label: "-t", optional: true }, { key: "key", type: "number", label: "-k", optional: true }
         ],
-        label: a => `sort${a.reverse || a.numeric ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}` +
+        label: a => `sort${a.reverse || a.numeric || a.human ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}${a.human ? "h" : ""}` +
             (a.key ? ` -t'${a.separator}' -k${a.key},${a.key}` : ""),
         // -k N,N confronta solo il campo N (separato da -t): -k N senza ",N" arriverebbe a fine riga
-        validate: a => (a.key && !a.separator) || (!a.key && a.separator) ? "nel gioco -t e -k si usano insieme, es. sort -t',' -k2,2" : null,
+        validate: a => (a.key && !a.separator) || (!a.key && a.separator) ? "nel gioco -t e -k si usano insieme, es. sort -t',' -k2,2"
+            : a.numeric && a.human ? "-n e -h non si usano insieme: -h ordina già i numeri, anche con K, M, G" : null,
         run: (s, a) => {
             const keyOf = line => a.key ? (line.split(a.separator)[a.key - 1] ?? "") : line;
             // A parità di chiave GNU sort confronta l'intera riga
-            const compare = a.numeric
+            const compare = a.human
+                ? (x, y) => humanCompare(keyOf(x), keyOf(y)) || byteOrder(x, y)
+                : a.numeric
                 ? (x, y) => leadingNumber(keyOf(x)) - leadingNumber(keyOf(y)) || byteOrder(x, y)
                 : (x, y) => byteOrder(keyOf(x), keyOf(y)) || byteOrder(x, y);
             const sorted = [...s].sort(compare);
@@ -441,6 +583,33 @@ const COMMANDS = {
         validate: a => /^(\/dev\/stderr|\/dev\/null|[A-Za-z0-9_][A-Za-z0-9._-]*)$/.test(a.file) ? null : "nel gioco tee scrive su un file semplice (es. copia.txt) o su /dev/stderr",
         // Lascia passare il flusso; con /dev/stderr lo ricopia anche sullo stderr (il terminale)
         run: (s, a) => a.file === "/dev/stderr" ? [...s, ...s.map(text => ({ err: text }))] : s
+    },
+    squeeze: {
+        params: [{ key: "set", type: "set", label: "-s" }],
+        label: a => `tr -s ${shellQuote(a.set)}`,
+        validate: a => (a.set || "").includes("\n") ? "tr -s non può agire sugli a capo: il gioco lavora riga per riga" : null,
+        // Ogni gruppo di caratteri uguali dell'insieme diventa uno solo (tr -s ' ' per i gruppi di spazi)
+        run: (s, a) => {
+            const set = expandSet(a.set);
+            return s.map(line => {
+                let out = "";
+                for (const c of line) {
+                    if (set.includes(c) && out[out.length - 1] === c) continue;
+                    out += c;
+                }
+                return out;
+            });
+        }
+    },
+    fold: {
+        params: [{ key: "width", type: "number", label: "-w" }, { key: "spaces", type: "flag", label: "-s" }],
+        label: a => `fold${a.spaces ? " -s" : ""} -w ${a.width}`,
+        run: (s, a) => s.flatMap(line => foldLine(line, a.width, a.spaces))
+    },
+    xargs: {
+        params: [{ key: "n", type: "number", label: "-n", optional: true }],
+        label: a => a.n ? `xargs -n ${a.n}` : "xargs",
+        run: (s, a) => runXargs(s, a.n)
     },
     paste: {
         params: [{ key: "delim", type: "char", label: "-d", default: "," }],
