@@ -164,9 +164,14 @@ wait_for_network() {
     fail "il container non raggiunge internet: controlla la rete ($MODE) e il firewall di Proxmox"
 }
 
+# Copia lo script nel container, lo esegue e poi lo cancella (anche se fallisce): nella cartella
+# di root non resta niente. Toglie anche la copia in /root lasciata dalle versioni precedenti.
 run_setup() {
-    pct push "$CTID" "$(setup_script)" /root/pipedreams-setup.sh
-    pct exec "$CTID" -- sh /root/pipedreams-setup.sh "$@"
+    local status=0
+    pct push "$CTID" "$(setup_script)" /tmp/pipedreams-setup.sh
+    pct exec "$CTID" -- sh /tmp/pipedreams-setup.sh "$@" || status=$?
+    pct exec "$CTID" -- rm -f /tmp/pipedreams-setup.sh /root/pipedreams-setup.sh
+    return "$status"
 }
 
 # Password di root per la console del container (solo se lo script è interattivo)
