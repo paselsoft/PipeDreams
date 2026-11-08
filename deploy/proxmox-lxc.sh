@@ -28,6 +28,10 @@ MODE="${MODE:-nat}"
 CTID="${CTID:-}"
 MEMORY="${MEMORY:-128}"
 UPLINK="${UPLINK:-vmbr0}"
+# Senza un valore esplicito, rete interna e indirizzi si scelgono tra quelli liberi
+NAT_BRIDGE_CHOSEN="${NAT_BRIDGE:+si}"
+NAT_NET_CHOSEN="${NAT_NET:+si}"
+CT_IP_CHOSEN="${CT_IP:+si}"
 NAT_BRIDGE="${NAT_BRIDGE:-vmbr1}"
 NAT_NET="${NAT_NET:-10.10.10}"
 CT_IP="${CT_IP:-$NAT_NET.10}"
@@ -67,13 +71,40 @@ access_ip() {
 url_suffix() { [ "$1" = "443" ] || [ "$1" = "80" ] && echo "" || echo ":$1"; }
 
 # Rete interna con NAT e inoltro delle porte, nel file di rete di Proxmox
+bridge_in_use() { grep -q "^iface $1 " /etc/network/interfaces || ip link show "$1" >/dev/null 2>&1; }
+subnet_in_use() { grep -q "address $1\." /etc/network/interfaces || ip -4 -o addr | grep -q " $1\."; }
+
 setup_nat_bridge() {
     local marker="# pipedreams: rete interna"
-    if grep -q "^iface $NAT_BRIDGE " /etc/network/interfaces; then
-        grep -q "$marker" /etc/network/interfaces \
-            || fail "$NAT_BRIDGE esiste già e non l'ha creato questo script: scegli un altro nome con NAT_BRIDGE=vmbr9"
-        say "La rete interna $NAT_BRIDGE c'è già"
+    # Rete interna già creata da questo script (anche con un altro nome): si riusa
+    local ours
+    ours="$(awk -v m="$marker" 'index($0, m) == 1 { getline; print $2; exit }' /etc/network/interfaces)"
+    if [ -n "$ours" ]; then
+        NAT_BRIDGE="$ours"
+        NAT_NET="$(awk -v b="$ours" '$1 == "iface" { cur = $2 } cur == b && $1 == "address" { split($2, a, "."); print a[1] "." a[2] "." a[3]; exit }' /etc/network/interfaces)"
+        [ -n "$CT_IP_CHOSEN" ] || CT_IP="$NAT_NET.10"
+        say "La rete interna $NAT_BRIDGE ($NAT_NET.0/24) c'è già"
         return
+    fi
+    if bridge_in_use "$NAT_BRIDGE"; then
+        [ -z "$NAT_BRIDGE_CHOSEN" ] \
+            || fail "$NAT_BRIDGE esiste già e non l'ha creato questo script: scegli un altro nome, es. NAT_BRIDGE=vmbr9"
+        local n
+        for n in $(seq 2 99); do
+            bridge_in_use "vmbr$n" || { NAT_BRIDGE="vmbr$n"; break; }
+        done
+        bridge_in_use "$NAT_BRIDGE" && fail "non trovo un nome libero per la rete interna (vmbr2..vmbr99)"
+        say "vmbr1 esiste già (è una tua rete): per Pipe Dreams uso $NAT_BRIDGE"
+    fi
+    if subnet_in_use "$NAT_NET"; then
+        [ -z "$NAT_NET_CHOSEN" ] || fail "la rete $NAT_NET.0/24 è già usata: scegline un'altra, es. NAT_NET=10.10.77"
+        local n
+        for n in $(seq 20 10 250); do
+            subnet_in_use "10.10.$n" || { NAT_NET="10.10.$n"; break; }
+        done
+        subnet_in_use "$NAT_NET" && fail "non trovo una rete libera per i container (10.10.x.0/24)"
+        [ -n "$CT_IP_CHOSEN" ] || CT_IP="$NAT_NET.10"
+        say "La rete 10.10.10.0/24 è già usata: per Pipe Dreams uso $NAT_NET.0/24"
     fi
     say "Creo la rete interna $NAT_BRIDGE ($NAT_NET.0/24) con NAT verso $UPLINK"
     cp /etc/network/interfaces "/etc/network/interfaces.prima-di-pipedreams"

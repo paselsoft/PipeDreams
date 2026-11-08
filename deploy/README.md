@@ -34,7 +34,9 @@ inoltra le porte **8443** (https) e **8080** (http) al container. È la scelta g
 gira in VirtualBox con la scheda in bridge sul **Wi-Fi**: il Wi-Fi accetta un solo indirizzo MAC
 per scheda, e un container collegato direttamente al bridge di solito non riceve rete.
 Lo script aggiunge `vmbr1` a `/etc/network/interfaces` (copia di prima in
-`/etc/network/interfaces.prima-di-pipedreams`).
+`/etc/network/interfaces.prima-di-pipedreams`). Se `vmbr1` esiste già (per esempio il bridge di
+una seconda scheda di rete) usa il primo nome libero (`vmbr2`...), e se 10.10.10.0/24 è già usata
+sceglie 10.10.20.0/24, 10.10.30.0/24 e così via.
 
 Con il **cavo Ethernet** puoi usare il container direttamente sulla rete di casa:
 
