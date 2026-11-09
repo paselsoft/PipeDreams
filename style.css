@@ -425,6 +425,20 @@ p.subtitle { color: #8b949e; margin-top: 0; font-size: 15px; }
 }
 
 .action-buttons .btn-run { grid-column: 1 / -1; }
+.btn-next {
+    grid-column: 1 / -1;
+    background: #1f6feb;
+    color: #ffffff;
+    border: none;
+    padding: 12px 15px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-next[hidden] { display: none; }
+.btn-next:hover, .btn-next:focus-visible { background: #388bfd; }
 
 /* Manuale dei comandi */
 .manual-hint { color: #8b949e; font-size: 13px; margin: 0 0 8px 0; }

@@ -94,6 +94,7 @@ function showLevel(lvl, titleText) {
     stopAnimation();
     setBusy(false);
     hideSolutionCard();
+    hideNextButton();
     closeAdvisor();
 
     currentSolution = analyzeLevel(lvl);
@@ -195,9 +196,16 @@ function setSpeed(speed) {
 }
 
 function toggleSetting(key) {
-    // I consigli sono accesi finché non si spengono (valore assente = acceso)
-    settings[key] = key === "advisor" ? settings.advisor === false : !settings[key];
+    // Consigli e avanti automatico sono accesi finché non si spengono (valore assente = acceso)
+    if (key === "advisor") settings.advisor = settings.advisor === false;
+    else if (key === "autoNext") settings.autoNext = autoNextOn() ? false : undefined;
+    else settings[key] = !settings[key];
     if (key === "advisor" && settings.advisor === false) closeAdvisor();
+    // Avanti automatico spento durante l'attesa: il passaggio si ferma e compare il pulsante
+    if (key === "autoNext" && !autoNextOn() && pendingNext) {
+        clearTimeout(transitionTimer);
+        showNextButton();
+    }
     saveSettings(settings);
     renderFxControl();
     applyCrt();
@@ -216,6 +224,9 @@ function renderFxControl() {
     const advisor = document.getElementById("btn-advisor");
     advisor.setAttribute("aria-pressed", String(settings.advisor !== false));
     advisor.classList.toggle("active", settings.advisor !== false);
+    const autoNext = document.getElementById("btn-autonext");
+    autoNext.setAttribute("aria-pressed", String(autoNextOn()));
+    autoNext.classList.toggle("active", autoNextOn());
     const cvd = document.getElementById("btn-cvd");
     cvd.setAttribute("aria-pressed", String(Boolean(settings.cvd)));
     cvd.classList.toggle("active", Boolean(settings.cvd));
@@ -755,6 +766,40 @@ function showResult(lvl, result) {
     }
 }
 
+// --- Avanti automatico: dopo una vittoria si passa da soli al livello successivo, oppure si
+// resta sul livello risolto con il pulsante «PROSSIMO LIVELLO» (interruttore sotto Effetti) ---
+const autoNextOn = () => settings.autoNext !== false;
+let pendingNext = null;
+
+function goToNext() {
+    const next = pendingNext;
+    clearTimeout(transitionTimer);
+    hideNextButton();
+    if (next) next();
+}
+
+function hideNextButton() {
+    pendingNext = null;
+    document.getElementById("btn-next").hidden = true;
+}
+
+function showNextButton() {
+    document.getElementById("btn-next").hidden = false;
+    logToConsole("> [SUCCESSO] Quando vuoi, passa al prossimo livello con PROSSIMO LIVELLO ▶.", "log-success");
+    setBusy(false);
+}
+
+// Dopo una vittoria: next carica il livello successivo, wait è l'attesa con l'avanti automatico
+function scheduleNext(next, wait) {
+    pendingNext = next;
+    if (!autoNextOn()) {
+        showNextButton();
+        return;
+    }
+    logToConsole(`> [SUCCESSO] Prossimo livello tra ${wait / 1000}s...`, "log-success");
+    transitionTimer = setTimeout(goToNext, wait);
+}
+
 // Livello della campagna risolto: stelle, record, obiettivi e passaggio al successivo
 function completeLevel(lvl) {
     tutorialEvent("win");
@@ -785,9 +830,7 @@ function completeLevel(lvl) {
         logToConsole(`> [SUCCESSO] Quando vuoi, passa al prossimo livello.`, "log-success");
         setBusy(false);
     } else if (!isLast) {
-        const wait = review.pause ? 3500 : 2000;
-        logToConsole(`> [SUCCESSO] Prossimo livello tra ${wait / 1000}s...`, "log-success");
-        transitionTimer = setTimeout(() => { loadLevel(nextIndex); }, wait);
+        scheduleNext(() => loadLevel(nextIndex), review.pause ? 3500 : 2000);
     } else {
         logToConsole(`> [COMPLETATO] Hai finito la campagna! Stelle totali: ${totalStars(progress, levels)}/${levels.length * 3}`, "log-success");
         setBusy(false);

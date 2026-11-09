@@ -75,8 +75,7 @@ function trainingSolved(lvl) {
         setBusy(false);
         return;
     }
-    logToConsole("> [SUCCESSO] Prossimo livello...", "log-success");
-    transitionTimer = setTimeout(nextTrainingLevel, review.pause ? 3500 : 1500);
+    scheduleNext(nextTrainingLevel, review.pause ? 3500 : 1500);
 }
 
 function skipTrainingLevel() {

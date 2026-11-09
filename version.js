@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.19.1";
+const APP_VERSION = "1.20.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.20.0", date: "2026-11-09", items: [
+            "⏭ Nuovo interruttore «Avanti» sotto Effetti. Spento, dopo una vittoria resti sul livello risolto tutto il tempo che vuoi (pipeline, console e riga di shell restano lì) e passi al successivo con PROSSIMO LIVELLO ▶. Vale per la campagna e l'allenamento; la Maratona resta automatica.",
+            "Se lo spegni mentre il gioco sta per cambiare livello, il passaggio si ferma subito."
+        ]
+    },
     {
         version: "1.19.1", date: "2026-11-08", items: [
             "🔲 Le icone si vedono anche sui Mac con macOS High Sierra: le quattro emoji troppo recenti (Celle, Laboratorio, Consigli e una delle novità) sono state sostituite con simboli più vecchi, e un controllo impedisce che ne tornino di nuove."

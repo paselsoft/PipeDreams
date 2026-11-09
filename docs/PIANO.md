@@ -5,7 +5,7 @@ verifica completa (sintassi, check-shell, test nel browser, accessibilità) e pu
 
 | Ordine | Idea | Versione | Dimensione | Dipende da |
 |---|---|---|---|---|
-| 1 | Passaggio automatico attivabile e disattivabile | 1.20.0 | piccola | niente |
+| 1 | Passaggio automatico attivabile e disattivabile ✅ fatto | 1.20.0 | piccola | niente |
 | 2 | Tutor: spiegazione passo passo del livello superato | 1.21.0 | media | idea 1 (il Tutor ha bisogno di tempo per essere letto) |
 | 3 | Sezione LPI con la documentazione gratuita in italiano | 1.22.0 | media | licenza e accesso a learning.lpi.org (vedi Fase 0) |
 
@@ -14,7 +14,11 @@ secondi, e la sezione LPI rimanda al Tutor per gli obiettivi coperti dal gioco.
 
 ---
 
-## 1. Passaggio automatico al livello successivo (v1.20.0)
+## 1. Passaggio automatico al livello successivo (v1.20.0) ✅
+
+Fatto il 9/11/2026: interruttore «⏭ Avanti» e pulsante «PROSSIMO LIVELLO ▶»;
+la galleria non passava già da sola al livello successivo, quindi l'interruttore riguarda
+campagna e allenamento. Test in `tests/e2e/avanti-auto.test.js`.
 
 ### Com'è oggi
 
