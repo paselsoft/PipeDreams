@@ -82,12 +82,22 @@ function tutorStepPage(index) {
     why.append(tutorEl("strong", "", "Perché serve qui: "), document.createTextNode(pass.without.sentence));
     nodes.push(why);
     if (!pass.without.solved) nodes.push(tutorRow("senza", tutorChips(pass.without.output.map(text => ({ text, fd: 1 })), null, 8)));
+    const links = tutorEl("div", "tutor-links");
     const entry = MANUAL.find(item => item.cmds.includes(pass.cmd));
     if (entry) {
         const man = tutorEl("button", "manual-man", `📄 man ${MAN_PAGES[entry.id].names[0]}`);
         man.onclick = () => { closeTutor(); openManPage(entry.id); };
-        nodes.push(man);
+        links.appendChild(man);
     }
+    // L'obiettivo d'esame LPI che allena questo comando (sezione 📘 LPI)
+    const lpi = typeof lpiObjectiveFor === "function" ? lpiObjectiveFor(pass.cmd) : null;
+    if (lpi) {
+        const exam = tutorEl("button", "manual-man", `📘 LPI ${lpi.objective.id}`);
+        exam.title = `${lpi.exam.name}: ${lpi.objective.title}`;
+        exam.onclick = () => { closeTutor(); openLpi(lpi.exam.id, lpi.objective.id); };
+        links.appendChild(exam);
+    }
+    if (links.childNodes.length) nodes.push(links);
     return nodes;
 }
 

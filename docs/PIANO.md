@@ -7,7 +7,7 @@ verifica completa (sintassi, check-shell, test nel browser, accessibilità) e pu
 |---|---|---|---|---|
 | 1 | Passaggio automatico attivabile e disattivabile ✅ fatto | 1.20.0 | piccola | niente |
 | 2 | Tutor: spiegazione passo passo del livello superato ✅ fatto | 1.21.0 | media | idea 1 (il Tutor ha bisogno di tempo per essere letto) |
-| 3 | Sezione LPI con la documentazione gratuita in italiano | 1.22.0 | media | licenza e accesso a learning.lpi.org (vedi Fase 0) |
+| 3 | Sezione LPI con la documentazione gratuita in italiano ✅ strada 1 fatta | 1.22.0 | media | licenza e accesso a learning.lpi.org (vedi Fase 0) |
 
 L'ordine conta: senza la pausa dopo la vittoria il Tutor si chiuderebbe da solo dopo 3,5
 secondi, e la sezione LPI rimanda al Tutor per gli obiettivi coperti dal gioco.
@@ -163,7 +163,15 @@ Generate dal motore, con un tocco scritto a mano dove serve.
 
 ---
 
-## 3. Sezione LPI in italiano (v1.22.0)
+## 3. Sezione LPI in italiano (v1.22.0) ✅ strada 1
+
+Fatto il 9/11/2026 (strada 1: titoli, pesi, link e contenuti nostri, nessun testo delle lezioni):
+`lpi.js` (dati: 61 obiettivi di 101, 102 e Linux Essentials 1.6, da learning.lpi.org/it e
+wiki.lpi.org), `lpi-view.js` (sezione «📘 Certificazioni LPI»), casella «studiato» nei progressi e
+nel backup, pulsante «📘 LPI» nel Tutor, `tools/check-lpi.js` (in CI; `--online` controlla i 67
+link). Fase 0 risolta: licenza **CC BY-NC-ND 4.0** (uso non commerciale; copie integrali e non
+modificate permesse con attribuzione; niente riassunti o tagli del testo LPI). Strada 2 (lezioni
+integrali offline) in attesa della risposta di LPI alla mail in `docs/LPI-mail.md`.
 
 ### Cosa c'è di gratuito in italiano
 

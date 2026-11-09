@@ -1252,3 +1252,52 @@ body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
     font-size: 13px;
 }
 .tutor-nav button:disabled { opacity: 0.5; cursor: default; }
+
+/* Sezione LPI */
+.menu-lpi { background: #0d2240; border-color: #1f6feb; color: #79c0ff; }
+.lpi-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.lpi-tabs button {
+    flex: 1 1 auto;
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    cursor: pointer;
+}
+.lpi-tabs button.active { background: #1f6feb; border-color: #1f6feb; color: #fff; font-weight: bold; }
+#lpi-body { color: #c9d1d9; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.lpi-intro, .lpi-summary { margin: 0 0 8px 0; }
+.lpi-summary { color: #e3b341; }
+.lpi-link { color: #58a6ff; }
+.lpi-objective { border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; margin: 8px 0; background: #161b22; }
+.lpi-objective.lpi-highlight { border-color: #e3b341; box-shadow: 0 0 0 1px #e3b341; }
+.lpi-objective-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.lpi-objective-title { margin: 0; font-size: 14px; color: #f0f6fc; }
+.lpi-objective-id { color: #79c0ff; font-family: 'Courier New', Courier, monospace; }
+.lpi-weight { color: #8b949e; font-size: 13px; white-space: nowrap; }
+.lpi-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 6px 0; }
+.lpi-studied { color: #c9d1d9; cursor: pointer; }
+.lpi-terms { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.lpi-term { font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; padding: 0 5px; }
+.lpi-term.in-game { color: #7ee787; border-color: #238636; }
+.lpi-note { margin: 6px 0; color: #c9d1d9; font-size: 13px; }
+.lpi-train { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+.lpi-train-label { color: #8b949e; font-size: 13px; }
+.lpi-level {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    cursor: pointer;
+}
+.lpi-level:hover:not(:disabled), .lpi-level:focus-visible { border-color: #58a6ff; }
+.lpi-level:disabled { color: #8b949e; cursor: default; }
+.lpi-topic { color: #e3b341; }
+.lpi-source { margin-top: 12px; color: #8b949e; font-size: 12px; }
+.tutor-links { display: flex; flex-wrap: wrap; gap: 6px; }

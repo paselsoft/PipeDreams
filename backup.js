@@ -53,7 +53,8 @@ function cleanProgress(progress) {
             tries: pick(isPlainObject(story.tries) ? story.tries : {}, isCount),
             wrong: isCount(story.wrong) ? story.wrong : 0,
             hints: isCount(story.hints) ? story.hints : 0
-        }])), isPlainObject)
+        }])), isPlainObject),
+        lpi: pick(progress.lpi || {}, value => value === true)
     };
 }
 
@@ -84,7 +85,8 @@ function mergeProgress(a, b) {
             tries: mergeBy(x.tries, y.tries, Math.max),
             wrong: Math.max(x.wrong || 0, y.wrong || 0),
             hints: Math.max(x.hints || 0, y.hints || 0)
-        }))
+        })),
+        lpi: { ...a.lpi, ...b.lpi }
     };
 }
 

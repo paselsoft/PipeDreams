@@ -9,7 +9,7 @@ const PROGRESS_KEY = "pipedreams.progress.v1";
 // dell'allenamento risolti, per argomento; community: risultati dei livelli della galleria;
 // stories: casi a puntate (enigmi risolti, capitoli dedotti, tentativi)
 function emptyProgress() {
-    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {}, marathon: {}, training: {}, community: {}, stories: {} };
+    return { levels: {}, lastLevel: 0, seenActs: [], stats: {}, achievements: {}, daily: {}, terminal: {}, marathon: {}, training: {}, community: {}, stories: {}, lpi: {} };
 }
 
 const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -29,7 +29,8 @@ function normalizeProgress(data) {
         marathon: isPlainObject(data.marathon) ? data.marathon : {},
         training: isPlainObject(data.training) ? data.training : {},
         community: isPlainObject(data.community) ? data.community : {},
-        stories: isPlainObject(data.stories) ? data.stories : {}
+        stories: isPlainObject(data.stories) ? data.stories : {},
+        lpi: isPlainObject(data.lpi) ? data.lpi : {}
     };
 }
 

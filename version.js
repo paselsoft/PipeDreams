@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.21.0";
+const APP_VERSION = "1.22.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.22.0", date: "2026-11-09", items: [
+            "📘 Nuova sezione «Certificazioni LPI» nel menu LIVELLI: gli obiettivi di LPIC-1 (esami 101 e 102) e di Linux Essentials, con il peso, il link alla lezione ufficiale gratuita in italiano e il PDF dell'esame.",
+            "✓ Per ogni obiettivo vedi quali comandi sono già nel gioco, i livelli e l'allenamento che lo esercitano, e puoi segnarlo come «studiato» (resta nei progressi e nel backup).",
+            "🎓 Dal Tutor, accanto a ogni comando, il pulsante «📘 LPI» porta all'obiettivo d'esame corrispondente."
+        ]
+    },
     {
         version: "1.21.0", date: "2026-11-09", items: [
             "🎓 Il Tutor: dopo ogni vittoria il pulsante «🎓 TUTOR» spiega il livello passo passo. Una pagina per comando: cosa fa, ogni opzione, le righe prima e dopo (evidenziate quelle che cambiano), cosa va sul terminale e cosa succederebbe togliendolo.",

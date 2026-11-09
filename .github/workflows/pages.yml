@@ -47,6 +47,9 @@ jobs:
       - name: L'interprete della modalità terminale rilegge ogni comando
         run: node tools/check-terminal.js
 
+      - name: Dati della sezione LPI
+        run: node tools/check-lpi.js
+
       - name: Il Tutor spiega ogni livello
         run: node tools/check-tutor.js
 
