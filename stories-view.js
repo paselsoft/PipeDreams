@@ -208,6 +208,7 @@ function playPuzzle(storyId, chapterId, index) {
 
 // Chiamata da showResult quando un enigma è risolto
 function mysterySolved(lvl) {
+    offerTutor(lvl);
     const { story: storyId, chapter: chapterId, puzzle: puzzleId, index } = lvl.mystery;
     const story = findStory(storyId);
     const chapter = story.chapters.find(item => item.id === chapterId);

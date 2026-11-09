@@ -95,6 +95,7 @@ function showLevel(lvl, titleText) {
     setBusy(false);
     hideSolutionCard();
     hideNextButton();
+    hideTutorButton();
     closeAdvisor();
 
     currentSolution = analyzeLevel(lvl);
@@ -778,6 +779,28 @@ function goToNext() {
     if (next) next();
 }
 
+// Tutor: dopo una vittoria il pulsante «🎓 TUTOR» spiega la pipeline appena usata
+let lastTutor = null;
+
+function offerTutor(lvl) {
+    if (lvl.marathon) return;
+    const steps = lvl.type === "quiz" ? gridSteps(lvl, lvl.start) : currentSteps();
+    lastTutor = { lvl, steps };
+    document.getElementById("btn-tutor").hidden = false;
+}
+
+function hideTutorButton() {
+    lastTutor = null;
+    document.getElementById("btn-tutor").hidden = true;
+}
+
+// Il passaggio automatico al livello successivo si ferma (es. aprendo il Tutor)
+function holdAutoNext() {
+    if (!pendingNext || !document.getElementById("btn-next").hidden) return;
+    clearTimeout(transitionTimer);
+    showNextButton();
+}
+
 function hideNextButton() {
     pendingNext = null;
     document.getElementById("btn-next").hidden = true;
@@ -803,6 +826,7 @@ function scheduleNext(next, wait) {
 // Livello della campagna risolto: stelle, record, obiettivi e passaggio al successivo
 function completeLevel(lvl) {
     tutorialEvent("win");
+    offerTutor(lvl);
     const wasCompleted = actCompleted(lvl.act);
     if (terminalActive()) {
         progress.terminal[lvl.id] = true;
@@ -871,6 +895,7 @@ function rating(stars, used) {
 
 // Sfida del giorno vinta: salva il risultato migliore e mostra il riepilogo da condividere
 function finishDaily(lvl, used) {
+    offerTutor(lvl);
     const par = currentSolution.par;
     const stars = Math.min(hintStarCap(), computeStars(used, par));
     const seconds = Math.round((Date.now() - levelSession.start) / 1000);
@@ -1003,7 +1028,24 @@ function renderMenu() {
             closeMenu();
             loadLevel(i);
         };
-        list.appendChild(item);
+        // Sui livelli risolti, il Tutor con la soluzione di riferimento
+        if (unlocked && progress.levels[lvl.id]) {
+            const row = document.createElement("div");
+            row.className = "menu-row";
+            const lesson = document.createElement("button");
+            lesson.className = "menu-tutor";
+            lesson.textContent = "🎓";
+            lesson.title = `Tutor: il livello ${i + 1} spiegato passo passo`;
+            lesson.setAttribute("aria-label", `Tutor del livello ${i + 1}, ${lvl.title}`);
+            lesson.onclick = () => {
+                closeMenu();
+                openTutor(lvl, tutorStepsFor(lvl));
+            };
+            row.append(item, lesson);
+            list.appendChild(row);
+        } else {
+            list.appendChild(item);
+        }
     });
 }
 

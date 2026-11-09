@@ -6,7 +6,7 @@ verifica completa (sintassi, check-shell, test nel browser, accessibilità) e pu
 | Ordine | Idea | Versione | Dimensione | Dipende da |
 |---|---|---|---|---|
 | 1 | Passaggio automatico attivabile e disattivabile ✅ fatto | 1.20.0 | piccola | niente |
-| 2 | Tutor: spiegazione passo passo del livello superato | 1.21.0 | media | idea 1 (il Tutor ha bisogno di tempo per essere letto) |
+| 2 | Tutor: spiegazione passo passo del livello superato ✅ fatto | 1.21.0 | media | idea 1 (il Tutor ha bisogno di tempo per essere letto) |
 | 3 | Sezione LPI con la documentazione gratuita in italiano | 1.22.0 | media | licenza e accesso a learning.lpi.org (vedi Fase 0) |
 
 L'ordine conta: senza la pausa dopo la vittoria il Tutor si chiuderebbe da solo dopo 3,5
@@ -81,7 +81,12 @@ Emoji: ⏭ è già nell'elenco compatibile con High Sierra (`tools/check-emoji.j
 
 ---
 
-## 2. Tutor: il livello spiegato passo passo (v1.21.0)
+## 2. Tutor: il livello spiegato passo passo (v1.21.0) ✅
+
+Fatto il 9/11/2026: `tutor.js` (logica) e `tutor-view.js` (finestra), «Il trucco» scritto a
+mano per 14 livelli, campo nell'editor e nei link condivisi, `tools/check-tutor.js` in CI
+(676 lezioni), test in `tests/e2e/tutor.test.js`. Il riferimento all'obiettivo LPI arriva
+con l'idea 3.
 
 ### L'idea
 

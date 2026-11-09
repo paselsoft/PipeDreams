@@ -59,6 +59,7 @@ function updateTrainingBar() {
 
 // Chiamata da showResult quando un livello dell'allenamento è risolto
 function trainingSolved(lvl) {
+    offerTutor(lvl);
     const used = usedSlots();
     const stars = Math.min(hintStarCap(), computeStars(used, currentSolution.par));
     training.solved++;

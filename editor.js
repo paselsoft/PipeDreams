@@ -71,6 +71,7 @@ function buildLevel() {
     if ((draft.source || "").trim()) level.source = draft.source.trim();
     const man = (draft.man || "").trim().split(/[\s,]+/).filter(Boolean);
     if (man.length) level.man = man;
+    if ((draft.tutor || "").trim()) level.tutor = draft.tutor.trim();
     // Lo stderr che la soluzione lascia sul terminale fa parte del risultato atteso (es. tee /dev/stderr)
     if (result.stderr.length) level.targetStderr = result.stderr;
     return { level, errors, solutionSteps, usedCount };
@@ -92,6 +93,7 @@ function levelToCode(level) {
         ...(level.slots ? [`        slots: ${level.slots},`] : []),
         `        mission: ${q(level.mission)},`,
         ...(level.man ? [`        man: [${level.man.map(q).join(", ")}],`] : []),
+        ...(level.tutor ? [`        tutor: ${q(level.tutor)},`] : []),
         `        stdin: [${level.stdin.map(formatLine).join(", ")}],`,
         `        target: [${level.target.map(q).join(", ")}],`,
         ...(level.targetStderr ? [`        targetStderr: [${level.targetStderr.map(q).join(", ")}],`] : []),
@@ -114,6 +116,7 @@ function renderAll() {
     document.getElementById("ed-nudge").value = draft.nudge;
     document.getElementById("ed-source").value = draft.source || "";
     document.getElementById("ed-man").value = draft.man || "";
+    document.getElementById("ed-tutor").value = draft.tutor || "";
     document.getElementById("ed-hint").value = draft.hint;
     document.getElementById("ed-stdin").value = draft.stdinText;
     document.getElementById("ed-load").value = draft.sourceId ?? "";
@@ -303,6 +306,7 @@ function loadFromLevel(id) {
         nudge: lvl.nudge || "",
         source: lvl.source || "",
         man: (lvl.man || []).join(" "),
+        tutor: lvl.tutor || "",
         hint: lvl.hint,
         stdinText: stdinToText(lvl.stdin),
         commands: lvl.allowedCommands.map(step => {
@@ -422,6 +426,7 @@ function setupForm() {
     bindText("ed-nudge", "nudge");
     bindText("ed-source", "source");
     bindText("ed-man", "man");
+    bindText("ed-tutor", "tutor");
     bindText("ed-hint", "hint");
     bindText("ed-stdin", "stdinText");
     document.getElementById("ed-act").oninput = event => { draft.act = Math.max(1, Number(event.target.value) || 1); refresh(); };

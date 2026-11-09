@@ -28,6 +28,7 @@ function shareUrl(level, base) {
     if (level.targetStderr) shared.targetStderr = level.targetStderr;
     if (level.source) shared.source = level.source;
     if (level.man) shared.man = level.man;
+    if (level.tutor) shared.tutor = level.tutor;
     return base + SHARE_PREFIX + encodeData(shared);
 }
 
@@ -50,6 +51,7 @@ function sharedLevelError(level) {
     if (!Array.isArray(level.stdin) || level.stdin.length < 1 || level.stdin.length > 60 || !level.stdin.every(line)) return "input non valido";
     if (!Array.isArray(level.target) || level.target.length > 60 || !level.target.every(item => isShortText(item, 200))) return "output atteso non valido";
     if (level.source !== undefined && !isShortText(level.source, 80)) return "origine dell'input troppo lunga";
+    if (level.tutor !== undefined && !isShortText(level.tutor, 600)) return "frase del Tutor troppo lunga";
     if (level.man !== undefined && !(Array.isArray(level.man) && level.man.length <= 6 && level.man.every(name => isShortText(name, 20)))) return "pagine man non valide";
     if (level.targetStderr !== undefined && !(Array.isArray(level.targetStderr) && level.targetStderr.length <= 60 && level.targetStderr.every(item => isShortText(item, 200)))) return "stderr atteso non valido";
     if (level.slots !== undefined && !(Number.isInteger(level.slots) && level.slots >= 1 && level.slots <= 8)) return "numero di slot non valido";
@@ -83,5 +85,6 @@ function sharedLevelFromHash(hash) {
     if (data.targetStderr && data.targetStderr.length) level.targetStderr = data.targetStderr;
     if (data.source) level.source = data.source;
     if (data.man && data.man.length) level.man = data.man;
+    if (data.tutor) level.tutor = data.tutor;
     return { level };
 }

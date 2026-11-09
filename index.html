@@ -132,6 +132,7 @@
             <button class="btn-hint" id="btn-hint" onclick="showHint()">? AIUTO 1/3</button>
             <button class="btn-hint" onclick="openManual()">📖 MANUALE</button>
             <button class="btn-run" id="btn-run" onclick="runPipeline()">ESEGUI ( ▶ )</button>
+            <button class="btn-tutor" id="btn-tutor" onclick="openTutorFromLevel()" hidden>🎓 TUTOR: il livello spiegato passo passo</button>
             <button class="btn-next" id="btn-next" onclick="goToNext()" hidden>PROSSIMO LIVELLO ▶</button>
         </div>
 
@@ -305,6 +306,22 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+    <!-- TUTOR -->
+    <div class="menu-overlay" id="tutor-overlay" hidden onclick="if (event.target === this) closeTutor()">
+        <div class="menu-panel tutor-panel" role="dialog" aria-modal="true" aria-labelledby="tutor-title" tabindex="-1">
+            <div class="menu-header">
+                <h2 id="tutor-title">🎓 TUTOR</h2>
+                <button class="menu-close" onclick="closeTutor()" aria-label="Chiudi">✕</button>
+            </div>
+            <div id="tutor-body" aria-live="polite"></div>
+            <div class="tutor-nav">
+                <button class="btn-copy" id="tutor-prev">◀ Indietro</button>
+                <span id="tutor-pos"></span>
+                <button class="btn-copy" id="tutor-next">Avanti ▶</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MANUALE -->
     <div class="menu-overlay" id="manual-overlay" hidden onclick="if (event.target === this) closeManual()">
         <div class="menu-panel manual-panel" role="dialog" aria-modal="true" aria-labelledby="manual-title">
@@ -339,6 +356,7 @@
     <script src="training.js"></script>
     <script src="tutorial.js"></script>
     <script src="advisor.js"></script>
+    <script src="tutor.js"></script>
     <script src="community.js"></script>
     <script src="gallery.js"></script>
     <script src="stories.js"></script>
@@ -347,6 +365,7 @@
     <script src="manual-view.js"></script>
     <script src="manpage.js"></script>
     <script src="terminal-keys.js"></script>
+    <script src="tutor-view.js"></script>
     <script src="lab.js"></script>
     <script src="a11y.js"></script>
 </body>

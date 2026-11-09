@@ -47,6 +47,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `manual.js`, `manual-view.js` | Manuale dei comandi: schede ed esempi calcolati dal motore |
 | `manpage.js` | Pagine man di ogni comando; nel terminale `man X`, `man -k`, `apropos`, `whatis`, `--help` |
 | `terminal-keys.js` | Terminale: cronologia con ↑↓ e completamento con Tab |
+| `tutor.js`, `tutor-view.js` | Il Tutor: il livello risolto spiegato passo passo (logica e finestra) |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |
 | `progress.js`, `render.js` | Salvataggio e rendering condivisi |
@@ -77,6 +78,7 @@ node tools/check-terminal.js    # l'interprete della modalità terminale rilegge
 node tools/check-community.js   # i livelli della galleria sono validi e coincidono con bash?
 node tools/check-stories.js     # gli enigmi dei casi sono validi, coincidono con bash e usano comandi già visti?
 node tools/check-emoji.js       # solo emoji che si vedono anche su macOS High Sierra (versione 5.0)?
+node tools/check-tutor.js       # il Tutor spiega ogni livello, sfida, allenamento, galleria e caso?
 ```
 
 I test nel browser (Playwright) giocano davvero il gioco: tutti i livelli, salvataggio, storia,

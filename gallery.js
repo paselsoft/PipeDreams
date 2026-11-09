@@ -52,6 +52,7 @@ function playCommunity(id) {
 
 // Chiamata da showResult quando un livello della galleria è risolto
 function communitySolved(lvl) {
+    offerTutor(lvl);
     const used = usedSlots();
     const stars = Math.min(hintStarCap(), computeStars(used, currentSolution.par));
     const isRecord = recordResult({ levels: progress.community }, lvl.community.id, stars, used);

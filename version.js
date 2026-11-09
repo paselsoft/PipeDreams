@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.20.0";
+const APP_VERSION = "1.21.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.21.0", date: "2026-11-09", items: [
+            "🎓 Il Tutor: dopo ogni vittoria il pulsante «🎓 TUTOR» spiega il livello passo passo. Una pagina per comando: cosa fa, ogni opzione, le righe prima e dopo (evidenziate quelle che cambiano), cosa va sul terminale e cosa succederebbe togliendolo.",
+            "📚 Si apre anche dal menu LIVELLI con 🎓 sui livelli già risolti, per ripassare. Funziona per campagna, quiz, debug, allenamento, sfida del giorno, galleria e casi; aprirlo ferma il passaggio automatico al livello successivo.",
+            "💡 Nei livelli con una trappola classica c'è anche «Il trucco», scritto a mano; nell'editor lo puoi aggiungere ai tuoi livelli."
+        ]
+    },
     {
         version: "1.20.0", date: "2026-11-09", items: [
             "⏭ Nuovo interruttore «Avanti» sotto Effetti. Spento, dopo una vittoria resti sul livello risolto tutto il tempo che vuoi (pipeline, console e riga di shell restano lì) e passi al successivo con PROSSIMO LIVELLO ▶. Vale per la campagna e l'allenamento; la Maratona resta automatica.",

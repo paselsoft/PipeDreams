@@ -47,6 +47,9 @@ jobs:
       - name: L'interprete della modalità terminale rilegge ogni comando
         run: node tools/check-terminal.js
 
+      - name: Il Tutor spiega ogni livello
+        run: node tools/check-tutor.js
+
       - name: Emoji visibili anche su macOS High Sierra
         run: node tools/check-emoji.js
 
