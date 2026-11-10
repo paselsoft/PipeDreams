@@ -111,8 +111,8 @@ const LPI_EXAMS = [
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.2/",
                 lessons: 1,
                 terms: ["bzcat", "cat", "cut", "head", "less", "md5sum", "nl", "od", "paste", "sed", "sha256sum", "sha512sum", "sort", "split", "tail", "tr", "uniq", "wc", "xzcat", "zcat"],
-                cmds: ["cut", "head", "tail", "nl", "paste", "sed", "upper", "sort", "tr", "squeeze", "uniq", "wc", "wcw", "wcc"],
-                note: "È il cuore di Pipe Dreams: quasi tutti i filtri dell'obiettivo sono comandi del gioco. Restano da studiare od, split, i checksum e i comandi per i file compressi."
+                cmds: ["cut", "head", "tail", "nl", "paste", "sed", "upper", "sort", "tr", "squeeze", "uniq", "wc", "wcw", "wcc", "md5sum", "sha256sum", "od", "zcat", "bzcat", "xzcat"],
+                note: "È il cuore di Pipe Dreams: quasi tutti i filtri dell'obiettivo sono comandi del gioco, anche le impronte (md5sum, sha256sum), od -c e i file compressi (zcat, bzcat, xzcat) dell'Atto X. Restano da studiare split, sha512sum, less e cat."
             },
             {
                 id: "103.3",

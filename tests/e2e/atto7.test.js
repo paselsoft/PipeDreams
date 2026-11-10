@@ -10,7 +10,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO VII");
         assert.equal(await page.textContent("#act-title"), "Patch Tuesday");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 37\/59: Lista della Spesa di apt/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 37\/67: Lista della Spesa di apt/);
         assert.match(await page.innerText(".io-panel"), /input \(output di apt list --upgradable\)/);
         assert.equal(await page.textContent(".terminal-prompt"), "$ apt list --upgradable");
         await placeSolution(page, 36);

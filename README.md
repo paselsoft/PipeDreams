@@ -5,9 +5,9 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 
 **Gioca:** https://paselsoft.github.io/PipeDreams/ · **Editor livelli:** https://paselsoft.github.io/PipeDreams/editor.html
 
-- 59 livelli in 9 atti, con quiz ("cosa stampa?"), livelli di debug e celle bloccate: `grep`, `sort`, `uniq`, `head`/`tail`, stdout/stderr con `2>/dev/null` e `2>&1`,
+- 67 livelli in 10 atti, con quiz ("cosa stampa?"), livelli di debug e celle bloccate: `grep`, `sort`, `uniq`, `head`/`tail`, stdout/stderr con `2>/dev/null` e `2>&1`,
   `wc`, `cut`, `tr`, `uniq -c`, `sed -E`, `awk`, `paste`, `tac`, `rev`, `sort -t -k`, `grep -o`, `uniq -d`, `cut -c`,
-  `nl`, `tee`, `comm`, `join` (con i file del livello), `tr -s`, `sort -h`, `xargs`, `fold`, e le opzioni `grep -c -i -w`, `sort -u`, `uniq -u`, `cut -f1,3 --complement`, `wc -w -c`; l'Atto VII analizza l'output di apt, pacman, dnf e rpm,
+  `nl`, `tee`, `comm`, `join` (con i file del livello), `tr -s`, `sort -h`, `xargs`, `fold`, e le opzioni `grep -c -i -w`, `sort -u`, `uniq -u`, `cut -f1,3 --complement`, `wc -w -c`, `md5sum`, `sha256sum`, `od -c`, `zcat`/`bzcat`/`xzcat`; l'Atto VII analizza l'output di apt, pacman, dnf e rpm,
   l'Atto VIII quello di ps, du, df, ss e dei log di SSH
 - la simulazione segue GNU coreutils e bash: per ogni pipeline il gioco mostra la riga di shell
   equivalente, che puoi copiare ed eseguire su Linux con lo stesso risultato; nei livelli con il

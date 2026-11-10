@@ -381,6 +381,23 @@ function parseCommand(words, files = {}) {
     const [name, ...rest] = words;
     if (name === "sed") return parseSed(rest);
     if (name === "cut" && rest.some(word => /^-c/.test(word))) return parseCutChars(rest);
+    // Atto X: impronte, od -c e i file compressi del livello
+    if (name === "md5sum" || name === "sha256sum") {
+        if (rest.length && !(rest.length === 1 && rest[0] === "-")) fail(`${name}: nel gioco ${name} legge dalla pipe (argomento in più: '${rest[0]}')`);
+        return { cmd: name, args: {} };
+    }
+    if (name === "od") {
+        if (rest.length !== 1 || rest[0] !== "-c") fail("od: nel gioco si usa od -c (mostra ogni carattere, anche quelli invisibili)");
+        return { cmd: "od", args: {} };
+    }
+    if (name === "zcat" || name === "bzcat" || name === "xzcat") {
+        if (rest.length !== 1 || rest[0].startsWith("-")) fail(`${name}: si usa '${name} file', con un file compresso del livello`);
+        if (!files[rest[0]]) {
+            const known = Object.keys(files);
+            fail(`${name}: ${rest[0]}: file non trovato${known.length ? ` (in questo livello: ${known.join(", ")})` : ""}`);
+        }
+        return { cmd: name, args: { file: rest[0], lines: files[rest[0]] } };
+    }
     // wc -w e wc -c sono comandi a parte nel gioco (wc -l resta wc)
     if (name === "wc" && rest.length === 1 && (rest[0] === "-w" || rest[0] === "-c")) return { cmd: rest[0] === "-w" ? "wcw" : "wcc", args: {} };
     if (name === "tr" && rest[0] === "-s") {

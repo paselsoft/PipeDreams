@@ -23,7 +23,7 @@ module.exports = {
         assert.equal(await filters.locator("a.lpi-link").getAttribute("href"), "https://learning.lpi.org/it/learning-materials/101-500/103/103.2/");
         assert.equal(await filters.locator("a.lpi-link").getAttribute("target"), "_blank");
         assert.equal(await filters.locator(".lpi-term.in-game", { hasText: "sort" }).count(), 1);
-        assert.equal(await filters.locator(".lpi-term:not(.in-game)", { hasText: "od" }).count(), 1, "od non è nel gioco");
+        assert.equal(await filters.locator(".lpi-term:not(.in-game)", { hasText: "split" }).count(), 1, "split non è nel gioco");
         assert.ok(await filters.locator("button.lpi-level").count() >= 2, "livelli che allenano l'obiettivo");
 
         // Un livello risolto si apre dal pulsante; quelli bloccati sono disabilitati

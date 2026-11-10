@@ -122,7 +122,8 @@ function showLevel(lvl, titleText) {
     for (const [name, lines] of Object.entries(levelFiles(lvl))) {
         const row = document.createElement("div");
         const label = document.createElement("strong");
-        label.textContent = `file ${name}:`;
+        // I file compressi si leggono con zcat, bzcat o xzcat: qui si vede il contenuto decompresso
+        label.textContent = /\.(gz|bz2|xz)$/.test(name) ? `file ${name} (compresso, qui decompresso):` : `file ${name}:`;
         const chips = document.createElement("span");
         chips.className = "chips";
         renderChips(chips, lines.map(text => ({ text, fd: 1 })));

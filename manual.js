@@ -454,6 +454,63 @@ const MANUAL = [
         ]
     },
     {
+        id: "impronte",
+        name: "md5sum / sha256sum",
+        cmds: ["md5sum", "sha256sum"],
+        summary: "Calcolano l'impronta di tutto il flusso: se cambia anche un solo byte, cambia l'impronta.",
+        syntax: "... | md5sum   /   ... | sha256sum",
+        description: "Leggono tutto quello che arriva e scrivono una riga sola: l'impronta (in esadecimale), due spazi e il nome del file, che per lo stdin è il trattino. Due contenuti uguali hanno la stessa impronta; basta una riga in più, un ordine diverso o uno spazio per averne una completamente diversa. Servono a controllare che un file scaricato o un backup non sia cambiato. sha256sum è più lunga e più sicura di md5sum, ed è quella usata dalle distribuzioni per le immagini ISO.",
+        examples: [
+            { title: "L'impronta di un elenco", input: ["pera", "mela"], steps: [{ cmd: "md5sum" }] },
+            { title: "Basta l'ordine a cambiarla", input: ["pera", "mela"], steps: [{ cmd: "sort" }, { cmd: "md5sum" }],
+              note: "Stesse righe, ordine diverso: impronta diversa." },
+            { title: "SHA-256", input: ["pera", "mela"], steps: [{ cmd: "sha256sum" }],
+              note: "Più lunga: 64 cifre esadecimali invece di 32." }
+        ],
+        traps: [
+            "L'impronta comprende anche gli a capo e gli spazi in fondo: prima di confrontarla, il contenuto deve essere identico.",
+            "md5sum e sha256sum danno impronte diverse sullo stesso testo: confronta sempre con lo stesso tipo.",
+            "md5sum file scrive anche il nome del file: «impronta  nome», con due spazi in mezzo."
+        ]
+    },
+    {
+        id: "od",
+        name: "od -c",
+        cmds: ["od"],
+        summary: "Mostra ogni byte del flusso, anche quelli invisibili come tabulazioni e spazi in fondo.",
+        syntax: "... | od -c",
+        description: "od (octal dump) scrive il flusso un byte alla volta, 16 per riga. A sinistra c'è la posizione (offset) in ottale. Le lettere compaiono come sono, lo spazio come un campo vuoto, i caratteri speciali con la barra rovesciata (\\n a capo, \\t tabulazione, \\r ritorno a capo di Windows, \\0 byte nullo), gli altri byte non stampabili come numeri ottali (le lettere accentate sono 2 byte). Se più righe di fila sono identiche, compare un asterisco. L'ultima riga è il numero totale di byte, in ottale.",
+        examples: [
+            { title: "Una tabulazione nascosta", input: ["admin\t"], steps: [{ cmd: "od" }],
+              note: "A schermo «admin» sembra normale: od -c mostra la \\t in fondo." },
+            { title: "Spazi e a capo", input: ["a b"], steps: [{ cmd: "od" }],
+              note: "Lo spazio è un campo vuoto; 0000004 vuol dire 4 byte." },
+            { title: "Lettere accentate", input: ["è"], steps: [{ cmd: "od" }],
+              note: "In UTF-8 la è sono due byte: 303 250 in ottale." }
+        ],
+        traps: [
+            "L'offset è in ottale: 0000020 vuol dire 16, non 20.",
+            "Un asterisco non è un carattere: vuol dire «righe uguali a quella sopra»."
+        ]
+    },
+    {
+        id: "zcat",
+        name: "zcat / bzcat / xzcat",
+        cmds: ["zcat", "bzcat", "xzcat"],
+        summary: "Leggono un file compresso (gzip, bzip2, xz) e lo mandano decompresso nella pipe.",
+        syntax: "zcat file.gz   /   bzcat file.bz2   /   xzcat file.xz",
+        description: "I log vecchi vengono compressi dalla rotazione (syslog.1.gz, auth.log.3.xz...). zcat legge un file .gz e scrive il contenuto decompresso, senza creare file su disco: dopo si usa come qualunque altro testo. bzcat fa lo stesso per bzip2 e xzcat per xz. Con un file indicato, lo stdin viene ignorato. Nel gioco il file compresso è uno dei file del livello.",
+        examples: [
+            { title: "Cercare in un log compresso", input: ["log di oggi"], steps: [{ cmd: "zcat", args: { file: "ieri.log.gz", lines: ["avvio", "ERRORE disco", "fine"] } }, { cmd: "grep", args: { pattern: "ERRORE" } }],
+              note: "Lo stdin (il log di oggi) viene ignorato: conta solo il file." },
+            { title: "Archivio xz", input: [""], steps: [{ cmd: "xzcat", args: { file: "vecchio.xz", lines: ["b", "a"] } }, { cmd: "sort" }] }
+        ],
+        traps: [
+            "grep su un file .gz senza zcat cerca nei byte compressi e non trova niente (o dice «binary file matches»).",
+            "Ogni compressore ha il suo: zcat per .gz, bzcat per .bz2, xzcat per .xz."
+        ]
+    },
+    {
         id: "paste",
         name: "paste -s",
         cmds: ["paste"],

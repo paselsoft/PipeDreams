@@ -6,7 +6,9 @@ const COMMAND_NAMES = {
     grep: "grep", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
     comm: "comm (confronta con un file)", join: "join (unisci con un file)", nl: "nl (numera)", tee: "tee",
     squeeze: "tr -s (comprimi)", fold: "fold (a capo)", xargs: "xargs",
-    wc: "wc -l", wcw: "wc -w (parole)", wcc: "wc -c (byte)", cut: "cut -d -f (campo)", cutc: "cut -c (caratteri)", tac: "tac", rev: "rev", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
+    wc: "wc -l", wcw: "wc -w (parole)", wcc: "wc -c (byte)",
+    md5sum: "md5sum (impronta)", sha256sum: "sha256sum (impronta)", od: "od -c (caratteri)",
+    zcat: "zcat (file .gz)", bzcat: "bzcat (file .bz2)", xzcat: "xzcat (file .xz)", cut: "cut -d -f (campo)", cutc: "cut -c (caratteri)", tac: "tac", rev: "rev", tr: "tr", sed: "sed -E (regex)", awk: "awk (campo)", paste: "paste -s",
     devnull: "2>/dev/null", merge: "2>&1"
 };
 

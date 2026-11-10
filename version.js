@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.23.0";
+const APP_VERSION = "1.24.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.24.0", date: "2026-11-10", items: [
+            "🔒 Atto X «Verso l'esame»: 8 livelli nuovi (60-67) con i comandi dell'obiettivo LPIC-1 103.2 che mancavano. Nadia prepara l'esame e il team affronta un audit.",
+            "🔧 Nuovi comandi: md5sum e sha256sum (l'impronta di un file, per sapere se è cambiato), od -c (tabulazioni e caratteri nascosti), zcat, bzcat e xzcat (log compressi). Tutti verificati con bash vero, impronte comprese.",
+            "Manuale, pagine man, Tutor, terminale e sezione LPI conoscono i nuovi comandi: l'obiettivo 103.2 è coperto quasi del tutto."
+        ]
+    },
     {
         version: "1.23.0", date: "2026-11-10", items: [
             "📄 Atto IX «Leggere il manuale»: 9 livelli nuovi (51-59). Nadia ha passato l'esame, entra nel team e porta le opzioni cerchiate nelle pagine man.",

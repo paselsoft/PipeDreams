@@ -5,7 +5,7 @@
 
 // Comandi del gioco come compaiono negli obiettivi LPI
 const LPI_GAME_TERMS = new Set(["grep", "sort", "uniq", "head", "tail", "tac", "rev", "wc", "cut", "tr", "sed", "awk",
-    "nl", "tee", "comm", "join", "paste", "fold", "xargs"]);
+    "nl", "tee", "comm", "join", "paste", "fold", "xargs", "md5sum", "sha256sum", "od", "zcat", "bzcat", "xzcat"]);
 
 // Argomenti dell'allenamento per ogni comando del gioco
 const LPI_TRAINING = { grep: "grep", sort: "sort", uniq: "uniq", head: "headtail", tail: "headtail", wc: "wc", cut: "cut",

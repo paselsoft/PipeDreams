@@ -83,6 +83,19 @@ function describeStep(step) {
             what = "conta le righe: tutto il flusso diventa un solo numero.";
             add("-l", "conta le righe (non le parole né i caratteri)");
             break;
+        case "md5sum":
+        case "sha256sum":
+            what = `calcola l'impronta ${step.cmd === "md5sum" ? "MD5" : "SHA-256"} di tutto il flusso: esce una riga sola, «impronta  -» (il trattino è lo stdin). Se cambia anche un byte, cambia tutta l'impronta.`;
+            break;
+        case "od":
+            what = "mostra ogni byte del flusso, 16 per riga, con la posizione in ottale a sinistra: \\t è una tabulazione, \\n un a capo, lo spazio un campo vuoto. L'ultima riga è il totale dei byte.";
+            add("-c", "mostra i byte come caratteri (quelli invisibili con la barra rovesciata)");
+            break;
+        case "zcat":
+        case "bzcat":
+        case "xzcat":
+            what = `legge il file compresso ${a.file} (${{ zcat: "gzip", bzcat: "bzip2", xzcat: "xz" }[step.cmd]}) e lo manda decompresso nella pipe. Lo stdin viene ignorato.`;
+            break;
         case "wcw":
             what = "conta le parole: i pezzi separati da spazi, tabulazioni e a capo. Tutto il flusso diventa un solo numero.";
             add("-w", "conta le parole (gli spazi in più non contano)");

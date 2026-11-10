@@ -1219,5 +1219,170 @@ const levels = [
             { cmd: "wc", desc: "Conta le righe" },
             { cmd: "wcw", desc: "Conta le parole (-w)" }
         ]
+    },
+    {
+        id: 60,
+        act: 10,
+        title: "L'Impronta",
+        source: "cat server-attivi.txt",
+        mission: "Giulia ha firmato l'elenco giusto dei server con <code>md5sum</code>. Rifai l'elenco (in ordine, senza doppioni) e calcolane l'impronta: deve uscire <strong>la stessa</strong>.",
+        man: ["md5sum", "sort"],
+        stdin: ["zebra", "mela", "gatto", "mela", "pesca", "zebra", "gatto"],
+        target: ["8a6103ef5f7b45edc9ae0385add329e8  -"],
+        nudge: "L'impronta cambia se cambia anche un solo carattere, l'ordine o una riga in più: prima l'elenco esatto, poi md5sum.",
+        hint: "Piano in 2 passi: sort -u (in ordine, senza doppioni), poi md5sum. Anche sort | uniq | md5sum funziona, con un comando in più.",
+        tutor: "md5sum calcola un'impronta di tutto quello che riceve: basta una riga in più, un ordine diverso o uno spazio per avere un'impronta completamente diversa. Per questo si usa per controllare che un file non sia cambiato.",
+        allowedCommands: [
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "sort", args: { reverse: true }, desc: "Ordine inverso" },
+            { cmd: "md5sum", desc: "Impronta MD5" }
+        ]
+    },
+    {
+        id: 61,
+        act: 10,
+        title: "Il File è Cambiato?",
+        source: "cat /etc/app/app.conf",
+        slots: 3,
+        mission: "Ieri sera l'impronta <code>sha256sum</code> della configurazione <strong>senza le righe di commento</strong> era questa. Calcolala di nuovo: se è uguale, le modifiche di Tommaso toccano solo i commenti.",
+        man: ["sha256sum", "grep"],
+        stdin: ["# modificato da tommaso il 10/11", "porta=8080", "# TODO togliere la riga sotto?", "utente=www", "log=/var/log/app.log"],
+        target: ["d138fbbfed241c1b9eb676aa2d22a527a8f6a5184bae64114e7a8434c631040a  -"],
+        nudge: "Prima togli le righe di commento, poi calcola l'impronta del resto.",
+        hint: "Piano in 2 passi: grep -v '#', poi sha256sum. Attenzione: md5sum dà un'impronta diversa, anche sullo stesso testo.",
+        tutor: "sha256sum è come md5sum, ma con un'impronta più lunga e sicura: è quella che le distribuzioni usano per le ISO. Prima del calcolo si possono togliere le righe che non contano (qui i commenti).",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "#", invert: true }, desc: "Scarta le righe con '#'" },
+            { cmd: "grep", args: { pattern: "#" }, desc: "Tieni le righe con '#'" },
+            { cmd: "sha256sum", desc: "Impronta SHA-256" },
+            { cmd: "md5sum", desc: "Impronta MD5" }
+        ]
+    },
+    {
+        id: 62,
+        act: 10,
+        title: "Caratteri Invisibili",
+        source: "cut -d: -f1 /etc/passwd",
+        slots: 3,
+        mission: "Nella lista utenti la riga di <code>admin</code> sembra normale, ma lo script di backup non la trova. Mostra con <code>od -c</code> <strong>solo la riga di admin</strong>, per vedere cosa nasconde.",
+        man: ["od", "grep"],
+        stdin: ["nadia", "admin\t", "marco", "giulia"],
+        target: ["0000000   a   d   m   i   n  \\t  \\n", "0000007"],
+        nudge: "od -c mostra ogni byte: anche quelli che a schermo non si vedono, come tabulazioni e spazi in fondo.",
+        hint: "Piano in 2 passi: grep 'admin', poi od -c. In fondo alla riga compare \\t: una tabulazione nascosta dopo il nome.",
+        tutor: "od -c scrive ogni byte del flusso: le lettere come sono, la tabulazione come \\t, l'a capo come \\n. È il modo per scoprire spazi e caratteri invisibili che rompono gli script.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "admin" }, desc: "Tieni le righe con 'admin'" },
+            { cmd: "od", desc: "Mostra ogni carattere (od -c)" },
+            { cmd: "head", args: { n: 1 }, desc: "Prima riga" },
+            { cmd: "sort", desc: "Ordine alfabetico" }
+        ]
+    },
+    {
+        id: 63,
+        act: 10,
+        title: "Byte per Byte",
+        type: "quiz",
+        mission: "Tommaso chiede: cosa stampa <code>od -c</code> per la riga <code>a b</code>?",
+        stdin: ["a b"],
+        target: ["0000000   a       b  \\n", "0000004"],
+        nudge: "Ogni byte occupa un campo largo 4; lo spazio è un campo vuoto, l'a capo è \\n. In fondo c'è quanti byte sono, in ottale.",
+        hint: "a, spazio, b, a capo: 4 byte. Lo spazio si vede come un campo vuoto, l'a capo come \\n; l'ultima riga è l'offset finale: 0000004.",
+        explain: "od -c mostra a, uno spazio (campo vuoto), b e \\n: 4 byte, e l'ultima riga 0000004 è il numero di byte in ottale.",
+        allowedCommands: [
+            { cmd: "od", desc: "Mostra ogni carattere (od -c)" }
+        ],
+        start: [1],
+        wrong: [
+            { steps: [{ cmd: "tr", args: { from: " ", to: "_" } }, { cmd: "od" }], why: "Questo è l'output se lo spazio fosse un _: od -c mostra lo spazio come un campo vuoto, non con un simbolo." },
+            { steps: [{ cmd: "wcc" }], why: "Questo è wc -c: conta i 4 byte, ma non li mostra uno per uno." }
+        ]
+    },
+    {
+        id: 64,
+        act: 10,
+        title: "Il Log di Ieri",
+        source: "cat /var/log/syslog",
+        slots: 3,
+        mission: "Quante volte il kernel ha ucciso un processo per mancanza di memoria (<code>OOM</code>) <strong>ieri</strong>? Il log di ieri è compresso in <code>syslog.1.gz</code>. Solo il numero.",
+        man: ["zcat", "grep"],
+        stdin: ["Nov 10 08:00:01 web systemd[1]: Started backup.service", "Nov 10 08:15:22 web nginx[812]: reload ok", "Nov 10 09:02:10 web cron[501]: job ok"],
+        target: ["2"],
+        nudge: "Il log di oggi non c'entra: serve quello di ieri, che è compresso. C'è un comando che lo legge già decompresso.",
+        hint: "Piano in 2 passi: zcat syslog.1.gz, poi grep -c 'OOM'. Attenzione: grep sul log di oggi dà 0.",
+        tutor: "zcat legge un file compresso con gzip e lo manda nella pipe già decompresso, senza creare file. Così i log ruotati (.1.gz, .2.gz) si cercano come quelli normali. Ignora lo stdin.",
+        allowedCommands: [
+            { cmd: "zcat", args: { file: "syslog.1.gz", lines: ["Nov 09 03:12:44 web kernel: Out of memory: Killed process 4521 (python3)", "Nov 09 03:12:45 web kernel: oom_reaper: reaped process 4521", "Nov 09 07:40:01 web cron[501]: job ok", "Nov 09 22:05:13 web kernel: Out of memory: Killed process 6120 (java) OOM", "Nov 09 22:05:13 web kernel: OOM score adjusted"] }, desc: "Leggi syslog.1.gz decompresso" },
+            { cmd: "grep", args: { pattern: "OOM", count: true }, desc: "Conta le righe con 'OOM'" },
+            { cmd: "grep", args: { pattern: "OOM", ignoreCase: true, count: true }, desc: "Conta 'OOM', maiuscole o no (-ic)" },
+            { cmd: "wc", desc: "Conta le righe" }
+        ]
+    },
+    {
+        id: 65,
+        act: 10,
+        title: "L'Archivio",
+        source: "cat /var/log/auth.log",
+        slots: 6,
+        mission: "Il log di accesso di tre settimane fa è in <code>auth.log.3.xz</code>. Chi sbagliava la password allora? I nomi, in ordine, una volta ciascuno (i log scrivono «failed» come capita).",
+        man: ["xzcat", "grep", "sort"],
+        stdin: ["lun sshd: Accepted login for nadia", "mar sshd: Failed login for marco"],
+        target: ["bruno", "root", "tommaso"],
+        nudge: "Il log di oggi non serve: l'archivio è compresso con xz, e c'è un comando per leggerlo. Poi è un lavoro da Atto IX.",
+        hint: "Piano in 4 passi: xzcat auth.log.3.xz, grep -i 'failed', cut -d' ' -f6, sort -u.",
+        tutor: "zcat, bzcat e xzcat sono la stessa idea per tre compressori diversi (gzip, bzip2, xz): leggono il file e lo mandano decompresso nella pipe. Il resto è lo stesso lavoro di sempre.",
+        allowedCommands: [
+            { cmd: "xzcat", args: { file: "auth.log.3.xz", lines: ["lun sshd: FAILED login for root", "mar sshd: Accepted login for giulia", "mer sshd: failed login for bruno", "gio sshd: Failed login for root", "ven sshd: failed login for tommaso"] }, desc: "Leggi auth.log.3.xz decompresso" },
+            { cmd: "grep", args: { pattern: "failed", ignoreCase: true }, desc: "Righe con 'failed', maiuscole o no" },
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Righe con 'Failed'" },
+            { cmd: "cut", args: { delim: " ", field: 6 }, desc: "Campo 6 (spazio)" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "sort", desc: "Ordine alfabetico" }
+        ]
+    },
+    {
+        id: 66,
+        act: 10,
+        title: "Chi Ha Toccato i File?",
+        source: "md5sum /etc/app/*.conf",
+        mission: "Oggi hai calcolato le impronte dei file di configurazione; in <code>ieri.md5</code> ci sono quelle di ieri (ordinate). Quali file sono <strong>cambiati</strong>? Solo il percorso, in ordine.",
+        man: ["md5sum", "comm"],
+        stdin: ["0b0d1f2a7c3e4d5f6a7b8c9d0e1f2a3b  /etc/app/app.conf", "5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b  /etc/app/cache.conf", "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d  /etc/app/db.conf", "1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f  /etc/app/mail.conf"],
+        target: ["/etc/app/cache.conf", "/etc/app/db.conf"],
+        nudge: "Un file è cambiato se la sua riga «impronta  percorso» di oggi non c'è nel file di ieri. comm vuole due elenchi ordinati, e md5sum ordina per nome, non per impronta.",
+        hint: "Piano in 3 passi: sort, comm -23 - ieri.md5 (solo le righe di oggi), awk '{print $2}'. Attenzione: fra impronta e percorso ci sono due spazi, quindi cut -d' ' -f2 dà il vuoto.",
+        tutor: "md5sum scrive «impronta, due spazi, nome del file». Confrontando le righe di oggi con quelle di ieri, quelle diverse sono i file cambiati: è il principio dei controlli d'integrità come AIDE.",
+        allowedCommands: [
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "comm", args: { mode: "23", file: "ieri.md5", lines: ["0b0d1f2a7c3e4d5f6a7b8c9d0e1f2a3b  /etc/app/app.conf", "1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f  /etc/app/mail.conf", "7f7e7d7c7b7a79787776757473727170  /etc/app/cache.conf", "d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9  /etc/app/db.conf"] }, desc: "Solo le righe di oggi (comm -23)" },
+            { cmd: "comm", args: { mode: "12", file: "ieri.md5", lines: ["0b0d1f2a7c3e4d5f6a7b8c9d0e1f2a3b  /etc/app/app.conf", "1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f  /etc/app/mail.conf", "7f7e7d7c7b7a79787776757473727170  /etc/app/cache.conf", "d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9  /etc/app/db.conf"] }, desc: "Le righe uguali (comm -12)" },
+            { cmd: "awk", args: { field: 2 }, desc: "Campo 2 di awk" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" }
+        ]
+    },
+    {
+        id: 67,
+        act: 10,
+        title: "Boss Atto X",
+        source: "dpkg-query -W -f '${Package} ${Version}\\n'",
+        slots: 6,
+        mission: "🚨 Il backup di stanotte ha salvato l'elenco dei pacchetti in <code>pacchetti.txt.gz</code>. Giulia ha firmato con <code>md5sum</code> l'elenco giusto: <strong>solo i nomi</strong>, in ordine, senza doppioni. L'elenco nel backup ha la stessa impronta?",
+        man: ["zcat", "cut", "sort", "md5sum"],
+        stdin: ["bash 5.2.21-2ubuntu4", "curl 8.5.0-2ubuntu10.6", "vim 2:9.1.0016-1ubuntu7.5"],
+        target: ["bb219e73a6f4b21b1ee1e8111b0ad646  -"],
+        nudge: "L'elenco di oggi (stdin) non c'entra: serve quello del backup, compresso. Poi i nomi, l'ordine, i doppioni e l'impronta.",
+        hint: "Piano in 4 passi: zcat pacchetti.txt.gz, cut -d' ' -f1, sort -u, md5sum. Attenzione: sha256sum dà un'impronta diversa da quella di Giulia.",
+        tutor: "Il cerchio si chiude: zcat legge il backup compresso, cut e sort -u preparano l'elenco esatto, md5sum lo confronta con l'impronta firmata. Se anche un solo nome mancasse, l'impronta sarebbe diversa.",
+        allowedCommands: [
+            { cmd: "zcat", args: { file: "pacchetti.txt.gz", lines: ["vim 2:9.1.0016-1ubuntu7.4", "bash 5.2.21-2ubuntu4", "curl 8.5.0-2ubuntu10.5", "openssh-server 1:9.6p1-3ubuntu13.5", "bash 5.2.21-2ubuntu3", "nginx 1.24.0-2ubuntu7.1"] }, desc: "Leggi pacchetti.txt.gz decompresso" },
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "cut", args: { delim: " ", field: 2 }, desc: "Campo 2 (spazio)" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "md5sum", desc: "Impronta MD5" },
+            { cmd: "sha256sum", desc: "Impronta SHA-256" }
+        ]
     }
 ];

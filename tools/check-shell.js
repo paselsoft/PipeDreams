@@ -141,9 +141,29 @@ const fuzz9 = vm.runInContext(`(seed) => {
     return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
 }`, context);
 
+// Atto X: md5sum, sha256sum, od -c (tabulazioni, accenti, byte speciali, righe ripetute) e
+// zcat/bzcat/xzcat con un file compresso
+const fuzz10 = vm.runInContext(`(seed) => {
+    let state = seed;
+    const rand = n => { state = (state * 1103515245 + 12345) % 2147483648; return state % n; };
+    const pickOne = list => list[rand(list.length)];
+    const words = ["ciao", "a\tb", "nadia\t", "è già", "aaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaa", "x y z", "", String.fromCharCode(92), "OOM killer", "ok", "1234567890abcdef", "tab\tqui\tla"];
+    const file = ["OOM web", "ok", "OOM db", "riavvio"];
+    const pool = [
+        { cmd: "md5sum" }, { cmd: "sha256sum" }, { cmd: "od" }, { cmd: "sort" }, { cmd: "uniq" }, { cmd: "grep", args: { pattern: "a" } },
+        { cmd: "zcat", args: { file: "ieri.gz", lines: file } }, { cmd: "bzcat", args: { file: "vecchio.bz2", lines: ["b", "a", "b"] } },
+        { cmd: "xzcat", args: { file: "archivio.xz", lines: ["\tx", "y"] } }, { cmd: "grep", args: { pattern: "OOM", count: true } },
+        { cmd: "tr", args: { from: "a", to: "\t" } }, { cmd: "head", args: { n: 1 } }
+    ];
+    const input = Array.from({ length: 1 + rand(6) }, () => pickOne(words));
+    const steps = Array.from({ length: 1 + rand(3) }, () => pickOne(pool));
+    const result = executePipeline(input, steps);
+    return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
+}`, context);
+
 let fuzzed = 0;
 for (let seed = 1; seed <= runs * 5; seed++) {
-    for (const generate of [fuzz, fuzz8, fuzz9]) {
+    for (const generate of [fuzz, fuzz8, fuzz9, fuzz10]) {
     const sim = generate(seed);
     const real = runBash(sim.line);
     const output = real.stdout;

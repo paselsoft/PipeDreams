@@ -98,9 +98,13 @@ const report = vm.runInContext(`(() => {
         ["cut -d ':' -f 2-", [{ cmd: "cut", args: { delim: ":", fields: "2-" } }]],
         ["cut --complement -d, -f2", [{ cmd: "cut", args: { delim: ",", field: 2, complement: true } }]],
         ["wc -w", [{ cmd: "wcw" }]],
-        ["wc -c", [{ cmd: "wcc" }]]
+        ["wc -c", [{ cmd: "wcc" }]],
+        ["sort | md5sum", [{ cmd: "sort" }, { cmd: "md5sum" }]],
+        ["sha256sum -", [{ cmd: "sha256sum" }]],
+        ["grep x | od -c", [{ cmd: "grep", args: { pattern: "x" } }, { cmd: "od" }]],
+        ["zcat ieri.log.gz | grep -c OOM", [{ cmd: "zcat", args: { file: "ieri.log.gz", lines: ["OOM", "ok"] } }, { cmd: "grep", args: { pattern: "OOM", count: true } }]]
     ].filter(([, expected]) => expected);
-    const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"] };
+    const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"], "ieri.log.gz": ["OOM", "ok"] };
     for (const [text, expected] of variants) {
         const result = parsePipeline(text, variantFiles);
         if (result.error || !same(result.steps, expected)) failures.push("variante: " + text + " → " + (result.error || JSON.stringify(result.steps)));
@@ -114,7 +118,7 @@ const report = vm.runInContext(`(() => {
         "comm - critici.txt", "comm -3 - critici.txt", "comm -12 critici.txt -", "comm -12 - altro.txt", "join - ", "join -t,, - ultime.txt",
         "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b",
         "sort -nh", "tr -s", "tr -s a b", "fold", "fold -w 0", "fold -x", "xargs rm", "xargs -n", "xargs -n 0", "xargs -0",
-        "grep -co x", "uniq -du", "cut -d: -f0", "cut -d: -f3-1", "cut -d: -f1,", "wc -lw", "wc -m", "sort -x"];
+        "grep -co x", "uniq -du", "md5sum file", "od", "od -x", "zcat", "zcat altro.gz", "xzcat -d x", "cut -d: -f0", "cut -d: -f3-1", "cut -d: -f1,", "wc -lw", "wc -m", "sort -x"];
     for (const text of errors) {
         const result = parsePipeline(text, variantFiles);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));

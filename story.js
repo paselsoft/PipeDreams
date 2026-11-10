@@ -38,6 +38,10 @@ const ACTS = {
     9: {
         title: "Leggere il manuale",
         intro: "Nadia, la guardia notturna, ha passato l'esame LPIC-1 e da lunedì è nel team come sistemista junior. Il primo giorno arriva con una cartellina piena di pagine man, le opzioni cerchiate a penna. «Voi usate grep | wc -l e sort | uniq», dice sorridendo. «Il manuale dice che si fa con un comando solo.» Arrivano grep -c, -i e -w, sort -u, uniq -u, cut con più campi e wc -w e -c."
+    },
+    10: {
+        title: "Verso l'esame",
+        intro: "Giulia ha deciso: entro primavera tutto il team prende la certificazione LPIC-1, e Nadia farà da allenatrice. «All'obiettivo 103.2 mancano ancora un paio di cose», dice aprendo la lezione sul portatile. Il mese è movimentato: un audit di sicurezza, una configurazione toccata da qualcuno e un backup da verificare. Arrivano md5sum e sha256sum per le impronte, od -c per vedere i caratteri invisibili e zcat, bzcat e xzcat per leggere i log compressi."
     }
 };
 
@@ -101,8 +105,16 @@ const STORY = {
     56: { from: "Giulia", text: "L'audit chiede utente e shell di chi può entrare. Una colonna alla volta non mi basta: le voglio insieme, sulla stessa riga." },
     57: { from: "Tommaso", text: "Devo mandare l'elenco utenti al fornitore, ma senza le password! Nadia mi ha detto di usare --complement. Cosa esce?" },
     58: { from: "Marco", text: "Il gateway SMS dell'allarme taglia tutto oltre i 160 byte. Prima di mandarlo, quanti byte è il messaggio?" },
-    59: { from: "Giulia", text: "🚨 Venerdì, rapporto settimanale. Nadia, fallo tu: quanti utenti diversi hanno sbagliato la password questa settimana? I log scrivono «failed» come capita." }
+    59: { from: "Giulia", text: "🚨 Venerdì, rapporto settimanale. Nadia, fallo tu: quanti utenti diversi hanno sbagliato la password questa settimana? I log scrivono «failed» come capita." },
+    60: { from: "Giulia", text: "Prima regola dell'audit: niente elenchi copiati a mano. Ti ho mandato l'impronta md5sum dell'elenco giusto dei server: se la tua è uguale, l'elenco è esatto." },
+    61: { from: "Nadia", text: "Qualcuno ha toccato app.conf stanotte. Tommaso giura di aver cambiato solo i commenti: verifichiamolo con l'impronta di ieri sera." },
+    62: { from: "Marco", text: "Lo script di backup salta l'utente admin, eppure nella lista c'è. Ci deve essere qualcosa che non si vede: fammelo vedere carattere per carattere." },
+    63: { from: "Tommaso", text: "Nadia dice che all'esame chiedono anche come legge od -c. Prima di provarlo: cosa stampa per «a b»?" },
+    64: { from: "Marco", text: "Il server web è ripartito da solo stanotte? Il log di ieri è già stato compresso dalla rotazione: quante volte è intervenuto l'OOM killer?" },
+    65: { from: "Giulia", text: "L'auditor chiede chi sbagliava la password tre settimane fa. Quel log è nell'archivio, compresso con xz." },
+    66: { from: "Nadia", text: "Ho calcolato le impronte di tutti i file di configurazione, come ieri. Confrontiamole: quali file sono cambiati da ieri?" },
+    67: { from: "Giulia", text: "🚨 Ultimo controllo prima di chiudere l'audit: il backup di stanotte contiene l'elenco dei pacchetti giusto? Ho firmato l'elenco con md5sum." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "Il venerdì sera Nadia consegna il suo primo rapporto, fatto quasi tutto con opzioni che in ufficio nessuno conosceva, e Marco appende la sua pagina di man grep, cerchiata a penna, accanto alla macchinetta del caffè. Giulia ti chiama nel suo ufficio e ripercorre questi mesi: il sito, la newsletter e la posta salvati in un venerdì di fuoco, Tommaso diventato un sistemista vero, ogni byte portato nel nuovo datacenter, il Patch Tuesday chiuso senza riavvii in orario di lavoro, le notti di reperibilità. «E con Nadia nel team, adesso qui si legge anche il manuale. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline. E con man.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando e le lezioni LPI per l'esame.";
+const EPILOGUE = "L'audit si chiude senza una sola osservazione: elenchi verificati con le impronte, archivi letti senza decomprimere niente, e il carattere invisibile nella riga di admin finisce nel rapporto come «trovato e corretto». Nadia appende alla bacheca il calendario degli esami LPIC-1, con i nomi di tutto il team. Giulia ti chiama nel suo ufficio e ripercorre questi mesi: il sito, la newsletter e la posta salvati in un venerdì di fuoco, Tommaso diventato un sistemista vero, ogni byte portato nel nuovo datacenter, il Patch Tuesday chiuso senza riavvii in orario di lavoro, le notti di reperibilità. «E con Nadia nel team, adesso qui si legge anche il manuale. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline. E con man.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando e le lezioni LPI per l'esame.";
