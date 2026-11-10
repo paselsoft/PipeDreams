@@ -1,11 +1,16 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.24.0";
+const APP_VERSION = "1.25.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.25.0", date: "2026-11-10", items: [
+            "🔍 Nuovo caso a puntate «Il doppio di Marco» (si sblocca con l'Atto IX): da una settimana l'allarme dice che Marco entra nei server ogni notte alle 2, ma lui giura che dorme. Nadia, alla sua prima indagine, apre i log con grep -iw, sort -u e cut -f1,5."
+        ]
+    },
     {
         version: "1.24.0", date: "2026-11-10", items: [
             "🔒 Atto X «Verso l'esame»: 8 livelli nuovi (60-67) con i comandi dell'obiettivo LPIC-1 103.2 che mancavano. Nadia prepara l'esame e il team affronta un audit.",

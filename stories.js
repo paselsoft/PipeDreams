@@ -2067,5 +2067,270 @@ const STORIES = [
                 }
             }
         ]
+    },
+    {
+        id: "doppio-marco",
+        title: "Il doppio di Marco",
+        synopsis: "Da una settimana l'allarme dice che Marco entra nei server ogni notte, verso le 2. Marco giura che a quell'ora dorme. Nadia, alla sua prima indagine, apre i log.",
+        requiresAct: 9,
+        finale: "Marco",
+        epilogue: "Marco si mette le mani nei capelli: «marco.bk! L'ho creato anni fa per salvare le foto del gatto sul NAS, e me ne sono dimenticato.» Giulia ride e corregge la regola dell'allarme: adesso confronta il nome dell'account intero, non un pezzo di testo. Nadia aggiunge una riga al suo quaderno degli appunti: «grep 'marco' trova anche marcolino; grep -w 'marco' trova anche marco.bk. Prima di dare la colpa a qualcuno, guarda il campo giusto.» Le foto del gatto restano sul NAS: il backup continua ogni notte alle 2:15, ma l'allarme non suona più.",
+        chapters: [
+            {
+                id: "allarme",
+                title: "L'allarme",
+                from: "Nadia",
+                text: "La mia prima indagine! Il sistema di allarme scrive «login notturno» ogni volta che qualcuno entra di notte, ma ogni modulo lo scrive a modo suo: maiuscolo, minuscolo, misto. E poi c'è il log degli accessi ssh della notte: vediamo chi entra davvero.",
+                puzzles: [
+                    {
+                        id: "conteggio",
+                        clue: "Allarmi notturni della settimana",
+                        level: {
+                            title: "Quanti Allarmi",
+                            source: "cat /var/log/allarmi.log",
+                            slots: 3,
+                            mission: "Quanti allarmi di <strong>login notturno</strong> ci sono stati questa settimana, comunque siano scritti? Solo il numero.",
+                            man: ["grep"],
+                            nudge: "«notturno» è scritto in tre modi diversi: serve un'opzione che ignori le maiuscole, e una che conti.",
+                            hint: "grep -ic 'notturno': -i ignora le maiuscole, -c conta le righe.",
+                            stdin: ["lun 02:15 Login notturno: Marco", "mar 02:15 LOGIN NOTTURNO: marco", "mer 02:16 login notturno: MARCO", "mer 14:02 login diurno: giulia", "gio 02:15 Login Notturno: marco", "gio 09:10 Login diurno: nadia", "ven 02:15 login notturno: Marco"],
+                            target: ["5"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "notturno", ignoreCase: true, count: true }, desc: "Conta 'notturno', maiuscole o no (-ic)" },
+                                { cmd: "grep", args: { pattern: "notturno", count: true }, desc: "Conta le righe con 'notturno'" },
+                                { cmd: "grep", args: { pattern: "notturno", ignoreCase: true }, desc: "Righe con 'notturno', maiuscole o no" },
+                                { cmd: "wc", desc: "Conta le righe" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "chi",
+                        clue: "Chi entra di notte con «marco» nel nome",
+                        level: {
+                            title: "Chi Entra di Notte",
+                            source: "grep sshd /var/log/auth.log",
+                            slots: 4,
+                            mission: "Quali account che contengono la <strong>parola</strong> <code>marco</code> entrano di notte? Il nome dell'account (ottavo campo), una volta ciascuno.",
+                            man: ["grep", "sort"],
+                            nudge: "grep 'marco' trova «marco» anche dentro altre parole. Ti serve la parola intera.",
+                            hint: "grep -w 'marco', cut -d' ' -f8, sort -u. Attenzione: senza -w entra anche marcolino; con -w invece marco.bk vale, perché il punto non fa parte della parola.",
+                            stdin: [
+                                "lun 02:15:01 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "lun 02:40:12 gufo sshd: Accepted password for marcolino from 10.0.0.20",
+                                "mar 02:15:02 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "mer 02:16:05 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "gio 02:15:01 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "ven 02:15:03 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "ven 02:51:40 gufo sshd: Accepted password for marcolino from 10.0.0.20"
+                            ],
+                            target: ["marco.bk"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "marco", word: true }, desc: "Righe con la parola 'marco'" },
+                                { cmd: "grep", args: { pattern: "marco" }, desc: "Righe con 'marco'" },
+                                { cmd: "cut", args: { delim: " ", field: 8 }, desc: "Campo 8 (spazio)" },
+                                { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa dicono gli indizi sugli allarmi?",
+                    options: [
+                        "Di notte non entra l'account marco: entra marco.bk, e l'allarme confonde i due nomi",
+                        "Marco entra davvero di notte con il suo account",
+                        "Gli allarmi sono falsi: di notte non entra nessuno",
+                        "È colpa di marcolino, che entra ogni notte alle 2:15"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Nel log di notte l'account marco non compare mai: c'è marco.bk.",
+                        "Qualcuno entra davvero: marco.bk, ogni notte.",
+                        "marcolino non contiene la parola marco (con -w non vale), ed entra alle 2:40 e alle 2:51, non alle 2:15."
+                    ],
+                    explain: "Gli allarmi notturni sono tanti quanti gli accessi di marco.bk, sempre verso le 2:15. L'allarme cerca «marco» nel testo, e lo trova dentro marco.bk.",
+                    hint: "Metti accanto il numero di allarmi e gli account che entrano di notte.",
+                    focus: ["allarme/conteggio", "allarme/chi"]
+                }
+            },
+            {
+                id: "account",
+                title: "marco.bk",
+                from: "Marco",
+                text: "Io alle 2 dormo, ve lo giuro. marco.bk... aspettate, questo nome mi dice qualcosa. Guardiamo chi è nell'elenco degli utenti e cosa fa con il suo crontab.",
+                puzzles: [
+                    {
+                        id: "identita",
+                        clue: "Chi sono marco e marco.bk",
+                        level: {
+                            title: "Due Marco",
+                            source: "getent passwd",
+                            slots: 3,
+                            mission: "Degli account con la parola <code>marco</code> mostrami <strong>nome e descrizione</strong> (campi 1 e 5), separati da <code>:</code>.",
+                            man: ["cut", "grep"],
+                            nudge: "cut può tenere più campi insieme, con la virgola. E marcolino non è la parola marco.",
+                            hint: "grep -w 'marco', poi cut -d':' -f1,5.",
+                            stdin: ["nadia:x:1001:1001:Nadia Russo:/home/nadia:/bin/bash", "marco:x:1003:1003:Marco Bianchi:/home/marco:/bin/bash", "marco.bk:x:1090:1090:Backup foto di Marco sul NAS:/home/marco.bk:/bin/sh", "marcolino:x:1091:1091:Account di prova di Tommaso:/home/marcolino:/bin/bash"],
+                            target: ["marco:Marco Bianchi", "marco.bk:Backup foto di Marco sul NAS"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "marco", word: true }, desc: "Righe con la parola 'marco'" },
+                                { cmd: "grep", args: { pattern: "marco" }, desc: "Righe con 'marco'" },
+                                { cmd: "cut", args: { delim: ":", fields: "1,5" }, desc: "Campi 1 e 5 (:)" },
+                                { cmd: "cut", args: { delim: ":", field: 5 }, desc: "Campo 5 (:)" },
+                                { cmd: "cut", args: { delim: ":", field: 1 }, desc: "Campo 1 (:)" }
+                            ]
+                        }
+                    },
+                    {
+                        id: "crontab",
+                        clue: "I lavori programmati di marco.bk",
+                        level: {
+                            title: "Il Crontab",
+                            source: "crontab -l -u marco.bk",
+                            slots: 3,
+                            mission: "Cosa lancia <code>marco.bk</code> e quando? Per ogni lavoro: <strong>minuto, ora e comando</strong> (campi 1, 2 e 6), senza la riga di commento.",
+                            man: ["cut"],
+                            nudge: "In un crontab i primi due campi sono minuto e ora; il comando qui è il sesto campo.",
+                            hint: "grep -v '#', poi cut -d' ' -f1,2,6.",
+                            stdin: ["# backup delle foto sul NAS", "15 2 * * * rsync -a /home/marco/foto/ nas:/backup/foto/", "30 3 * * 0 tar czf /tmp/foto.tgz /home/marco/foto"],
+                            target: ["15 2 rsync", "30 3 tar"],
+                            allowedCommands: [
+                                { cmd: "grep", args: { pattern: "#", invert: true }, desc: "Scarta le righe con '#'" },
+                                { cmd: "cut", args: { delim: " ", fields: "1,2,6" }, desc: "Campi 1, 2 e 6 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", fields: "1-6" }, desc: "Campi da 1 a 6 (spazio)" },
+                                { cmd: "cut", args: { delim: " ", field: 6 }, desc: "Campo 6 (spazio)" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cos'è marco.bk?",
+                    options: [
+                        "Un account di backup delle foto di Marco sul NAS, con rsync ogni notte alle 2:15",
+                        "L'account di prova di Tommaso",
+                        "Un intruso che si fa passare per Marco",
+                        "Il backup dei documenti di lavoro di Marco, ogni domenica"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "L'account di prova di Tommaso è marcolino.",
+                        "La descrizione dice «Backup foto di Marco sul NAS», e il crontab copia proprio le foto.",
+                        "Copia /home/marco/foto, e il lavoro di ogni notte è rsync alle 2:15; quello della domenica (tar alle 3:30) è un archivio delle stesse foto."
+                    ],
+                    explain: "La descrizione in passwd e il crontab dicono la stessa cosa: marco.bk copia le foto di Marco sul NAS con rsync, ogni notte alle 2:15.",
+                    hint: "Leggi la descrizione dell'account e il primo lavoro del crontab.",
+                    focus: ["account/identita", "account/crontab"]
+                }
+            },
+            {
+                id: "foto",
+                title: "Le notti delle foto",
+                from: "Giulia",
+                text: "Il NAS tiene il registro di ogni file ricevuto: data, ora, nome. Vediamo quando parte la copia ogni notte, così capiamo se è davvero il backup o qualcuno che ne approfitta.",
+                puzzles: [
+                    {
+                        id: "prime",
+                        clue: "La prima foto copiata ogni notte",
+                        level: {
+                            title: "La Prima Copia",
+                            source: "cat /var/log/nas/ricevuti.csv",
+                            slots: 3,
+                            mission: "Il registro è <code>giorno,ora,file</code>. Per ogni giorno tieni <strong>la prima riga</strong> (la prima foto copiata), con i giorni in ordine alfabetico.",
+                            man: ["sort"],
+                            nudge: "sort -u con una chiave tiene una riga per chiave: la prima, perché con -u l'ordinamento è stabile.",
+                            hint: "sort -t',' -k1,1 -u. Attenzione: sort -u senza chiave guarda la riga intera.",
+                            stdin: ["lun,02:15:04,gatto1.jpg", "lun,02:15:09,gatto2.jpg", "mar,02:15:03,gatto3.jpg", "mer,02:16:07,mare.jpg", "mer,02:16:12,gatto4.jpg", "gio,02:15:02,gatto5.jpg", "ven,02:15:05,gatto6.jpg"],
+                            target: ["gio,02:15:02,gatto5.jpg", "lun,02:15:04,gatto1.jpg", "mar,02:15:03,gatto3.jpg", "mer,02:16:07,mare.jpg", "ven,02:15:05,gatto6.jpg"],
+                            allowedCommands: [
+                                { cmd: "sort", args: { unique: true, separator: ",", key: 1 }, desc: "Per giorno, una riga ciascuno (-u)" },
+                                { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+                                { cmd: "sort", args: { separator: ",", key: 1 }, desc: "Per giorno" },
+                                { cmd: "uniq", desc: "Rimuovi duplicati" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Cosa ci dice il registro del NAS?",
+                    options: [
+                        "La copia parte ogni notte tra le 2:15 e le 2:16, ed è proprio il backup programmato",
+                        "La copia parte a orari diversi ogni notte: c'è qualcuno che la lancia a mano",
+                        "Ogni notte viene copiata una sola foto",
+                        "Il backup copia documenti di lavoro"
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Le prime copie sono tutte tra le 2:15 e le 2:16, come nel crontab.",
+                        "Lunedì e mercoledì le foto copiate sono due: la prima riga di ogni giorno non è l'unica.",
+                        "I file sono foto (gatto1.jpg, mare.jpg...), come dice la descrizione dell'account."
+                    ],
+                    explain: "Le prime copie di ogni notte sono tutte alle 2:15-2:16: è il rsync del crontab di marco.bk, non una persona.",
+                    hint: "Confronta gli orari della prima copia con il crontab del capitolo prima.",
+                    focus: ["foto/prime", "account/crontab"]
+                }
+            },
+            {
+                id: "regola",
+                title: "La regola giusta",
+                from: "Tommaso",
+                text: "Prima di correggere l'allarme, Giulia vuole i numeri esatti: quanti accessi notturni fa ogni account? Così vediamo anche se il mio marcolino c'entra qualcosa.",
+                puzzles: [
+                    {
+                        id: "conti",
+                        clue: "Accessi notturni per account",
+                        level: {
+                            title: "I Conti di Notte",
+                            source: "grep sshd /var/log/auth.log",
+                            slots: 4,
+                            mission: "Quanti accessi notturni ha fatto <strong>ogni account</strong>? Il conteggio e il nome (ottavo campo), con i nomi in ordine alfabetico.",
+                            man: ["uniq", "cut"],
+                            nudge: "Prendi il nome dell'account, raggruppa i nomi uguali e contali.",
+                            hint: "cut -d' ' -f8, sort, uniq -c.",
+                            stdin: [
+                                "lun 02:15:01 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "lun 02:40:12 gufo sshd: Accepted password for marcolino from 10.0.0.20",
+                                "mar 02:15:02 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "mer 02:16:05 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "gio 02:15:01 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "ven 02:15:03 gufo sshd: Accepted publickey for marco.bk from 10.0.0.77",
+                                "ven 02:51:40 gufo sshd: Accepted password for marcolino from 10.0.0.20"
+                            ],
+                            target: ["      5 marco.bk", "      2 marcolino"],
+                            allowedCommands: [
+                                { cmd: "cut", args: { delim: " ", field: 8 }, desc: "Campo 8 (spazio)" },
+                                { cmd: "sort", desc: "Ordine alfabetico" },
+                                { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+                                { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati (-c)" },
+                                { cmd: "grep", args: { pattern: "marco", word: true, count: true }, desc: "Conta la parola 'marco' (-wc)" }
+                            ]
+                        }
+                    }
+                ],
+                question: {
+                    text: "Quale rapporto è giusto in ogni dettaglio?",
+                    options: [
+                        "5 allarmi notturni in una settimana, tutti dall'account marco.bk: il backup delle foto di Marco sul NAS, che parte con rsync alle 2:15. marcolino entra 2 volte e non c'entra.",
+                        "3 allarmi notturni in una settimana, tutti dall'account marco.bk: il backup delle foto di Marco sul NAS, che parte con rsync alle 2:15. marcolino entra 2 volte e non c'entra.",
+                        "5 allarmi notturni in una settimana, tutti dall'account marco.bk: il backup delle foto di Marco sul NAS, che parte con tar alle 3:30. marcolino entra 2 volte e non c'entra.",
+                        "5 allarmi notturni in una settimana, tutti dall'account marco.bk: il backup dei documenti di Marco sul NAS, che parte con rsync alle 2:15. marcolino entra 2 volte e non c'entra.",
+                        "5 allarmi notturni in una settimana, tutti dall'account marco.bk: il backup delle foto di Marco sul NAS, che parte con rsync alle 2:15. marcolino entra 5 volte e non c'entra."
+                    ],
+                    answer: 0,
+                    why: [
+                        "",
+                        "Gli allarmi sono 5: con grep -c senza -i se ne contano solo 3 (capitolo 1).",
+                        "Ogni notte parte rsync alle 2:15; tar alle 3:30 è solo la domenica (capitolo 2).",
+                        "Copia le foto, non i documenti (capitoli 2 e 3).",
+                        "marcolino entra 2 volte; 5 sono gli accessi di marco.bk (capitolo 4)."
+                    ],
+                    explain: "5 allarmi (grep -ic), tutti di marco.bk, il backup delle foto con rsync alle 2:15; marcolino entra 2 volte e a orari diversi.",
+                    hint: "Ogni rapporto sbagliato ha un solo dettaglio falso: controllalo con il taccuino, capitolo per capitolo.",
+                    focus: ["allarme/conteggio", "account/crontab", "foto/prime", "regola/conti"]
+                }
+            }
+        ]
     }
 ];
