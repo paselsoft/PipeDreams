@@ -114,9 +114,36 @@ const fuzz8 = vm.runInContext(`(seed) => {
     return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
 }`, context);
 
+// Atto IX: grep -c -i -w, sort -u, uniq -u, cut con elenchi di campi e --complement, wc -w e -c
+const fuzz9 = vm.runInContext(`(seed) => {
+    let state = seed;
+    const rand = n => { state = (state * 1103515245 + 12345) % 2147483648; return state % n; };
+    const pickOne = list => list[rand(list.length)];
+    const words = ["Error disco", "error rete", "ERROR", "errori vari", "log in", "login", "a log.", "LOG_x", "x:y:z", "a:b", ":c:", "solo",
+        "b 2", "a 1", "c 1", "a 1", "10 x", "9 y", "", "  due  spazi ", "a,b,c,d", "1,2", "e,f"];
+    const pool = [
+        { cmd: "grep", args: { pattern: "error", ignoreCase: true } }, { cmd: "grep", args: { pattern: "log", word: true } },
+        { cmd: "grep", args: { pattern: "log", word: true, ignoreCase: true } }, { cmd: "grep", args: { pattern: "a", count: true } },
+        { cmd: "grep", args: { pattern: "e", invert: true, count: true } }, { cmd: "grep", args: { pattern: "LOG", ignoreCase: true, only: true } },
+        { cmd: "grep", args: { pattern: "a", word: true, only: true } }, { cmd: "grep", args: { pattern: "1", word: true, invert: true } },
+        { cmd: "sort", args: { unique: true } }, { cmd: "sort", args: { numeric: true, unique: true } }, { cmd: "sort", args: { reverse: true, unique: true } },
+        { cmd: "sort", args: { unique: true, separator: " ", key: 2 } }, { cmd: "sort", args: { unique: true, numeric: true, reverse: true, separator: " ", key: 2 } },
+        { cmd: "sort", args: { unique: true, separator: ",", key: 1 } }, { cmd: "sort", args: { human: true, unique: true } },
+        { cmd: "uniq", args: { unique: true } }, { cmd: "uniq", args: { unique: true, count: true } }, { cmd: "sort" },
+        { cmd: "cut", args: { delim: ":", fields: "1,3" } }, { cmd: "cut", args: { delim: ":", fields: "2-" } }, { cmd: "cut", args: { delim: ",", fields: "-2" } },
+        { cmd: "cut", args: { delim: ",", fields: "1,3-4" } }, { cmd: "cut", args: { delim: ":", field: 2, complement: true } },
+        { cmd: "cut", args: { delim: ",", fields: "2-3", complement: true } }, { cmd: "cut", args: { delim: " ", fields: "1,3" } },
+        { cmd: "wcw" }, { cmd: "wcc" }, { cmd: "wc" }, { cmd: "tr", args: { from: "a-z", to: "A-Z" } }
+    ];
+    const input = Array.from({ length: 1 + rand(7) }, () => pickOne(words));
+    const steps = Array.from({ length: 1 + rand(3) }, () => pickOne(pool));
+    const result = executePipeline(input, steps);
+    return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
+}`, context);
+
 let fuzzed = 0;
 for (let seed = 1; seed <= runs * 5; seed++) {
-    for (const generate of [fuzz, fuzz8]) {
+    for (const generate of [fuzz, fuzz8, fuzz9]) {
     const sim = generate(seed);
     const real = runBash(sim.line);
     const output = real.stdout;

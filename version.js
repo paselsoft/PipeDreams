@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.22.0";
+const APP_VERSION = "1.23.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.23.0", date: "2026-11-10", items: [
+            "📄 Atto IX «Leggere il manuale»: 9 livelli nuovi (51-59). Nadia ha passato l'esame, entra nel team e porta le opzioni cerchiate nelle pagine man.",
+            "🔧 Nuove opzioni: grep -c (conta), -i (maiuscole o no), -w (parole intere); sort -u e sort -u con una chiave; uniq -u; cut con più campi (-f1,7, -f2-) e --complement; wc -w (parole) e wc -c (byte). Tutte verificate con bash vero.",
+            "Manuale, pagine man, Tutor, terminale e sezione LPI conoscono le nuove opzioni."
+        ]
+    },
     {
         version: "1.22.0", date: "2026-11-09", items: [
             "📘 Nuova sezione «Certificazioni LPI» nel menu LIVELLI: gli obiettivi di LPIC-1 (esami 101 e 102) e di Linux Essentials, con il peso, il link alla lezione ufficiale gratuita in italiano e il PDF dell'esame.",

@@ -104,11 +104,14 @@ function optionValue(words, index, letter) {
 
 const PARSERS = {
     grep: words => {
-        const { flags, operands } = shortFlags("grep", words, ["v", "o"]);
+        const { flags, operands } = shortFlags("grep", words, ["v", "o", "i", "w", "c"]);
         if (operands.length !== 1) fail("grep: serve esattamente un testo da cercare, es. grep -v 'ERR'");
         const args = { pattern: operands[0] };
         if (flags.has("v")) args.invert = true;
         if (flags.has("o")) args.only = true;
+        if (flags.has("i")) args.ignoreCase = true;
+        if (flags.has("w")) args.word = true;
+        if (flags.has("c")) args.count = true;
         return args;
     },
     sort: words => {
@@ -128,13 +131,14 @@ const PARSERS = {
                 }
                 args.key = Number(match[1]);
                 i += used;
-            } else if (/^-[rnh]+$/.test(word)) {
+            } else if (/^-[rnhu]+$/.test(word)) {
                 if (word.includes("n")) args.numeric = true;
                 if (word.includes("h")) args.human = true;
                 if (word.includes("r")) args.reverse = true;
+                if (word.includes("u")) args.unique = true;
                 i++;
             } else if (word.startsWith("-")) {
-                fail(`sort: opzione non valida '${word}' (nel gioco: -r -n -h -t -k)`);
+                fail(`sort: opzione non valida '${word}' (nel gioco: -r -n -h -u -t -k)`);
             } else {
                 fail(`sort: nel gioco sort legge solo dalla pipe (argomento in più: '${word}')`);
             }
@@ -142,11 +146,12 @@ const PARSERS = {
         return args;
     },
     uniq: words => {
-        const { flags, operands } = shortFlags("uniq", words, ["c", "d"]);
+        const { flags, operands } = shortFlags("uniq", words, ["c", "d", "u"]);
         if (operands.length) fail(`uniq: argomento in più: '${operands[0]}'`);
         const args = {};
         if (flags.has("c")) args.count = true;
         if (flags.has("d")) args.repeated = true;
+        if (flags.has("u")) args.unique = true;
         return args;
     },
     nl: words => {
@@ -188,7 +193,7 @@ const PARSERS = {
     head: words => ({ n: parseCount("head", words) }),
     tail: words => ({ n: parseCount("tail", words) }),
     wc: words => {
-        if (words.length !== 1 || words[0] !== "-l") fail("wc: nel gioco wc conta solo le righe: usa wc -l");
+        if (words.length !== 1 || words[0] !== "-l") fail("wc: nel gioco wc conta righe (-l), parole (-w) o byte (-c), una cosa alla volta");
         return {};
     },
     cut: words => {
@@ -202,15 +207,23 @@ const PARSERS = {
                 i += used;
             } else if (/^-f/.test(word)) {
                 const { value, used } = optionValue(words, i, "f");
-                if (!/^[0-9]+$/.test(value ?? "") || Number(value) < 1) fail(`cut: campo non valido: '${value ?? ""}' (nel gioco un solo campo, es. -f2)`);
-                args.field = Number(value);
+                if (/^[0-9]+$/.test(value ?? "") && Number(value) >= 1) args.field = Number(value);
+                else if (cutFieldSet(value ?? "")) args.fields = value;
+                else fail(`cut: campi non validi: '${value ?? ""}' (es. -f2, -f1,3, -f2-)`);
                 i += used;
+            } else if (word === "--complement") {
+                args.complement = true;
+                i++;
             } else {
                 fail(`cut: argomento non valido: '${word}' (si usa cut -d'X' -fN)`);
             }
         }
-        if (args.delim === undefined || args.field === undefined) fail("cut: servono sia -d che -f, es. cut -d':' -f2");
-        return { delim: args.delim, field: args.field };
+        if (args.delim === undefined || (args.field === undefined && args.fields === undefined)) fail("cut: servono sia -d che -f, es. cut -d':' -f2");
+        const result = { delim: args.delim };
+        if (args.field !== undefined) result.field = args.field;
+        if (args.fields !== undefined) result.fields = args.fields;
+        if (args.complement) result.complement = true;
+        return result;
     },
     tr: words => {
         // In tr la sequenza \n indica l'a capo, anche tra apici
@@ -368,6 +381,8 @@ function parseCommand(words, files = {}) {
     const [name, ...rest] = words;
     if (name === "sed") return parseSed(rest);
     if (name === "cut" && rest.some(word => /^-c/.test(word))) return parseCutChars(rest);
+    // wc -w e wc -c sono comandi a parte nel gioco (wc -l resta wc)
+    if (name === "wc" && rest.length === 1 && (rest[0] === "-w" || rest[0] === "-c")) return { cmd: rest[0] === "-w" ? "wcw" : "wcc", args: {} };
     if (name === "tr" && rest[0] === "-s") {
         if (rest.length !== 2) fail("tr: nel gioco -s si usa con un solo insieme, es. tr -s ' '");
         const args = { set: rest[1].replace(/\\n/g, "\n") };

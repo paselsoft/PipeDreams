@@ -17,6 +17,51 @@
 const leadingNumber = line => parseFloat(line) || 0;
 const byteOrder = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
 
+// Occorrenze del testo cercato da grep in una riga (il testo come appare nella riga).
+// -i: maiuscole e minuscole uguali (solo lettere ASCII, come nel locale C);
+// -w: solo parole intere (prima e dopo né lettere, né cifre, né _)
+const asciiLower = text => text.replace(/[A-Z]/g, c => c.toLowerCase());
+const isWordChar = c => c !== undefined && /[A-Za-z0-9_]/.test(c);
+function grepMatches(line, a) {
+    const hay = a.ignoreCase ? asciiLower(line) : line;
+    const needle = a.ignoreCase ? asciiLower(a.pattern) : a.pattern;
+    const found = [];
+    if (!needle) return found;
+    for (let from = 0; from <= hay.length - needle.length;) {
+        const at = hay.indexOf(needle, from);
+        if (at === -1) break;
+        if (a.word && (isWordChar(line[at - 1]) || isWordChar(line[at + needle.length]))) {
+            from = at + 1;
+            continue;
+        }
+        found.push(line.slice(at, at + needle.length));
+        from = at + needle.length;
+    }
+    return found;
+}
+
+// Lunghezza in byte UTF-8 (wc -c conta byte, non caratteri)
+const utf8Length = text => [...text].reduce((sum, c) => {
+    const code = c.codePointAt(0);
+    return sum + (code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4);
+}, 0);
+
+// Elenco di campi di cut (-f1,3 -f2- -f1-3 -f-2): funzione n => vero se il campo n è scelto,
+// oppure null se l'elenco non è valido
+function cutFieldSet(list) {
+    const parts = String(list).split(",");
+    const ranges = [];
+    for (const part of parts) {
+        const match = /^([0-9]*)(-?)([0-9]*)$/.exec(part);
+        if (!match || part === "" || part === "-") return null;
+        const from = match[1] ? Number(match[1]) : 1;
+        const to = match[2] ? (match[3] ? Number(match[3]) : Infinity) : from;
+        if (from < 1 || to < from) return null;
+        ranges.push([from, to]);
+    }
+    return n => ranges.some(([from, to]) => n >= from && n <= to);
+}
+
 // Espande gli intervalli di tr: "a-z" diventa "abc...z"
 function expandSet(set) {
     let chars = "";
@@ -392,41 +437,53 @@ function awkFields(line, separator) {
 
 const COMMANDS = {
     grep: {
-        params: [{ key: "pattern", type: "text", label: "testo" }, { key: "invert", type: "flag", label: "-v" }, { key: "only", type: "flag", label: "-o" }],
-        label: a => `grep${a.invert ? " -v" : ""}${a.only ? " -o" : ""} '${a.pattern}'`,
-        validate: a => a.invert && a.only ? "nel gioco -o e -v non vanno insieme" : null,
+        params: [
+            { key: "pattern", type: "text", label: "testo" }, { key: "invert", type: "flag", label: "-v" }, { key: "only", type: "flag", label: "-o" },
+            { key: "ignoreCase", type: "flag", label: "-i" }, { key: "word", type: "flag", label: "-w" }, { key: "count", type: "flag", label: "-c" }
+        ],
+        label: a => `grep${a.invert ? " -v" : ""}${a.only ? " -o" : ""}${a.ignoreCase ? " -i" : ""}${a.word ? " -w" : ""}${a.count ? " -c" : ""} '${a.pattern}'`,
+        validate: a => a.invert && a.only ? "nel gioco -o e -v non vanno insieme"
+            : a.only && a.count ? "-c conta le righe: non va insieme a -o" : null,
         run: (s, a) => {
+            const matches = line => grepMatches(line, a);
             // -o: una riga per ogni occorrenza del testo (senza sovrapposizioni, da sinistra)
-            if (a.only) return s.flatMap(line => new Array(line.split(a.pattern).length - 1).fill(a.pattern));
-            return s.filter(line => line.includes(a.pattern) !== Boolean(a.invert));
+            if (a.only) return s.flatMap(matches);
+            const kept = s.filter(line => (matches(line).length > 0) !== Boolean(a.invert));
+            return a.count ? [String(kept.length)] : kept;
         }
     },
     sort: {
         params: [
             { key: "reverse", type: "flag", label: "-r" }, { key: "numeric", type: "flag", label: "-n" },
-            { key: "human", type: "flag", label: "-h" },
+            { key: "human", type: "flag", label: "-h" }, { key: "unique", type: "flag", label: "-u" },
             { key: "separator", type: "char", label: "-t", optional: true }, { key: "key", type: "number", label: "-k", optional: true }
         ],
-        label: a => `sort${a.reverse || a.numeric || a.human ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}${a.human ? "h" : ""}` +
+        label: a => `sort${a.reverse || a.numeric || a.human || a.unique ? " -" : ""}${a.reverse ? "r" : ""}${a.numeric ? "n" : ""}${a.human ? "h" : ""}${a.unique ? "u" : ""}` +
             (a.key ? ` -t'${a.separator}' -k${a.key},${a.key}` : ""),
         // -k N,N confronta solo il campo N (separato da -t): -k N senza ",N" arriverebbe a fine riga
         validate: a => (a.key && !a.separator) || (!a.key && a.separator) ? "nel gioco -t e -k si usano insieme, es. sort -t',' -k2,2"
             : a.numeric && a.human ? "-n e -h non si usano insieme: -h ordina già i numeri, anche con K, M, G" : null,
         run: (s, a) => {
             const keyOf = line => a.key ? (line.split(a.separator)[a.key - 1] ?? "") : line;
+            const byKey = a.human ? (x, y) => humanCompare(keyOf(x), keyOf(y))
+                : a.numeric ? (x, y) => leadingNumber(keyOf(x)) - leadingNumber(keyOf(y))
+                : (x, y) => byteOrder(keyOf(x), keyOf(y));
+            const direction = a.reverse ? -1 : 1;
+            if (a.unique) {
+                // -u: come GNU, niente confronto finale sulla riga intera: l'ordinamento è stabile e
+                // di ogni gruppo con la stessa chiave resta la prima riga
+                const sorted = [...s].sort((x, y) => direction * byKey(x, y));
+                return sorted.filter((line, i) => i === 0 || byKey(sorted[i - 1], line) !== 0);
+            }
             // A parità di chiave GNU sort confronta l'intera riga
-            const compare = a.human
-                ? (x, y) => humanCompare(keyOf(x), keyOf(y)) || byteOrder(x, y)
-                : a.numeric
-                ? (x, y) => leadingNumber(keyOf(x)) - leadingNumber(keyOf(y)) || byteOrder(x, y)
-                : (x, y) => byteOrder(keyOf(x), keyOf(y)) || byteOrder(x, y);
-            const sorted = [...s].sort(compare);
+            const sorted = [...s].sort((x, y) => byKey(x, y) || byteOrder(x, y));
             return a.reverse ? sorted.reverse() : sorted;
         }
     },
     uniq: {
-        params: [{ key: "count", type: "flag", label: "-c" }, { key: "repeated", type: "flag", label: "-d" }],
-        label: a => `uniq${a.count || a.repeated ? " -" : ""}${a.count ? "c" : ""}${a.repeated ? "d" : ""}`,
+        params: [{ key: "count", type: "flag", label: "-c" }, { key: "repeated", type: "flag", label: "-d" }, { key: "unique", type: "flag", label: "-u" }],
+        label: a => `uniq${a.count || a.repeated || a.unique ? " -" : ""}${a.count ? "c" : ""}${a.repeated ? "d" : ""}${a.unique ? "u" : ""}`,
+        validate: a => a.repeated && a.unique ? "-d e -u insieme non stampano niente: scegline uno" : null,
         run: (s, a) => {
             const groups = [];
             for (const line of s) {
@@ -435,7 +492,8 @@ const COMMANDS = {
                 else groups.push({ line, count: 1 });
             }
             // -d: solo le righe ripetute, una volta. -c antepone il conteggio su 7 caratteri, come GNU
-            return groups.filter(g => !a.repeated || g.count > 1)
+            // -u: solo le righe che non si ripetono
+            return groups.filter(g => (!a.repeated || g.count > 1) && (!a.unique || g.count === 1))
                 .map(g => a.count ? `${String(g.count).padStart(7)} ${g.line}` : g.line);
         }
     },
@@ -470,10 +528,37 @@ const COMMANDS = {
         run: s => [String(s.length)]
     },
     cut: {
-        params: [{ key: "delim", type: "char", label: "-d", default: ":" }, { key: "field", type: "number", label: "-f", default: 1 }],
-        label: a => `cut -d'${a.delim}' -f${a.field}`,
-        // Le righe senza delimitatore passano intere, come fa cut senza -s
-        run: (s, a) => s.map(line => line.includes(a.delim) ? (line.split(a.delim)[a.field - 1] ?? "") : line)
+        params: [
+            { key: "delim", type: "char", label: "-d", default: ":" }, { key: "field", type: "number", label: "-f", optional: true },
+            { key: "fields", type: "text", label: "-f (elenco)", optional: true }, { key: "complement", type: "flag", label: "--complement" }
+        ],
+        label: a => `cut -d'${a.delim}'${a.complement ? " --complement" : ""} -f${a.fields || a.field}`,
+        validate: a => {
+            if (Boolean(a.fields) === Boolean(a.field)) return "serve un campo (-f2) oppure un elenco (-f1,3, -f2-), non tutti e due";
+            if (a.fields && !cutFieldSet(a.fields)) return "elenco di campi non valido: es. 1,3 oppure 2- oppure 1-3";
+            return null;
+        },
+        // Le righe senza delimitatore passano intere, come fa cut senza -s. I campi escono
+        // nell'ordine della riga, uniti dal delimitatore
+        run: (s, a) => {
+            const wanted = a.fields ? cutFieldSet(a.fields) : (n => n === a.field);
+            const keep = n => Boolean(wanted(n)) !== Boolean(a.complement);
+            return s.map(line => line.includes(a.delim)
+                ? line.split(a.delim).filter((_, i) => keep(i + 1)).join(a.delim)
+                : line);
+        }
+    },
+    wcw: {
+        params: [],
+        label: () => "wc -w",
+        // Parole: pezzi separati da spazi, tabulazioni e a capo
+        run: s => [String(s.join("\n").split(/[ \t\n\v\f\r]+/).filter(Boolean).length)]
+    },
+    wcc: {
+        params: [],
+        label: () => "wc -c",
+        // Byte, compresi gli a capo (le lettere accentate valgono 2 byte in UTF-8)
+        run: s => [String(s.reduce((sum, line) => sum + utf8Length(line) + 1, 0))]
     },
     cutc: {
         params: [{ key: "from", type: "number", label: "-c da", default: 1 }, { key: "to", type: "number", label: "a", default: 3 }],

@@ -28,6 +28,12 @@ function describeStep(step) {
             } else {
                 what = `tiene solo le righe che contengono ${tutorChar(a.pattern)}, in qualunque punto della riga.`;
             }
+            if (a.count) {
+                what = `conta le righe che ${a.invert ? "NON contengono" : "contengono"} ${tutorChar(a.pattern)}: al posto delle righe esce un numero solo.`;
+                add("-c", "stampa quante righe ha trovato, invece delle righe (come grep | wc -l)");
+            }
+            if (a.ignoreCase) add("-i", "maiuscole e minuscole contano allo stesso modo: trova anche le varianti in maiuscolo");
+            if (a.word) add("-w", "solo parole intere: il testo non vale se è attaccato a lettere, cifre o _");
             break;
         case "sort": {
             const how = a.human ? "per dimensione, capendo le unità K, M, G"
@@ -40,15 +46,21 @@ function describeStep(step) {
             if (a.human) add("-h", "legge le dimensioni con le unità: 900M viene prima di 1.5G");
             if (a.reverse) add("-r", "ordine inverso: dal più grande o dall'ultimo");
             if (a.key) add(`-t'${a.separator}' -k${a.key},${a.key}`, `divide la riga su ${tutorChar(a.separator)} e ordina solo in base al campo ${a.key}`);
+            if (a.unique) {
+                what += a.key ? ` Con -u, di ogni gruppo con lo stesso campo ${a.key} resta solo la prima riga.` : " Con -u le righe uguali restano una volta sola.";
+                add("-u", a.key ? "senza doppioni della chiave: tiene la prima riga di ogni chiave" : "senza doppioni, come sort | uniq");
+            }
             break;
         }
         case "uniq":
-            what = a.repeated ? "tiene solo le righe che si ripetono, una volta ciascuna."
+            what = a.unique ? "tiene solo le righe che NON hanno doppioni vicini: quelle ripetute spariscono del tutto."
+                : a.repeated ? "tiene solo le righe che si ripetono, una volta ciascuna."
                 : a.count ? "raggruppa le righe uguali vicine in una sola e scrive davanti quante erano."
                 : "toglie le righe uguali a quella subito sopra: restano una volta sola.";
             what += " Confronta solo righe vicine: per questo di solito viene dopo sort.";
             if (a.count) add("-c", "scrive davanti a ogni riga quante volte compariva, allineato a destra con degli spazi");
             if (a.repeated) add("-d", "tiene solo le righe ripetute");
+            if (a.unique) add("-u", "tiene solo le righe uniche (l'opposto di -d)");
             break;
         case "tac":
             what = "rovescia l'ordine delle righe: l'ultima diventa la prima.";
@@ -71,11 +83,27 @@ function describeStep(step) {
             what = "conta le righe: tutto il flusso diventa un solo numero.";
             add("-l", "conta le righe (non le parole né i caratteri)");
             break;
-        case "cut":
-            what = `divide ogni riga su ${tutorChar(a.delim)} e tiene solo il campo ${a.field}. Ogni separatore conta: due in fila fanno un campo vuoto.`;
-            add(`-d'${a.delim}'`, `il carattere che separa i campi: ${tutorChar(a.delim)}`);
-            add(`-f${a.field}`, `il campo da tenere: il ${a.field}°`);
+        case "wcw":
+            what = "conta le parole: i pezzi separati da spazi, tabulazioni e a capo. Tutto il flusso diventa un solo numero.";
+            add("-w", "conta le parole (gli spazi in più non contano)");
             break;
+        case "wcc":
+            what = "conta i byte: tutto il flusso diventa un solo numero. Ogni a capo in fondo alla riga vale 1 byte, una lettera accentata 2.";
+            add("-c", "conta i byte, a capo compresi");
+            break;
+        case "cut": {
+            const list = a.fields || a.field;
+            const which = a.fields ? `i campi ${a.fields}` : `il campo ${a.field}`;
+            what = a.complement
+                ? `divide ogni riga su ${tutorChar(a.delim)} e tiene tutti i campi tranne ${which}, uniti di nuovo da ${tutorChar(a.delim)}.`
+                : a.fields ? `divide ogni riga su ${tutorChar(a.delim)} e tiene ${which}, nell'ordine della riga e uniti da ${tutorChar(a.delim)}.`
+                : `divide ogni riga su ${tutorChar(a.delim)} e tiene solo il campo ${a.field}.`;
+            what += " Ogni separatore conta: due in fila fanno un campo vuoto.";
+            add(`-d'${a.delim}'`, `il carattere che separa i campi: ${tutorChar(a.delim)}`);
+            add(`-f${list}`, a.fields ? "l'elenco dei campi: con la virgola più campi, con il trattino un intervallo (2- = dal 2 in poi)" : `il campo da tenere: il ${a.field}°`);
+            if (a.complement) add("--complement", "capovolge la scelta: tiene i campi NON indicati");
+            break;
+        }
         case "cutc":
             what = a.from === a.to ? `tiene solo il carattere in posizione ${a.from} di ogni riga.`
                 : `tiene solo i caratteri dalla posizione ${a.from} alla ${a.to} di ogni riga.`;

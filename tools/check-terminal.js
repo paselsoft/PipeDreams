@@ -87,7 +87,18 @@ const report = vm.runInContext(`(() => {
         ["fold -20", [{ cmd: "fold", args: { width: 20 } }]],
         ["xargs echo", [{ cmd: "xargs" }]],
         ["xargs -n2", [{ cmd: "xargs", args: { n: 2 } }]],
-        ["xargs -n 3 echo", [{ cmd: "xargs", args: { n: 3 } }]]
+        ["xargs -n 3 echo", [{ cmd: "xargs", args: { n: 3 } }]],
+        ["grep -ciw err", [{ cmd: "grep", args: { pattern: "err", ignoreCase: true, word: true, count: true } }]],
+        ["grep -v -c x", [{ cmd: "grep", args: { pattern: "x", invert: true, count: true } }]],
+        ["sort -nu", [{ cmd: "sort", args: { numeric: true, unique: true } }]],
+        ["sort -u -t, -k2,2", [{ cmd: "sort", args: { unique: true, separator: ",", key: 2 } }]],
+        ["uniq -u", [{ cmd: "uniq", args: { unique: true } }]],
+        ["uniq -cu", [{ cmd: "uniq", args: { count: true, unique: true } }]],
+        ["cut -d: -f1,3", [{ cmd: "cut", args: { delim: ":", fields: "1,3" } }]],
+        ["cut -d ':' -f 2-", [{ cmd: "cut", args: { delim: ":", fields: "2-" } }]],
+        ["cut --complement -d, -f2", [{ cmd: "cut", args: { delim: ",", field: 2, complement: true } }]],
+        ["wc -w", [{ cmd: "wcw" }]],
+        ["wc -c", [{ cmd: "wcc" }]]
     ].filter(([, expected]) => expected);
     const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"] };
     for (const [text, expected] of variants) {
@@ -98,11 +109,12 @@ const report = vm.runInContext(`(() => {
     // 4) errori attesi
     const errors = ["gerp ERR", "sort -x", "sort |", "| | sort", "grep", "grep 'ERR", "wc", "cut -f2", "cut -d:: -f1",
         "sed 's/a/b/'", "sed -E 's/a|b/x/'", "sed -E 's/a/b/q'", "awk '{print $1, $2}'", "head -n zero", "paste -d,",
-        "sort > out.txt", "tr -d", "uniq -u", "", "sort -k2", "sort -t, -k2,3", "sort -k2,2", "sort -t,",
+        "sort > out.txt", "tr -d", "", "sort -k2", "sort -t, -k2,3", "sort -k2,2", "sort -t,",
         "grep -vo x", "cut -c", "cut -c4-2", "cut -c1-3 -d,", "tac -s x", "rev file",
         "comm - critici.txt", "comm -3 - critici.txt", "comm -12 critici.txt -", "comm -12 - altro.txt", "join - ", "join -t,, - ultime.txt",
         "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b",
-        "sort -nh", "tr -s", "tr -s a b", "fold", "fold -w 0", "fold -x", "xargs rm", "xargs -n", "xargs -n 0", "xargs -0"];
+        "sort -nh", "tr -s", "tr -s a b", "fold", "fold -w 0", "fold -x", "xargs rm", "xargs -n", "xargs -n 0", "xargs -0",
+        "grep -co x", "uniq -du", "cut -d: -f0", "cut -d: -f3-1", "cut -d: -f1,", "wc -lw", "wc -m", "sort -x"];
     for (const text of errors) {
         const result = parsePipeline(text, variantFiles);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));

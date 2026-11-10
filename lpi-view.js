@@ -9,7 +9,7 @@ const LPI_GAME_TERMS = new Set(["grep", "sort", "uniq", "head", "tail", "tac", "
 
 // Argomenti dell'allenamento per ogni comando del gioco
 const LPI_TRAINING = { grep: "grep", sort: "sort", uniq: "uniq", head: "headtail", tail: "headtail", wc: "wc", cut: "cut",
-    tr: "tr", squeeze: "tr", sed: "sed", upper: "sed", paste: "paste", nl: "nl", devnull: "stderr", merge: "stderr" };
+    wcw: "wc", wcc: "wc", tr: "tr", squeeze: "tr", sed: "sed", upper: "sed", paste: "paste", nl: "nl", devnull: "stderr", merge: "stderr" };
 
 const lpiState = { exam: "101-500", levelsCache: null };
 

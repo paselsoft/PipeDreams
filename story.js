@@ -34,6 +34,10 @@ const ACTS = {
     8: {
         title: "Reperibilità notturna",
         intro: "Giulia ti consegna il telefono della reperibilità: questa settimana, di notte, i server sono affar tuo. Alle tre il monitoraggio suona e davanti a te ci sono solo gli output dei comandi di sistema: ps, du, df, ss, i log di SSH. Sono colonne allineate con gruppi di spazi e dimensioni scritte con K, M e G. Nella cassetta degli attrezzi arrivano tr -s per comprimere gli spazi, sort -h per le dimensioni, xargs per mettere le parole in fila e fold per andare a capo."
+    },
+    9: {
+        title: "Leggere il manuale",
+        intro: "Nadia, la guardia notturna, ha passato l'esame LPIC-1 e da lunedì è nel team come sistemista junior. Il primo giorno arriva con una cartellina piena di pagine man, le opzioni cerchiate a penna. «Voi usate grep | wc -l e sort | uniq», dice sorridendo. «Il manuale dice che si fa con un comando solo.» Arrivano grep -c, -i e -w, sort -u, uniq -u, cut con più campi e wc -w e -c."
     }
 };
 
@@ -88,8 +92,17 @@ const STORY = {
     47: { from: "Tommaso", text: "Scusa per lo script di stanotte... Per farmi perdonare scrivo io l'avviso per il display del rack, ma è minuscolo: 16 caratteri per riga!" },
     48: { from: "Giulia", text: "Il nuovo firewall parte domattina. Mi serve l'elenco delle porte aperte verso l'esterno, in una riga, da incollare nella configurazione." },
     49: { from: "Tommaso", text: "Domanda veloce prima di andare a dormire: sort -h cosa fa con queste dimensioni? Io direi che 1.5G è la più piccola..." },
-    50: { from: "Giulia", text: "🚨 Ultima notte di reperibilità, e il NAS non risponde. Prima del rapporto voglio i dischi NVMe in una riga, dal più grande: così vediamo dove spostare i backup." }
+    50: { from: "Giulia", text: "🚨 Ultima notte di reperibilità, e il NAS non risponde. Prima del rapporto voglio i dischi NVMe in una riga, dal più grande: così vediamo dove spostare i backup." },
+    51: { from: "Nadia", text: "Primo giorno! Marco conta i tentativi falliti con grep | wc -l. Io ho cerchiato -c nella pagina di grep: scommettiamo che basta un comando?" },
+    52: { from: "Nadia", text: "Ogni programma scrive warning a modo suo, chi in maiuscolo chi no. Nella pagina man di grep ho cerchiato anche -i." },
+    53: { from: "Giulia", text: "Nadia, controlla gli accessi di ann. Attenta: abbiamo anche anna, joann e hannah, e grep le trova tutte." },
+    54: { from: "Marco", text: "Mi serve la prima pagina che ognuno apre la mattina, per capire cosa usano di più. Nadia dice che sort fa anche questo." },
+    55: { from: "Tommaso", text: "Giulia vuole sapere quali pacchetti stanno su un server solo: sono quelli che ci scordiamo di aggiornare. Io userei uniq -d... o no?" },
+    56: { from: "Giulia", text: "L'audit chiede utente e shell di chi può entrare. Una colonna alla volta non mi basta: le voglio insieme, sulla stessa riga." },
+    57: { from: "Tommaso", text: "Devo mandare l'elenco utenti al fornitore, ma senza le password! Nadia mi ha detto di usare --complement. Cosa esce?" },
+    58: { from: "Marco", text: "Il gateway SMS dell'allarme taglia tutto oltre i 160 byte. Prima di mandarlo, quanti byte è il messaggio?" },
+    59: { from: "Giulia", text: "🚨 Venerdì, rapporto settimanale. Nadia, fallo tu: quanti utenti diversi hanno sbagliato la password questa settimana? I log scrivono «failed» come capita." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "La settimana di reperibilità finisce all'alba di lunedì: hai fermato lo script di Tommaso, liberato il disco, chiuso le porte e bloccato chi provava le password, e il rapporto della notte è pronto prima del caffè. Qualche settimana prima, il secondo martedì del mese si era chiuso con tutti i server aggiornati, Debian, Arch e Fedora, e nessuno ha dovuto riavviare in orario di lavoro. Settimane prima, a mezzanotte e un minuto, il vecchio server si era spento e il trasloco era finito. Giulia ti chiama nel suo ufficio. «Hai salvato il sito, la newsletter e la posta, hai trasformato Tommaso in un sistemista vero e hai portato ogni byte nel nuovo datacenter. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando.";
+const EPILOGUE = "Il venerdì sera Nadia consegna il suo primo rapporto, fatto quasi tutto con opzioni che in ufficio nessuno conosceva, e Marco appende la sua pagina di man grep, cerchiata a penna, accanto alla macchinetta del caffè. Giulia ti chiama nel suo ufficio e ripercorre questi mesi: il sito, la newsletter e la posta salvati in un venerdì di fuoco, Tommaso diventato un sistemista vero, ogni byte portato nel nuovo datacenter, il Patch Tuesday chiuso senza riavvii in orario di lavoro, le notti di reperibilità. «E con Nadia nel team, adesso qui si legge anche il manuale. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline. E con man.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando e le lezioni LPI per l'esame.";

@@ -29,7 +29,10 @@ const MANUAL = [
         description: "Legge le righe una per una e tiene solo quelle che contengono il testo indicato, in qualunque punto della riga.",
         options: [
             { flag: "-v", text: "inverte la selezione: tiene le righe che NON contengono il testo" },
-            { flag: "-o", text: "stampa solo il testo trovato, una riga per ogni volta che compare (anche più volte nella stessa riga)" }
+            { flag: "-o", text: "stampa solo il testo trovato, una riga per ogni volta che compare (anche più volte nella stessa riga)" },
+            { flag: "-c", text: "invece delle righe stampa quante sono (come grep | wc -l, in un comando solo)" },
+            { flag: "-i", text: "non distingue maiuscole e minuscole: 'warn' trova anche WARN e Warn" },
+            { flag: "-w", text: "solo parole intere: 'log' non vale dentro 'login' o 'blog'" }
         ],
         examples: [
             { title: "Tenere le righe", input: ["gatto", "cane", "topo", "ratto"], steps: [{ cmd: "grep", args: { pattern: "at" } }] },
@@ -39,12 +42,18 @@ const MANUAL = [
             { title: "Basta una parte della riga", input: ["login anna", "logout anna", "blog"], steps: [{ cmd: "grep", args: { pattern: "log" } }],
               note: "'log' è contenuto anche in 'logout' e 'blog'." },
             { title: "Contare le occorrenze con -o", input: ["banana", "ananas", "kiwi"], steps: [{ cmd: "grep", args: { pattern: "an", only: true } }, { cmd: "wc" }],
-              note: "grep -o stampa 'an' per ogni volta che compare: 2 in banana, 2 in ananas. wc -l le conta tutte, non le righe." }
+              note: "grep -o stampa 'an' per ogni volta che compare: 2 in banana, 2 in ananas. wc -l le conta tutte, non le righe." },
+            { title: "Contare con -c", input: ["ok", "errore disco", "ok", "errore rete"], steps: [{ cmd: "grep", args: { pattern: "errore", count: true } }],
+              note: "Lo stesso di grep 'errore' | wc -l, con un comando solo." },
+            { title: "Maiuscole o no (-i)", input: ["WARN disco", "warn rete", "ok"], steps: [{ cmd: "grep", args: { pattern: "warn", ignoreCase: true } }],
+              note: "Le righe escono come sono: -i cambia solo il confronto." },
+            { title: "Parole intere (-w)", input: ["login anna", "log di sistema", "blog"], steps: [{ cmd: "grep", args: { pattern: "log", word: true } }],
+              note: "Solo la seconda riga ha 'log' come parola a sé." }
         ],
         traps: [
             "Distingue maiuscole e minuscole: per trovare 'warn' e 'WARN' insieme, prima uniformale.",
             "Cerca un pezzo di testo, non una parola intera: 'log' trova anche 'logout'.",
-            "grep | wc -l conta le righe che contengono il testo; grep -o | wc -l conta quante volte compare."
+            "grep | wc -l (o grep -c) conta le righe che contengono il testo; grep -o | wc -l conta quante volte compare."
         ]
     },
     {
@@ -52,12 +61,13 @@ const MANUAL = [
         name: "sort",
         cmds: ["sort"],
         summary: "Ordina le righe (alfabetico, numerico, crescente o decrescente).",
-        syntax: "sort [-r] [-n | -h] [-t'X' -kN,N]",
+        syntax: "sort [-r] [-n | -h] [-u] [-t'X' -kN,N]",
         description: "Riordina le righe. Senza opzioni confronta i caratteri uno per uno nell'ordine dei byte: le cifre vengono prima delle maiuscole, che vengono prima delle minuscole.",
         options: [
             { flag: "-r", text: "ordine inverso (decrescente)" },
             { flag: "-n", text: "ordina per valore numerico del numero all'inizio della riga (o della chiave)" },
             { flag: "-h", text: "ordina le dimensioni scritte con le unità, come quelle di du -h e df -h: 20K < 900M < 1.5G" },
+            { flag: "-u", text: "senza doppioni, come sort | uniq; con una chiave (-k) tiene la prima riga di ogni chiave" },
             { flag: "-t'X' -kN,N", text: "ordina in base al solo campo N, con i campi separati dal carattere X" }
         ],
         examples: [
@@ -71,7 +81,11 @@ const MANUAL = [
               note: "Le righe restano intere, ma l'ordine dipende solo dalla città (campo 2)." },
             { title: "Per un campo numerico", input: ["anna,roma,30", "luca,bari,5", "eva,asti,41"], steps: [{ cmd: "sort", args: { separator: ",", key: 3, numeric: true, reverse: true } }] },
             { title: "Dimensioni con le unità (-h)", input: ["1.5G\tvideo", "900M\tfoto", "20K\tnote"], steps: [{ cmd: "sort", args: { human: true, reverse: true } }],
-              note: "Con -n l'ordine sarebbe 900, 20, 1.5: le unità K, M, G verrebbero ignorate." }
+              note: "Con -n l'ordine sarebbe 900, 20, 1.5: le unità K, M, G verrebbero ignorate." },
+            { title: "Senza doppioni (-u)", input: ["pera", "mela", "pera", "kiwi"], steps: [{ cmd: "sort", args: { unique: true } }],
+              note: "Come sort | uniq, con un comando solo." },
+            { title: "Una riga per chiave (-u -k)", input: ["anna,08:01", "luca,08:03", "anna,08:05"], steps: [{ cmd: "sort", args: { unique: true, separator: ",", key: 1 } }],
+              note: "Per -u le righe di anna sono uguali (stessa chiave): resta la prima." }
         ],
         traps: [
             "Con -k scrivi sempre N,N: -k2 da solo vuol dire 'dal campo 2 fino a fine riga'.",
@@ -85,12 +99,13 @@ const MANUAL = [
         id: "uniq",
         name: "uniq",
         cmds: ["uniq"],
-        summary: "Rimuove le righe uguali consecutive; con -c le conta, con -d tiene solo i doppioni.",
-        syntax: "uniq [-c] [-d]",
+        summary: "Rimuove le righe uguali consecutive; con -c le conta, con -d tiene solo i doppioni, con -u solo le righe uniche.",
+        syntax: "uniq [-c] [-d | -u]",
         description: "Quando più righe uguali sono una dopo l'altra, ne tiene una sola. Le righe uguali ma lontane non vengono toccate.",
         options: [
             { flag: "-c", text: "antepone a ogni riga quante volte si ripeteva (allineato a destra con spazi)" },
-            { flag: "-d", text: "tiene solo le righe ripetute, una volta ciascuna" }
+            { flag: "-d", text: "tiene solo le righe ripetute, una volta ciascuna" },
+            { flag: "-u", text: "tiene solo le righe che non si ripetono (l'opposto di -d)" }
         ],
         examples: [
             { title: "Doppioni vicini", input: ["a", "a", "b", "b", "b"], steps: [{ cmd: "uniq" }] },
@@ -99,10 +114,13 @@ const MANUAL = [
             { title: "Contare le ripetizioni", input: ["b", "a", "b", "a", "a"], steps: [{ cmd: "sort" }, { cmd: "uniq", args: { count: true } }],
               note: "Il numero è allineato a destra con molti spazi: conta per cut e awk." },
             { title: "Solo i doppioni", input: ["luca", "anna", "luca", "eva"], steps: [{ cmd: "sort" }, { cmd: "uniq", args: { repeated: true } }],
-              note: "Solo 'luca' compare più di una volta." }
+              note: "Solo 'luca' compare più di una volta." },
+            { title: "Solo le righe uniche (-u)", input: ["luca", "anna", "luca", "eva"], steps: [{ cmd: "sort" }, { cmd: "uniq", args: { unique: true } }],
+              note: "anna ed eva compaiono una volta; luca sparisce del tutto." }
         ],
         traps: [
             "Funziona solo su righe adiacenti: quasi sempre serve un sort prima.",
+            "sort -u e uniq -u non fanno la stessa cosa: il primo tiene tutto una volta, il secondo solo le righe mai ripetute.",
             "uniq -c lascia spazi all'inizio della riga: per estrarre i campi usa awk, non cut."
         ]
     },
@@ -147,28 +165,41 @@ const MANUAL = [
     },
     {
         id: "wc",
-        name: "wc -l",
-        cmds: ["wc"],
-        summary: "Conta le righe del flusso.",
-        syntax: "wc -l",
-        description: "Sostituisce il flusso con una sola riga: il numero di righe ricevute.",
+        name: "wc",
+        cmds: ["wc", "wcw", "wcc"],
+        summary: "Conta le righe, le parole o i byte del flusso.",
+        syntax: "wc -l   /   wc -w   /   wc -c",
+        description: "Sostituisce il flusso con una sola riga: il numero di righe (-l), di parole (-w, pezzi separati da spazi) o di byte (-c, compresi gli a capo).",
+        options: [
+            { flag: "-l", text: "conta le righe" },
+            { flag: "-w", text: "conta le parole: i pezzi separati da spazi, tabulazioni e a capo" },
+            { flag: "-c", text: "conta i byte, compreso l'a capo in fondo a ogni riga (una lettera accentata vale 2 byte)" }
+        ],
         examples: [
             { title: "Contare le righe", input: ["rosso", "verde", "blu"], steps: [{ cmd: "wc" }] },
             { title: "Contare solo alcune righe", input: ["ok", "errore", "ok", "errore", "errore"], steps: [{ cmd: "grep", args: { pattern: "errore" } }, { cmd: "wc" }] },
-            { title: "Contare i valori diversi", input: ["anna", "luca", "anna"], steps: [{ cmd: "sort" }, { cmd: "uniq" }, { cmd: "wc" }] }
+            { title: "Contare i valori diversi", input: ["anna", "luca", "anna"], steps: [{ cmd: "sort" }, { cmd: "uniq" }, { cmd: "wc" }] },
+            { title: "Contare le parole (-w)", input: ["disco quasi pieno", "  rete   lenta "], steps: [{ cmd: "wcw" }],
+              note: "Gli spazi in più non contano: 5 parole." },
+            { title: "Contare i byte (-c)", input: ["ciao", "ok"], steps: [{ cmd: "wcc" }],
+              note: "4 + 2 lettere, più 2 a capo: 8 byte." }
         ],
-        traps: ["Conta tutto quello che arriva: filtra prima le righe che ti interessano."]
+        traps: [
+            "Conta tutto quello che arriva: filtra prima le righe che ti interessano.",
+            "wc -c conta anche gli a capo: «ciao» da solo sono 5 byte."
+        ]
     },
     {
         id: "cut",
         name: "cut",
         cmds: ["cut", "cutc"],
         summary: "Divide ogni riga su un carattere e tiene un campo, oppure tiene alcuni caratteri.",
-        syntax: "cut -d'X' -fN   /   cut -cN-M",
+        syntax: "cut -d'X' -fLISTA [--complement]   /   cut -cN-M",
         description: "Spezza ogni riga a ogni occorrenza del delimitatore X e tiene il campo numero N (il primo è 1). Ogni singolo delimitatore separa un campo, anche se ce ne sono due di fila.",
         options: [
             { flag: "-d'X'", text: "il carattere delimitatore (uno solo)" },
-            { flag: "-fN", text: "il numero del campo da tenere" },
+            { flag: "-fN", text: "il numero del campo da tenere; anche un elenco: -f1,3 (campi 1 e 3), -f2- (dal 2 in poi), -f1-3" },
+            { flag: "--complement", text: "capovolge la scelta: tiene tutti i campi tranne quelli indicati" },
             { flag: "-cN-M", text: "tiene i caratteri dal numero N al numero M (il primo è 1); -cN un carattere solo" }
         ],
         examples: [
@@ -178,6 +209,9 @@ const MANUAL = [
               note: "Una riga senza ':' passa intera." },
             { title: "Spazi multipli: campi vuoti", input: ["10  mele", "  3 pere"], steps: [{ cmd: "cut", args: { delim: " ", field: 2 } }],
               note: "Fra due spazi c'è un campo vuoto: per le colonne allineate usa awk." },
+            { title: "Più campi (-f1,3)", input: ["anna:30:Roma", "luca:25:Milano"], steps: [{ cmd: "cut", args: { delim: ":", fields: "1,3" } }],
+              note: "I campi escono nell'ordine della riga, uniti dallo stesso delimitatore." },
+            { title: "Tutto tranne un campo", input: ["anna:segreta:Roma", "luca:1234:Milano"], steps: [{ cmd: "cut", args: { delim: ":", field: 2, complement: true } }] },
             { title: "I primi caratteri", input: ["IT-2024-001", "FR-2023-017"], steps: [{ cmd: "cutc", args: { from: 1, to: 2 } }] },
             { title: "Caratteri in mezzo", input: ["IT-2024-001", "FR-2023-017"], steps: [{ cmd: "cutc", args: { from: 4, to: 7 } }],
               note: "Funziona bene quando ogni riga ha la stessa forma, come i codici." }

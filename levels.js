@@ -1021,5 +1021,203 @@ const levels = [
             { cmd: "cut", args: { delim: " ", field: 6 }, desc: "Campo 6 (spazio)" },
             { cmd: "xargs", desc: "Tutto in una riga" }
         ]
+    },
+    {
+        id: 51,
+        act: 9,
+        title: "Il Conto in un Colpo",
+        source: "grep sshd /var/log/auth.log",
+        slots: 3,
+        mission: "Quanti tentativi di accesso <strong>falliti</strong> ci sono stati stamattina? Solo il numero. Nadia giura che basta un comando solo.",
+        man: ["grep"],
+        stdin: [
+            "Nov 10 08:01:12 web sshd[811]: Failed password for root from 203.0.113.7 port 52211 ssh2",
+            "Nov 10 08:01:15 web sshd[811]: Failed password for root from 203.0.113.7 port 52213 ssh2",
+            "Nov 10 08:02:40 web sshd[902]: Accepted publickey for nadia from 192.0.2.10 port 40022 ssh2",
+            "Nov 10 08:03:05 web sshd[930]: Failed password for admin from 198.51.100.23 port 61001 ssh2",
+            "Nov 10 08:05:33 web sshd[944]: Accepted password for marco from 192.0.2.12 port 40100 ssh2"
+        ],
+        target: ["3"],
+        nudge: "Nella pagina man di grep c'è un'opzione che, invece delle righe, stampa quante sono.",
+        hint: "grep -c 'Failed' conta le righe che contengono il testo: un comando solo, al posto di grep | wc -l.",
+        tutor: "grep -c fa grep | wc -l in un colpo solo: conta le righe trovate invece di stamparle. Con -v conta quelle che NON contengono il testo.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "Failed", count: true }, desc: "Conta le righe con 'Failed'" },
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Tieni le righe con 'Failed'" },
+            { cmd: "grep", args: { pattern: "Accepted", count: true }, desc: "Conta le righe con 'Accepted'" },
+            { cmd: "wc", desc: "Conta le righe" }
+        ]
+    },
+    {
+        id: 52,
+        act: 9,
+        title: "Maiuscole e Minuscole",
+        source: "cat /var/log/app.log",
+        mission: "Ogni servizio scrive gli avvisi a modo suo: <code>Warning</code>, <code>WARNING</code>, <code>warning</code>. Quali servizi hanno dato un avviso? Solo il nome, una volta, in ordine.",
+        man: ["grep"],
+        stdin: ["web: Warning disco quasi pieno", "db: WARNING replica in ritardo", "web: richiesta ok", "cache: warning memoria alta", "db: query lenta (warning)", "mail: tutto ok"],
+        target: ["cache", "db", "web"],
+        nudge: "grep distingue le maiuscole: c'è un'opzione per fargliele ignorare.",
+        hint: "Piano in 4 passi: grep -i 'warning', cut -d':' -f1, sort, uniq. Attenzione: grep 'warning' senza -i perde web.",
+        tutor: "grep -i (ignore case) tratta Warning, WARNING e warning come lo stesso testo, ma stampa le righe come sono: non le trasforma.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "warning", ignoreCase: true }, desc: "Righe con 'warning', maiuscole o no" },
+            { cmd: "grep", args: { pattern: "warning" }, desc: "Righe con 'warning'" },
+            { cmd: "grep", args: { pattern: "WARNING" }, desc: "Righe con 'WARNING'" },
+            { cmd: "cut", args: { delim: ":", field: 1 }, desc: "Campo 1 (:)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" }
+        ]
+    },
+    {
+        id: 53,
+        act: 9,
+        title: "Parole Intere",
+        source: "last -n 6",
+        slots: 3,
+        mission: "Quando si è collegata <code>ann</code>? Tieni le sue righe, e solo le sue: niente anna, joann o hannah.",
+        man: ["grep"],
+        stdin: [
+            "ann      pts/0        192.0.2.30       Mon Nov 10 09:12   still logged in",
+            "anna     pts/1        192.0.2.31       Mon Nov 10 09:05 - 09:40  (00:35)",
+            "joann    pts/2        192.0.2.44       Mon Nov 10 08:58 - 09:01  (00:03)",
+            "hannah   pts/3        192.0.2.52       Mon Nov 10 08:30 - 08:45  (00:15)",
+            "ann      pts/1        192.0.2.30       Mon Nov 10 08:10 - 08:55  (00:45)",
+            "wtmp begins Sat Nov  1 00:00:01 2026"
+        ],
+        target: ["ann      pts/0        192.0.2.30       Mon Nov 10 09:12   still logged in", "ann      pts/1        192.0.2.30       Mon Nov 10 08:10 - 08:55  (00:45)"],
+        nudge: "grep trova «ann» anche dentro anna, joann e hannah. Nel manuale c'è un'opzione per le parole intere.",
+        hint: "grep -w 'ann' tiene solo le righe dove ann è una parola intera. Attenzione: grep 'ann ' con lo spazio prende anche joann.",
+        tutor: "grep -w vuole il testo come parola intera: prima e dopo non ci devono essere lettere, cifre o _. Così «ann» non vale dentro «joann».",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "ann", word: true }, desc: "Righe con la parola 'ann'" },
+            { cmd: "grep", args: { pattern: "ann" }, desc: "Righe con 'ann'" },
+            { cmd: "grep", args: { pattern: "ann " }, desc: "Righe con 'ann '" },
+            { cmd: "grep", args: { pattern: "anna", invert: true }, desc: "Scarta le righe con 'anna'" }
+        ]
+    },
+    {
+        id: 54,
+        act: 9,
+        title: "La Prima Pagina",
+        source: "cat accessi.csv",
+        slots: 3,
+        mission: "Il registro è <code>utente,ora,pagina</code>. Per ogni utente tieni <strong>la sua prima riga</strong> della mattina, con gli utenti in ordine di nome.",
+        man: ["sort"],
+        stdin: ["nadia,08:01,/home", "marco,08:03,/wiki", "nadia,08:05,/ticket", "giulia,08:07,/home", "marco,08:09,/report", "tommaso,08:12,/home", "nadia,08:20,/logout"],
+        target: ["giulia,08:07,/home", "marco,08:03,/wiki", "nadia,08:01,/home", "tommaso,08:12,/home"],
+        nudge: "sort -u toglie i doppioni; con una chiave (-t -k) per lui sono «uguali» le righe con la stessa chiave.",
+        hint: "sort -t',' -k1,1 -u ordina per utente e di ogni utente tiene la prima riga. Attenzione: sort -u da solo guarda la riga intera, e qui sono tutte diverse.",
+        tutor: "Con -u e una chiave, sort considera uguali le righe con la stessa chiave e ne tiene una sola: la prima, perché con -u l'ordinamento è stabile e le righe uguali restano nell'ordine in cui arrivano.",
+        allowedCommands: [
+            { cmd: "sort", args: { unique: true, separator: ",", key: 1 }, desc: "Per utente, una riga ciascuno (-u)" },
+            { cmd: "sort", args: { separator: ",", key: 1 }, desc: "Per utente" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" },
+            { cmd: "head", args: { n: 4 }, desc: "Prime 4 righe" }
+        ]
+    },
+    {
+        id: 55,
+        act: 9,
+        title: "Una Volta Sola",
+        source: "cat pacchetti-server.txt",
+        mission: "L'inventario è <code>pacchetto server</code>. Quali pacchetti sono installati su <strong>un solo</strong> server? Solo il nome, in ordine.",
+        man: ["uniq"],
+        stdin: ["bash zebra", "curl zebra", "vim zebra", "bash mela", "htop mela", "vim mela", "bash gatto", "curl gatto", "nmap gatto", "vim gatto"],
+        target: ["htop", "nmap"],
+        nudge: "uniq -d tiene i ripetuti. Nella pagina man c'è anche l'opposto.",
+        hint: "Piano in 3 passi: cut -d' ' -f1, sort, uniq -u (solo le righe che compaiono una volta). Attenzione: sort -u tiene ogni pacchetto una volta, anche quelli ripetuti.",
+        tutor: "uniq -u tiene solo le righe senza doppioni vicini: dopo sort, sono quelle che compaiono una volta sola. -d e -u sono complementari: insieme danno tutto uniq.",
+        allowedCommands: [
+            { cmd: "cut", args: { delim: " ", field: 1 }, desc: "Campo 1 (spazio)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "uniq", args: { unique: true }, desc: "Solo le righe uniche (-u)" },
+            { cmd: "uniq", args: { repeated: true }, desc: "Solo i duplicati (-d)" }
+        ]
+    },
+    {
+        id: 56,
+        act: 9,
+        title: "Più Colonne",
+        source: "getent passwd",
+        mission: "Per l'audit servono <strong>nome utente e shell</strong>, separati da <code>:</code>, solo per chi può entrare (niente <code>nologin</code>).",
+        man: ["cut"],
+        stdin: ["root:x:0:0:root:/root:/bin/bash", "daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin", "nadia:x:1001:1001:Nadia Russo:/home/nadia:/bin/bash", "tommaso:x:1002:1002:Tommaso:/home/tommaso:/bin/zsh", "backup:x:34:34:backup:/var/backups:/usr/sbin/nologin"],
+        target: ["root:/bin/bash", "nadia:/bin/bash", "tommaso:/bin/zsh"],
+        nudge: "cut può tenere più campi insieme: li elenchi separati da una virgola.",
+        hint: "Piano in 2 passi: grep -v 'nologin', poi cut -d':' -f1,7 (campi 1 e 7, uniti dal separatore).",
+        tutor: "cut -f1,7 tiene più campi: escono nell'ordine della riga, uniti dallo stesso separatore. Con -f2- tieni dal campo 2 in poi, con --complement tutto tranne i campi indicati.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "nologin", invert: true }, desc: "Scarta le righe con 'nologin'" },
+            { cmd: "cut", args: { delim: ":", fields: "1,7" }, desc: "Campi 1 e 7 (:)" },
+            { cmd: "cut", args: { delim: ":", field: 1 }, desc: "Campo 1 (:)" },
+            { cmd: "cut", args: { delim: ":", field: 7 }, desc: "Campo 7 (:)" },
+            { cmd: "cut", args: { delim: ":", fields: "1-7" }, desc: "Campi da 1 a 7 (:)" }
+        ]
+    },
+    {
+        id: 57,
+        act: 9,
+        title: "Tutto Tranne",
+        type: "quiz",
+        mission: "Tommaso deve mandare l'elenco degli utenti senza le password (il campo 2). Cosa stampa questa pipeline?",
+        stdin: ["nadia,segreta,1001", "marco,1234,1002"],
+        target: ["nadia,1001", "marco,1002"],
+        nudge: "--complement capovolge la scelta dei campi.",
+        hint: "cut --complement -f2 tiene tutti i campi tranne il 2: nome e numero, uniti dalla virgola.",
+        explain: "Con --complement cut tiene tutto tranne i campi indicati: senza il campo 2 restano nome e numero, uniti dalla virgola.",
+        allowedCommands: [
+            { cmd: "cut", args: { delim: ",", field: 2, complement: true }, desc: "Tutto tranne il campo 2" }
+        ],
+        start: [1],
+        wrong: [
+            { steps: [{ cmd: "cut", args: { delim: ",", field: 2 } }], why: "Questo è cut -f2 senza --complement: tiene solo le password, l'opposto di quello che serve." },
+            { steps: [{ cmd: "cut", args: { delim: ",", fields: "2-" } }], why: "Questo è cut -f2-: dal campo 2 in poi, quindi password comprese." }
+        ]
+    },
+    {
+        id: 58,
+        act: 9,
+        title: "L'SMS di Allarme",
+        source: "cat allarme.txt",
+        slots: 3,
+        mission: "Il gateway SMS accetta al massimo 160 byte. Comprimi gli spazi doppi e dimmi <strong>quanti byte</strong> è il messaggio. Solo il numero.",
+        man: ["wc", "tr"],
+        stdin: ["ATTENZIONE:   disco /var al 97%,  servizio web   rallentato.", "Reperibile:  Nadia"],
+        target: ["74"],
+        nudge: "wc conta le righe con -l: nella pagina man ci sono anche parole e byte. E gli a capo contano.",
+        hint: "Piano in 2 passi: tr -s ' ' comprime gli spazi, poi wc -c conta i byte (compresi gli a capo in fondo alle righe).",
+        tutor: "wc -c conta i byte, non i caratteri: ogni a capo vale 1 byte e una lettera accentata ne vale 2. wc -w conta le parole, wc -l le righe.",
+        allowedCommands: [
+            { cmd: "squeeze", args: { set: " " }, desc: "Comprimi gli spazi in fila" },
+            { cmd: "wcc", desc: "Conta i byte (-c)" },
+            { cmd: "wcw", desc: "Conta le parole (-w)" },
+            { cmd: "wc", desc: "Conta le righe" }
+        ]
+    },
+    {
+        id: 59,
+        act: 9,
+        title: "Boss Atto IX",
+        source: "journalctl -u sshd --since '-7 days' -o cat",
+        slots: 6,
+        mission: "🚨 Il rapporto settimanale di Nadia: <strong>quanti utenti diversi</strong> hanno sbagliato l'accesso questa settimana? Ogni sistema scrive «failed» a modo suo. Solo il numero.",
+        man: ["grep", "sort", "wc"],
+        stdin: ["lun sshd: Failed login for marco", "lun sshd: Accepted login for giulia", "mar sshd: FAILED login for nadia", "mer sshd: failed login for marco", "gio sshd: Failed login for root", "gio sshd: Accepted login for nadia", "ven sshd: FAILED LOGIN for root", "sab sshd: failed login for tommaso"],
+        target: ["4"],
+        nudge: "Tre trappole: le maiuscole, gli utenti che sbagliano più volte e il conteggio di righe invece che di utenti.",
+        hint: "Piano in 4 passi: grep -i 'failed', cut -d' ' -f6 (l'utente), sort -u, wc -l. Attenzione: grep -ic conta le righe sbagliate (6), non gli utenti.",
+        tutor: "Tre opzioni del manuale insieme: grep -i per le maiuscole, sort -u per contare ogni utente una volta, e niente grep -c: conterebbe i tentativi, non le persone.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "failed", ignoreCase: true }, desc: "Righe con 'failed', maiuscole o no" },
+            { cmd: "grep", args: { pattern: "failed", ignoreCase: true, count: true }, desc: "Conta le righe con 'failed' (-ic)" },
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Righe con 'Failed'" },
+            { cmd: "cut", args: { delim: " ", field: 6 }, desc: "Campo 6 (spazio)" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "wc", desc: "Conta le righe" },
+            { cmd: "wcw", desc: "Conta le parole (-w)" }
+        ]
     }
 ];
