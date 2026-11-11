@@ -10,7 +10,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO VIII");
         assert.equal(await page.textContent("#act-title"), "Reperibilità notturna");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 44\/67: Chi Mangia la CPU/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 44\/75: Chi Mangia la CPU/);
         assert.match(await page.innerText(".io-panel"), /input \(output di ps aux\)/);
         // Senza tr -s, cut -f2 trova il campo vuoto fra due spazi
         await page.evaluate(() => {

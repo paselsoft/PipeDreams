@@ -11,7 +11,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO IX");
         assert.equal(await page.textContent("#act-title"), "Leggere il manuale");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 51\/67: Il Conto in un Colpo/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 51\/75: Il Conto in un Colpo/);
         assert.match(await page.innerText("#level-man"), /man grep/);
         await placeSolution(page, await indexOf(page, 51));
         assert.ok(won(await run(page)));

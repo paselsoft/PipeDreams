@@ -160,8 +160,8 @@ const LPI_EXAMS = [
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.7/",
                 lessons: 2,
                 terms: ["grep", "egrep", "fgrep", "sed", "regex(7)"],
-                cmds: ["grep", "sed"],
-                note: "grep e sed -E con le espressioni regolari sono nel gioco (nel gioco grep cerca testo semplice). Da studiare: egrep, fgrep, grep -E e le classi come [[:digit:]]."
+                cmds: ["grepe", "grep", "sed"],
+                note: "Atto XI: grep -E con alternative, ripetizioni {n,m}, ancore ^ $ e classi [[:digit:]], e sed -E con le stesse classi. egrep e fgrep sono i vecchi nomi di grep -E e grep -F, ormai obsoleti. Da studiare: grep -F e le regex di base (senza -E)."
             },
             {
                 id: "103.8",

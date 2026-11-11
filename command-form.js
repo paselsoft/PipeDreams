@@ -3,7 +3,7 @@
 
 // Nome mostrato nel menu a tendina dei comandi
 const COMMAND_NAMES = {
-    grep: "grep", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
+    grep: "grep", grepe: "grep -E (regex)", sort: "sort", uniq: "uniq", upper: "sed (maiuscolo)", head: "head", tail: "tail",
     comm: "comm (confronta con un file)", join: "join (unisci con un file)", nl: "nl (numera)", tee: "tee",
     squeeze: "tr -s (comprimi)", fold: "fold (a capo)", xargs: "xargs",
     wc: "wc -l", wcw: "wc -w (parole)", wcc: "wc -c (byte)",

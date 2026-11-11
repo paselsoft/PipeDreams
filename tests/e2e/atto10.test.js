@@ -10,7 +10,7 @@ module.exports = {
         assert.equal(await page.textContent("#act-label"), "ATTO X");
         assert.equal(await page.textContent("#act-title"), "Verso l'esame");
         await page.click("#act-button");
-        assert.match(await page.innerText("#level-title"), /^LIVELLO 60\/67: L'Impronta/);
+        assert.match(await page.innerText("#level-title"), /^LIVELLO 60\/75: L'Impronta/);
         assert.match(await page.innerText("#txt-target"), /^[0-9a-f]{32} {2}-$/);
         await placeSolution(page, await indexOf(page, 60));
         assert.ok(won(await run(page)));

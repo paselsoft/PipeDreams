@@ -1384,5 +1384,177 @@ const levels = [
             { cmd: "md5sum", desc: "Impronta MD5" },
             { cmd: "sha256sum", desc: "Impronta SHA-256" }
         ]
+    },
+    {
+        id: 68,
+        act: 11,
+        title: "O l'Uno o l'Altro",
+        source: "journalctl -o cat",
+        slots: 3,
+        mission: "La nuova regola del monitoraggio deve tenere le righe <strong>ERROR</strong> e anche quelle <strong>CRIT</strong>, con un grep solo.",
+        man: ["regex", "grep"],
+        stdin: ["INFO avvio completato", "ERROR disco pieno su /var", "WARN memoria al 85%", "CRIT database non risponde", "INFO backup ok", "ERROR timeout rete", "error di battitura nel log"],
+        target: ["ERROR disco pieno su /var", "CRIT database non risponde", "ERROR timeout rete"],
+        nudge: "Con grep normale | è un carattere come gli altri. Con le espressioni estese vuol dire «oppure».",
+        hint: "Piano in 1 passo: grep -E 'ERROR|CRIT'. Attenzione: grep 'ERROR|CRIT' senza -E cerca proprio il testo «ERROR|CRIT».",
+        tutor: "Con -E il carattere | separa due alternative: la riga passa se contiene l'una o l'altra. Senza -E grep cerca il testo letterale «ERROR|CRIT», che non c'è da nessuna parte.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "ERROR|CRIT" }, desc: "ERROR oppure CRIT (-E)" },
+            { cmd: "grep", args: { pattern: "ERROR|CRIT" }, desc: "Il testo 'ERROR|CRIT'" },
+            { cmd: "grep", args: { pattern: "ERROR" }, desc: "Righe con 'ERROR'" },
+            { cmd: "grep", args: { pattern: "error", ignoreCase: true }, desc: "'error', maiuscole o no" }
+        ]
+    },
+    {
+        id: 69,
+        act: 11,
+        title: "Badge Validi",
+        source: "cut -d',' -f2 badge.csv",
+        mission: "Un codice badge valido è fatto di <strong>esattamente 6 cifre</strong>, niente altro. Elenca i codici validi, in ordine, una volta ciascuno.",
+        man: ["regex", "sort"],
+        stdin: ["104523", "10452", "104523", "A04523", "1045230", "200871", "20087l", "200871", "330012"],
+        target: ["104523", "200871", "330012"],
+        nudge: "Le cifre devono essere 6, né 5 né 7, e la riga non deve contenere altro: serve dire dove inizia e dove finisce.",
+        hint: "Piano in 2 passi: grep -E '^[0-9]{6}$' (^ e $ bloccano la riga intera, {6} vuole 6 cifre), poi sort -u.",
+        tutor: "^ è l'inizio della riga e $ la fine: insieme dicono «tutta la riga». Senza di loro, [0-9]{6} trova 6 cifre anche dentro 1045230, che ne ha 7. Attenzione al codice 20087l: l'ultima è una elle, non un 1.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "^[0-9]{6}$" }, desc: "Solo 6 cifre, tutta la riga" },
+            { cmd: "grepe", args: { pattern: "[0-9]{6}" }, desc: "6 cifre di fila" },
+            { cmd: "grepe", args: { pattern: "^[0-9]+$" }, desc: "Solo cifre, quante vuoi" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "sort", desc: "Ordine alfabetico" }
+        ]
+    },
+    {
+        id: 70,
+        act: 11,
+        title: "Gli Indirizzi IP",
+        source: "grep sshd /var/log/auth.log",
+        mission: "Da quali <strong>indirizzi IP</strong> hanno sbagliato la password? Solo gli indirizzi, in ordine, una volta ciascuno.",
+        man: ["regex", "grep"],
+        stdin: ["Nov 11 01:10:22 web sshd[700]: Failed password for root from 203.0.113.7 port 52211 ssh2", "Nov 11 01:12:05 web sshd[702]: Accepted publickey for nadia from 10.0.0.21 port 50122 ssh2", "Nov 11 01:13:40 web sshd[704]: Failed password for marco from 10.0.0.30 port 50300 ssh2", "Nov 11 01:15:01 web sshd[706]: Failed password for root from 203.0.113.7 port 52299 ssh2"],
+        target: ["10.0.0.30", "203.0.113.7"],
+        nudge: "Prima le righe giuste, poi solo il pezzo che ha la forma di un indirizzo: quattro numeri separati da punti veri.",
+        hint: "Piano in 3 passi: grep 'Failed', grep -Eo '([0-9]{1,3}\\.){3}[0-9]{1,3}', sort -u. Attenzione: [0-9.]+ prende anche le porte e gli orari.",
+        tutor: "([0-9]{1,3}\\.){3}[0-9]{1,3} vuol dire: un numero da 1 a 3 cifre seguito da un punto vero, tre volte, e poi un altro numero. Con -o grep stampa solo quel pezzo. [0-9.]+ invece prende qualunque fila di cifre e punti: porte, ore, pid.",
+        allowedCommands: [
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Righe con 'Failed'" },
+            { cmd: "grepe", args: { pattern: "([0-9]{1,3}\\.){3}[0-9]{1,3}", only: true }, desc: "Solo gli indirizzi IP (-o)" },
+            { cmd: "grepe", args: { pattern: "[0-9.]+", only: true }, desc: "Solo cifre e punti (-o)" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "uniq", desc: "Rimuovi duplicati" }
+        ]
+    },
+    {
+        id: 71,
+        act: 11,
+        title: "Facoltativo",
+        type: "quiz",
+        mission: "Nadia chiede: cosa stampa <code>grep -E '^colou?r$'</code> su queste quattro righe?",
+        stdin: ["color", "colour", "colouur", "colr"],
+        target: ["color", "colour"],
+        nudge: "? rende facoltativo solo il carattere che ha subito prima: la u può esserci una volta o nessuna.",
+        hint: "u? vuol dire «zero o una u»: vanno bene color e colour. colouur ha due u, colr non ha la o.",
+        explain: "u? accetta zero o una u: passano color e colour. Con * passerebbe anche colouur, con + colour e colouur; colr non ha la o, che non è facoltativa.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "^colou?r$" }, desc: "u facoltativa (?)" }
+        ],
+        start: [1],
+        wrong: [
+            { steps: [{ cmd: "grepe", args: { pattern: "^colou*r$" } }], why: "Questo è u*: zero o più u, quindi passa anche colouur. ? vuol dire al massimo una." },
+            { steps: [{ cmd: "grepe", args: { pattern: "^colou+r$" } }], why: "Questo è u+: una o più u, quindi color non passa. ? accetta anche nessuna u." }
+        ]
+    },
+    {
+        id: 72,
+        act: 11,
+        title: "Configurazione Pulita",
+        source: "cat /etc/pipeco/app.conf",
+        slots: 3,
+        mission: "Giulia vuole solo le <strong>righe utili</strong> della configurazione: niente commenti (anche quelli rientrati) e niente righe vuote o fatte solo di spazi.",
+        man: ["regex", "grep"],
+        stdin: ["# app.conf della Pipe & Co.", "", "porta = 8080", "    # porta vecchia: 80", "utente = pipeco", "   ", "log = /var/log/app#1.log", "\t# fine sezione", "debug = no"],
+        target: ["porta = 8080", "utente = pipeco", "log = /var/log/app#1.log", "debug = no"],
+        nudge: "Una riga è da scartare se, dopo eventuali spazi all'inizio, arriva un # oppure la fine della riga. Con -v si scartano quelle che corrispondono.",
+        hint: "Piano in 1 passo: grep -Ev '^[[:space:]]*(#|$)'. Attenzione: grep -v '#' scarta anche il log app#1.log, che è una riga utile.",
+        tutor: "^[[:space:]]* è «dall'inizio, quanti spazi e tabulazioni vuoi», poi (#|$) è «un cancelletto oppure la fine della riga». Così si scartano i commenti rientrati e le righe vuote, ma non un # in mezzo a un valore.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "^[[:space:]]*(#|$)", invert: true }, desc: "Scarta commenti e righe vuote (-v)" },
+            { cmd: "grepe", args: { pattern: "^#", invert: true }, desc: "Scarta le righe che iniziano con #" },
+            { cmd: "grep", args: { pattern: "#", invert: true }, desc: "Scarta le righe con '#'" },
+            { cmd: "grepe", args: { pattern: "^$", invert: true }, desc: "Scarta le righe vuote" }
+        ]
+    },
+    {
+        id: 73,
+        act: 11,
+        title: "Le Date",
+        source: "cat ordini.txt",
+        slots: 3,
+        mission: "Negli appunti degli ordini le date sono scritte come capita. Estrai solo quelle nel formato <code>AAAA-MM-GG</code>, in ordine, una volta ciascuna.",
+        man: ["regex", "sort"],
+        stdin: ["ordine 51 del 2026-11-03, consegna 2026-11-10", "ordine 52 del 11/11/2026 (da correggere)", "ordine 53 del 2026-11-03, tel 333-123-4567", "ordine 54 del 2026-11-11 qta 12-24"],
+        target: ["2026-11-03", "2026-11-10", "2026-11-11"],
+        nudge: "Una data è: 4 cifre, trattino, 2 cifre, trattino, 2 cifre. Le classi POSIX per le cifre si scrivono con due parentesi quadre.",
+        hint: "Piano in 2 passi: grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}', poi sort -u. Attenzione: [0-9-]+ prende anche il telefono e le quantità.",
+        tutor: "[[:digit:]] è la classe POSIX delle cifre, come [0-9]. {4} e {2} contano quante cifre servono, e così 333-123-4567 e 12-24 non hanno la forma giusta. 11/11/2026 usa le barre: non è nel formato richiesto.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}", only: true }, desc: "Solo le date AAAA-MM-GG (-o)" },
+            { cmd: "grepe", args: { pattern: "[0-9-]+", only: true }, desc: "Solo cifre e trattini (-o)" },
+            { cmd: "sort", args: { unique: true }, desc: "Ordina senza doppioni (-u)" },
+            { cmd: "sort", desc: "Ordine alfabetico" }
+        ]
+    },
+    {
+        id: 74,
+        act: 11,
+        title: "La Privacy",
+        source: "cat pagamenti.log",
+        slots: 3,
+        mission: "Il log dei pagamenti va mandato all'assistenza, ma senza i numeri delle carte. Tieni solo le righe con un numero di carta (<strong>16 cifre</strong>) e copri le prime 12 cifre con <code>X</code>: si vedono solo le ultime 4.",
+        man: ["sed", "regex"],
+        stdin: ["10:01 anna carta 4111222233334444 ok", "10:05 marco bonifico 120 euro", "10:07 luca carta 5500111122223333 ok", "10:09 eva ordine 2026111100001", "10:12 eva carta rifiutata"],
+        target: ["10:01 anna carta XXXXXXXXXXXX4444 ok", "10:07 luca carta XXXXXXXXXXXX3333 ok"],
+        nudge: "Prima le righe con 16 cifre di fila; poi una sostituzione che prende 12 cifre, la prima volta che compaiono.",
+        hint: "Piano in 2 passi: grep -E '[[:digit:]]{16}', poi sed -E 's/[[:digit:]]{12}/XXXXXXXXXXXX/'. Attenzione: con [[:digit:]] e g sparirebbero anche gli orari.",
+        tutor: "[[:digit:]]{16} trova le righe con almeno 16 cifre di fila: l'ordine di eva ne ha 13 e resta fuori. In sed, [[:digit:]]{12} prende le prime 12 cifre della carta (la corrispondenza più a sinistra), e le ultime 4 restano.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "[[:digit:]]{16}" }, desc: "Righe con 16 cifre di fila" },
+            { cmd: "grepe", args: { pattern: "carta" }, desc: "Righe con 'carta'" },
+            { cmd: "sed", args: { pattern: "[[:digit:]]{12}", replacement: "XXXXXXXXXXXX" }, desc: "Copri 12 cifre di fila" },
+            { cmd: "sed", args: { pattern: "[[:digit:]]", replacement: "X", global: true }, desc: "Copri ogni cifra (g)" }
+        ]
+    },
+    {
+        id: 75,
+        act: 11,
+        title: "Boss Atto XI",
+        source: "grep sshd /var/log/auth.log",
+        slots: 6,
+        mission: "La regola finale dell'allarme: quali IP hanno sbagliato la password <strong>o</strong> provato un utente che non esiste (<code>Invalid user</code>), e quante volte? Conteggio e IP, dal più insistente.",
+        man: ["regex", "uniq", "sort"],
+        stdin: [
+            "Nov 11 02:01:10 web sshd[901]: Failed password for root from 203.0.113.7 port 52211 ssh2",
+            "Nov 11 02:01:30 web sshd[902]: Invalid user test from 198.51.100.23 port 40011",
+            "Nov 11 02:02:40 web sshd[905]: Accepted publickey for nadia from 10.0.0.21 port 50122 ssh2",
+            "Nov 11 02:03:01 web sshd[907]: Failed password for marco from 10.0.0.30 port 50300 ssh2",
+            "Nov 11 02:03:12 web sshd[908]: Invalid user admin from 203.0.113.7 port 52213",
+            "Nov 11 02:03:19 web sshd[909]: Failed password for invalid user test from 198.51.100.23 port 40013 ssh2",
+            "Nov 11 02:04:00 web sshd[910]: Connection closed by 10.0.0.21 port 50122",
+            "Nov 11 02:04:20 web sshd[911]: Invalid user oracle from 198.51.100.23 port 40090"
+        ],
+        target: ["      3 198.51.100.23", "      2 203.0.113.7", "      1 10.0.0.30"],
+        nudge: "Due tipi di riga, un grep solo con l'alternativa; poi solo l'indirizzo; poi conta e metti in classifica.",
+        hint: "Piano in 5 passi: grep -E 'Failed|Invalid', grep -Eo l'indirizzo IP, sort, uniq -c, sort -rn. Attenzione: con grep 'Failed' perdi gli utenti inesistenti.",
+        tutor: "L'alternativa Failed|Invalid tiene i due tipi di attacco con un grep solo; la regex dell'IP con -o lascia solo l'indirizzo (non le porte né gli orari); sort | uniq -c | sort -rn è la classifica dell'Atto II.",
+        allowedCommands: [
+            { cmd: "grepe", args: { pattern: "Failed|Invalid" }, desc: "Failed oppure Invalid (-E)" },
+            { cmd: "grep", args: { pattern: "Failed" }, desc: "Righe con 'Failed'" },
+            { cmd: "grepe", args: { pattern: "([0-9]{1,3}\\.){3}[0-9]{1,3}", only: true }, desc: "Solo gli indirizzi IP (-o)" },
+            { cmd: "grepe", args: { pattern: "[0-9.]+", only: true }, desc: "Solo cifre e punti (-o)" },
+            { cmd: "sort", desc: "Ordine alfabetico" },
+            { cmd: "uniq", args: { count: true }, desc: "Conta i duplicati (-c)" },
+            { cmd: "sort", args: { numeric: true, reverse: true }, desc: "Ordine numerico inverso" }
+        ]
     }
 ];

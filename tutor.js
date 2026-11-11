@@ -35,6 +35,22 @@ function describeStep(step) {
             if (a.ignoreCase) add("-i", "maiuscole e minuscole contano allo stesso modo: trova anche le varianti in maiuscolo");
             if (a.word) add("-w", "solo parole intere: il testo non vale se è attaccato a lettere, cifre o _");
             break;
+        case "grepe":
+            if (a.only) {
+                what = `stampa solo i pezzi che corrispondono all'espressione ${tutorChar(a.pattern)}, uno per riga: a parità di inizio, il più lungo.`;
+                add("-o", "al posto della riga intera stampa solo il pezzo trovato");
+            } else if (a.invert) {
+                what = `scarta le righe che corrispondono all'espressione ${tutorChar(a.pattern)} e lascia passare le altre.`;
+                add("-v", "inverte la scelta: tiene le righe che NON corrispondono");
+            } else {
+                what = `tiene solo le righe in cui l'espressione ${tutorChar(a.pattern)} trova una corrispondenza.`;
+            }
+            if (a.count) {
+                what = `conta le righe che ${a.invert ? "NON corrispondono" : "corrispondono"} all'espressione ${tutorChar(a.pattern)}: esce un numero solo.`;
+                add("-c", "stampa quante righe ha trovato, invece delle righe");
+            }
+            add("-E", "espressione regolare estesa: + ? | { } ( ) hanno un significato speciale");
+            break;
         case "sort": {
             const how = a.human ? "per dimensione, capendo le unità K, M, G"
                 : a.numeric ? "per valore numerico" : "carattere per carattere (cifre, poi maiuscole, poi minuscole)";

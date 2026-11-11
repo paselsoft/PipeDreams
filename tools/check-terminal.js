@@ -102,7 +102,12 @@ const report = vm.runInContext(`(() => {
         ["sort | md5sum", [{ cmd: "sort" }, { cmd: "md5sum" }]],
         ["sha256sum -", [{ cmd: "sha256sum" }]],
         ["grep x | od -c", [{ cmd: "grep", args: { pattern: "x" } }, { cmd: "od" }]],
-        ["zcat ieri.log.gz | grep -c OOM", [{ cmd: "zcat", args: { file: "ieri.log.gz", lines: ["OOM", "ok"] } }, { cmd: "grep", args: { pattern: "OOM", count: true } }]]
+        ["zcat ieri.log.gz | grep -c OOM", [{ cmd: "zcat", args: { file: "ieri.log.gz", lines: ["OOM", "ok"] } }, { cmd: "grep", args: { pattern: "OOM", count: true } }]],
+        // Atto XI: grep -E
+        ["grep -E 'ERROR|CRIT'", [{ cmd: "grepe", args: { pattern: "ERROR|CRIT" } }]],
+        ["grep -oE '[0-9]{2,}' | sort -u", [{ cmd: "grepe", args: { pattern: "[0-9]{2,}", only: true } }, { cmd: "sort", args: { unique: true } }]],
+        ["grep -E -v -c '^[[:space:]]*(#|$)'", [{ cmd: "grepe", args: { pattern: "^[[:space:]]*(#|$)", invert: true, count: true } }]],
+        ["sed -E 's/[[:digit:]]/#/g'", [{ cmd: "sed", args: { pattern: "[[:digit:]]", replacement: "#", global: true } }]]
     ].filter(([, expected]) => expected);
     const variantFiles = { "critici.txt": ["bash", "sudo"], "ultime.txt": ["bash,5.2", "curl,8.1"], "ieri.log.gz": ["OOM", "ok"] };
     for (const [text, expected] of variants) {
@@ -118,7 +123,7 @@ const report = vm.runInContext(`(() => {
         "comm - critici.txt", "comm -3 - critici.txt", "comm -12 critici.txt -", "comm -12 - altro.txt", "join - ", "join -t,, - ultime.txt",
         "nl -bx", "nl -w0", "tee", "tee -a log", "tee a b",
         "sort -nh", "tr -s", "tr -s a b", "fold", "fold -w 0", "fold -x", "xargs rm", "xargs -n", "xargs -n 0", "xargs -0",
-        "grep -co x", "uniq -du", "md5sum file", "od", "od -x", "zcat", "zcat altro.gz", "xzcat -d x", "cut -d: -f0", "cut -d: -f3-1", "cut -d: -f1,", "wc -lw", "wc -m", "sort -x"];
+        "grep -co x", "uniq -du", "md5sum file", "od", "od -x", "zcat", "zcat altro.gz", "xzcat -d x", "cut -d: -f0", "egrep x", "fgrep x", "grep -Ei x", "grep -Ew x", "grep -E", "grep -E '\\\\d+'", "grep -E '[[:cifra:]]'", "grep -E '[0-9'", "grep -E 'a{3,1}'", "grep -E '(?:a)'", "grep -Eov x", "grep -E '-x'", "sed -E 's/a|b/c/'", "cut -d: -f3-1", "cut -d: -f1,", "wc -lw", "wc -m", "sort -x"];
     for (const text of errors) {
         const result = parsePipeline(text, variantFiles);
         if (!result.error) failures.push("errore atteso per: " + JSON.stringify(text) + " → " + JSON.stringify(result.steps));

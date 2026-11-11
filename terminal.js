@@ -398,6 +398,19 @@ function parseCommand(words, files = {}) {
         }
         return { cmd: name, args: { file: rest[0], lines: files[rest[0]] } };
     }
+    // Atto XI: grep -E (espressioni estese) è un comando a parte nel gioco
+    if (name === "egrep" || name === "fgrep") fail(`${name}: è obsoleto (GNU stampa un avviso): scrivi grep ${name === "egrep" ? "-E" : "-F"}`);
+    if (name === "grep" && rest.some(word => /^-[A-Za-z]+$/.test(word) && word.includes("E"))) {
+        const { flags, operands } = shortFlags("grep -E", rest, ["E", "v", "o", "c"]);
+        if (operands.length !== 1) fail("grep: serve esattamente un'espressione da cercare, es. grep -E '[0-9]+'");
+        const args = { pattern: operands[0] };
+        if (flags.has("v")) args.invert = true;
+        if (flags.has("o")) args.only = true;
+        if (flags.has("c")) args.count = true;
+        const error = COMMANDS.grepe.validate(args);
+        if (error) fail(`grep: ${error}`);
+        return { cmd: "grepe", args };
+    }
     // wc -w e wc -c sono comandi a parte nel gioco (wc -l resta wc)
     if (name === "wc" && rest.length === 1 && (rest[0] === "-w" || rest[0] === "-c")) return { cmd: rest[0] === "-w" ? "wcw" : "wcc", args: {} };
     if (name === "tr" && rest[0] === "-s") {

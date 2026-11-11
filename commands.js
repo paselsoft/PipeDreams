@@ -217,22 +217,12 @@ function foldLine(line, width, atSpaces) {
 // Mostra i caratteri speciali come li scriveresti nella shell
 const shellQuote = set => `'${set.replace(/\n/g, "\\n")}'`;
 
-// sed -E usa le regex estese POSIX (ERE). Il sottoinsieme ammesso si comporta come in JavaScript:
-// niente alternative "|" (POSIX sceglie la corrispondenza più lunga, JS la prima), niente
-// classi "[[:digit:]]", né escape come \d o \w che ERE non conosce.
+// sed -E usa le regex estese POSIX (ERE), tradotte con ereToJs (classi [[:digit:]] comprese).
+// Niente alternative "|": in s/// conta anche cosa cattura ogni gruppo, e lì POSIX (la
+// corrispondenza più lunga) e JavaScript (la prima alternativa) possono dare gruppi diversi.
 function sedPatternError(pattern) {
-    if (pattern.includes("|")) return "l'alternativa | non è supportata";
-    if (pattern.includes("[:")) return "le classi [[:...:]] non sono supportate: usa [0-9], [a-z]...";
-    if (/\\[A-Za-z0-9]/.test(pattern)) return "escape come \\d o \\w non esistono in sed: usa [0-9]";
-    if (pattern.includes("(?")) return "costrutto (?...) non supportato";
-    // (a+)+ e simili possono bloccare il motore delle regex: non servono nel gioco
-    if (/\([^)]*[+*][^)]*\)\s*[+*{]/.test(pattern)) return "quantificatori annidati come (a+)+ non sono supportati";
-    try {
-        new RegExp(pattern);
-    } catch (e) {
-        return "espressione regolare non valida";
-    }
-    return null;
+    if (pattern.includes("|")) return "l'alternativa | non è supportata in sed: usala con grep -E";
+    return erePatternError(pattern);
 }
 
 // Il delimitatore di s/// è "/", oppure "#" se pattern o sostituzione contengono "/"
@@ -290,6 +280,113 @@ function sedSubstitute(line, regex, replacement, global) {
         if (!global) break;
     }
     return out + line.slice(pos);
+}
+
+// --- Atto XI: espressioni regolari estese (grep -E), tradotte in una RegExp di JavaScript ---
+
+// Classi POSIX come nel locale C (solo ASCII)
+const POSIX_CLASSES = {
+    digit: "0-9", alpha: "A-Za-z", alnum: "0-9A-Za-z", upper: "A-Z", lower: "a-z", xdigit: "0-9A-Fa-f",
+    space: " \\t\\n\\r\\f\\v", blank: " \\t", punct: "!-\\/:-@\\[-`{-~"
+};
+
+// ERE di POSIX → sorgente di una RegExp. Lancia un messaggio se l'espressione usa qualcosa che
+// il gioco non gestisce. Dentro [...] la barra \ è un carattere qualsiasi, come in POSIX.
+function ereToJs(pattern) {
+    let out = "";
+    for (let i = 0; i < pattern.length; i++) {
+        const c = pattern[i];
+        if (c === "\\") {
+            const next = pattern[i + 1];
+            if (next === undefined) throw "l'espressione non può finire con \\";
+            if (/[A-Za-z0-9]/.test(next)) throw `\\${next} non è un'espressione estesa POSIX: usa le classi, es. [[:digit:]] o [0-9]`;
+            out += "\\" + next;
+            i++;
+        } else if (c === "[") {
+            let j = i + 1;
+            let body = "";
+            if (pattern[j] === "^") { body += "^"; j++; }
+            if (pattern[j] === "]") { body += "\\]"; j++; }
+            for (; j < pattern.length && pattern[j] !== "]"; j++) {
+                if (pattern[j] === "[" && pattern[j + 1] === ":") {
+                    const end = pattern.indexOf(":]", j + 2);
+                    if (end === -1) throw "classe [:...:] non chiusa";
+                    const name = pattern.slice(j + 2, end);
+                    if (!POSIX_CLASSES[name]) throw `classe [:${name}:] sconosciuta: usa digit, alpha, alnum, upper, lower, space, blank, punct o xdigit`;
+                    body += POSIX_CLASSES[name];
+                    j = end + 1;
+                } else if (pattern[j] === "[" && (pattern[j + 1] === "=" || pattern[j + 1] === ".")) {
+                    throw "[= =] e [. .] non sono supportati";
+                } else if (pattern[j] === "\\" || pattern[j] === "[") {
+                    body += "\\" + pattern[j];
+                } else {
+                    body += pattern[j];
+                }
+            }
+            if (j >= pattern.length) throw "parentesi [ non chiusa";
+            if (body === "" || body === "^") throw "parentesi [] vuota";
+            out += `[${body}]`;
+            i = j;
+        } else if (c === "{") {
+            const interval = /^\{([0-9]+)(,([0-9]*))?\}/.exec(pattern.slice(i));
+            if (!interval || i === 0 || /[|(]/.test(pattern[i - 1])) throw "{ si usa dopo un carattere, come {3} o {2,4}";
+            if (interval[3] && Number(interval[3]) < Number(interval[1])) throw `{${interval[1]},${interval[3]}}: il minimo supera il massimo`;
+            out += interval[0];
+            i += interval[0].length - 1;
+        } else if (c === "(" && pattern[i + 1] === "?") {
+            throw "costrutto (?...) non supportato";
+        } else {
+            out += c;
+        }
+    }
+    if (/\([^)]*[+*][^)]*\)\s*[+*{]/.test(pattern)) throw "quantificatori annidati come (a+)+ non sono supportati";
+    try {
+        new RegExp(out);
+    } catch (e) {
+        throw "espressione regolare non valida";
+    }
+    return out;
+}
+
+function erePatternError(pattern) {
+    if (!pattern) return "serve un'espressione da cercare";
+    if (pattern.startsWith("-")) return "l'espressione inizia con -: grep la prenderebbe per un'opzione (scrivi [-] al posto del primo -)";
+    try {
+        ereToJs(pattern);
+        return null;
+    } catch (message) {
+        return message;
+    }
+}
+
+// Corrispondenze per grep -o -E: come POSIX, la più a sinistra e, a parità di inizio, la più
+// lunga (JavaScript prenderebbe la prima alternativa: con 'a|ab' su "ab" darebbe "a").
+// Le corrispondenze vuote non si stampano.
+function ereFindAll(line, source) {
+    const probe = new RegExp(source, "y");
+    const found = [];
+    let pos = 0;
+    while (pos <= line.length) {
+        let start = -1;
+        for (let i = pos; i <= line.length; i++) {
+            probe.lastIndex = i;
+            if (probe.test(line)) { start = i; break; }
+        }
+        if (start === -1) break;
+        let end = start;
+        for (let j = line.length; j > start; j--) {
+            const bounded = new RegExp(`(?:${source})(?=[\\s\\S]{${line.length - j}}$)`, "y");
+            bounded.lastIndex = start;
+            if (bounded.test(line)) { end = j; break; }
+        }
+        if (end === start) {
+            pos = start + 1;
+            continue;
+        }
+        found.push(line.slice(start, end));
+        pos = end;
+    }
+    return found;
 }
 
 // --- Atto X: impronte (md5sum, sha256sum) e od -c lavorano sui byte del flusso in UTF-8 ---
@@ -563,12 +660,30 @@ const COMMANDS = {
         ],
         label: a => `grep${a.invert ? " -v" : ""}${a.only ? " -o" : ""}${a.ignoreCase ? " -i" : ""}${a.word ? " -w" : ""}${a.count ? " -c" : ""} '${a.pattern}'`,
         validate: a => a.invert && a.only ? "nel gioco -o e -v non vanno insieme"
-            : a.only && a.count ? "-c conta le righe: non va insieme a -o" : null,
+            : a.only && a.count ? "-c conta le righe: non va insieme a -o"
+            : String(a.pattern).startsWith("-") ? "il testo inizia con -: grep lo prenderebbe per un'opzione" : null,
         run: (s, a) => {
             const matches = line => grepMatches(line, a);
             // -o: una riga per ogni occorrenza del testo (senza sovrapposizioni, da sinistra)
             if (a.only) return s.flatMap(matches);
             const kept = s.filter(line => (matches(line).length > 0) !== Boolean(a.invert));
+            return a.count ? [String(kept.length)] : kept;
+        }
+    },
+    // grep -E: espressioni regolari estese (Atto XI). Un comando a parte, come cut -c
+    grepe: {
+        params: [
+            { key: "pattern", type: "text", label: "regex" }, { key: "invert", type: "flag", label: "-v" },
+            { key: "only", type: "flag", label: "-o" }, { key: "count", type: "flag", label: "-c" }
+        ],
+        label: a => `grep -E${a.invert ? " -v" : ""}${a.only ? " -o" : ""}${a.count ? " -c" : ""} '${a.pattern}'`,
+        validate: a => a.invert && a.only ? "nel gioco -o e -v non vanno insieme"
+            : a.only && a.count ? "-c conta le righe: non va insieme a -o" : erePatternError(a.pattern),
+        run: (s, a) => {
+            const source = ereToJs(a.pattern);
+            if (a.only) return s.flatMap(line => ereFindAll(line, source));
+            const regex = new RegExp(source);
+            const kept = s.filter(line => regex.test(line) !== Boolean(a.invert));
             return a.count ? [String(kept.length)] : kept;
         }
     },
@@ -729,7 +844,7 @@ const COMMANDS = {
         },
         run: (s, a) => {
             if (s.length === 0) return [];
-            const regex = new RegExp(a.pattern, "g");
+            const regex = new RegExp(ereToJs(a.pattern), "g");
             const text = s.map(line => sedSubstitute(line, regex, (a.replacement || ""), a.global));
             // Un \n nella sostituzione spezza la riga, come fa sed
             return text.join("\n").split("\n");

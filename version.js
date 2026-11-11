@@ -1,11 +1,18 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.26.0";
+const APP_VERSION = "1.27.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.27.0", date: "2026-11-11", items: [
+            "🔍 Atto XI «Espressioni regolari»: 8 livelli nuovi (68-75) per l'obiettivo LPIC-1 103.7. Giulia riscrive le regole del monitoraggio e Nadia apre la lezione sulle regex.",
+            "🔧 Nuovo comando grep -E con -v, -o e -c: alternative (a|b), ripetizioni (? + * {n,m}), ancore ^ e $, gruppi ( ) e classi POSIX come [[:digit:]] e [[:space:]]. Con -o vince la corrispondenza più lunga, come in POSIX. Anche sed -E capisce le classi.",
+            "Tutto verificato con bash vero (500 espressioni casuali in più); manuale con la nuova scheda «grep -E», man regex, Tutor, terminale (egrep e \\d spiegano cosa scrivere al loro posto) e sezione LPI aggiornati."
+        ]
+    },
     {
         version: "1.26.0", date: "2026-11-11", items: [
             "📖 Le lezioni ufficiali LPI in italiano si leggono dentro il gioco, anche senza connessione: 103.1, 103.2, 103.4, 103.7 (esame 101) e 105.2 (esame 102), nove lezioni in tutto, con esercizi guidati, esercizi esplorativi e risposte.",

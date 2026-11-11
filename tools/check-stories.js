@@ -36,8 +36,8 @@ const report = vm.runInContext(`STORIES.map(story => {
                 return {
                     id: puzzle.id, title: puzzle.level.title, clue: Boolean(puzzle.clue), error,
                     unknown: puzzle.level.allowedCommands.map(step => step.cmd).filter(cmd => !known.has(cmd)),
-                    // rev e cut -c in bash contano byte (locale C): solo testo ASCII
-                    nonAscii: puzzle.level.allowedCommands.some(step => step.cmd === "rev" || step.cmd === "cutc") &&
+                    // rev, cut -c e grep -E in bash lavorano sui byte (locale C): solo testo ASCII
+                    nonAscii: puzzle.level.allowedCommands.some(step => ["rev", "cutc", "grepe"].includes(step.cmd)) &&
                         puzzle.level.stdin.some(line => /[^\x00-\x7f]/.test(typeof line === "string" ? line : line.err)),
                     par: solution && solution.par, optimalCount: solution && solution.optimalCount, slots: levelSlots(puzzle.level),
                     line: solution ? buildShellLine(puzzle.level.stdin, solution.optimalSteps[0]) : null,

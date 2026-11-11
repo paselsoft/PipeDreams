@@ -161,9 +161,29 @@ const fuzz10 = vm.runInContext(`(seed) => {
     return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
 }`, context);
 
+// Atto XI: grep -E con espressioni estese (solo ASCII: in bash il locale è C) e sed con le classi
+const fuzz11 = vm.runInContext(`(seed) => {
+    let state = seed;
+    const rand = n => { state = (state * 1103515245 + 12345) % 2147483648; return state % n; };
+    const pickOne = list => list[rand(list.length)];
+    const words = ["ab abc abcd", "192.168.1.10 ok", "x 10.0.0.255 y", "mail a@b.it", "aaa", "", "tab\tqui", "A1b2C3", "# commento", "  # rientro", "porta 22", "ERROR disco", "warn: rete", "2026-11-11", "color colour", "[x] {3}"];
+    const patterns = ["a|ab", "(a|ab)(c|bcd)", "[0-9]+", "([0-9]{1,3}[.]){3}[0-9]{1,3}", "[[:alpha:]]+@[[:alnum:].]+", "^a+$", "[[:upper:]][[:digit:]]",
+        "[^[:space:]]+", "b*", "colou?r", "^[[:space:]]*(#|$)", "(ab|abc|abcd)+", "[0-9]{2,}", "^(ERROR|WARN)", "[[:punct:]]", "[a-c]{2}", "x?y?", "o.", "[]x]", "\\\\{3\\\\}", "[-][0-9]+-"];
+    const pool = [{ cmd: "sort" }, { cmd: "uniq", args: { count: true } }, { cmd: "head", args: { n: 2 } },
+        { cmd: "sed", args: { pattern: "[[:digit:]]", replacement: "#", global: true } }, { cmd: "sed", args: { pattern: "[[:space:]]+", replacement: "_", global: true } }];
+    const input = Array.from({ length: 1 + rand(6) }, () => pickOne(words));
+    const flags = pickOne([{}, { only: true }, { invert: true }, { count: true }, { invert: true, count: true }]);
+    const grepe = { cmd: "grepe", args: { pattern: pickOne(patterns), ...flags } };
+    const steps = [grepe];
+    if (rand(2)) steps.unshift(pickOne(pool));
+    if (rand(2)) steps.push(pickOne(pool));
+    const result = executePipeline(input, steps);
+    return { line: buildShellLine(input, steps), output: result.output, stderr: result.stderr };
+}`, context);
+
 let fuzzed = 0;
 for (let seed = 1; seed <= runs * 5; seed++) {
-    for (const generate of [fuzz, fuzz8, fuzz9, fuzz10]) {
+    for (const generate of [fuzz, fuzz8, fuzz9, fuzz10, fuzz11]) {
     const sim = generate(seed);
     const real = runBash(sim.line);
     const output = real.stdout;

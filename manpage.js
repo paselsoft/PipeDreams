@@ -6,7 +6,8 @@
 // Per ogni scheda: i nomi che aprono la pagina (il primo dà il titolo) e le pagine collegate
 const MAN_PAGES = {
     pipe: { names: ["pipe", "bash", "|"], nome: "| (pipe di bash)", seeAlso: ["devnull", "merge", "tee"] },
-    grep: { names: ["grep"], seeAlso: ["sed", "awk", "wc"] },
+    grep: { names: ["grep"], seeAlso: ["regex", "sed", "awk", "wc"] },
+    regex: { names: ["regex", "egrep", "regex(7)"], nome: "grep -E, egrep", seeAlso: ["grep", "sed"] },
     sort: { names: ["sort"], seeAlso: ["uniq", "comm", "join"] },
     uniq: { names: ["uniq"], seeAlso: ["sort", "comm"] },
     headtail: { names: ["head", "tail"], seeAlso: ["tacrev", "nl"] },
@@ -15,7 +16,7 @@ const MAN_PAGES = {
     cut: { names: ["cut"], seeAlso: ["awk", "paste", "tr"] },
     tr: { names: ["tr"], seeAlso: ["sed", "upper", "paste"] },
     upper: { names: ["maiuscole"], nome: "sed 's/.*/\\U&/'", seeAlso: ["tr", "sed"] },
-    sed: { names: ["sed"], seeAlso: ["upper", "tr", "grep"] },
+    sed: { names: ["sed"], seeAlso: ["regex", "upper", "tr", "grep"] },
     awk: { names: ["awk"], seeAlso: ["cut", "sort"] },
     nl: { names: ["nl"], seeAlso: ["headtail", "tee"] },
     tee: { names: ["tee"], seeAlso: ["pipe", "devnull"] },

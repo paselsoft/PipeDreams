@@ -42,6 +42,10 @@ const ACTS = {
     10: {
         title: "Verso l'esame",
         intro: "Giulia ha deciso: entro primavera tutto il team prende la certificazione LPIC-1, e Nadia farà da allenatrice. «All'obiettivo 103.2 mancano ancora un paio di cose», dice aprendo la lezione sul portatile. Il mese è movimentato: un audit di sicurezza, una configurazione toccata da qualcuno e un backup da verificare. Arrivano md5sum e sha256sum per le impronte, od -c per vedere i caratteri invisibili e zcat, bzcat e xzcat per leggere i log compressi."
+    },
+    11: {
+        title: "Espressioni regolari",
+        intro: "Chiuso l'audit, Giulia guarda le regole del monitoraggio e scuote la testa: cercano parole fisse, e basta un nome come marco.bk per far suonare l'allarme ogni notte. «Le riscriviamo tutte», decide. Nadia apre la lezione 103.7 sul portatile: «Qui ci vogliono le espressioni regolari estese.» Arriva grep -E: alternative con |, ripetizioni con ? + * e {n,m}, ancore ^ e $, classi come [[:digit:]] e [[:space:]], anche in sed."
     }
 };
 
@@ -113,8 +117,16 @@ const STORY = {
     64: { from: "Marco", text: "Il server web è ripartito da solo stanotte? Il log di ieri è già stato compresso dalla rotazione: quante volte è intervenuto l'OOM killer?" },
     65: { from: "Giulia", text: "L'auditor chiede chi sbagliava la password tre settimane fa. Quel log è nell'archivio, compresso con xz." },
     66: { from: "Nadia", text: "Ho calcolato le impronte di tutti i file di configurazione, come ieri. Confrontiamole: quali file sono cambiati da ieri?" },
-    67: { from: "Giulia", text: "🚨 Ultimo controllo prima di chiudere l'audit: il backup di stanotte contiene l'elenco dei pacchetti giusto? Ho firmato l'elenco con md5sum." }
+    67: { from: "Giulia", text: "🚨 Ultimo controllo prima di chiudere l'audit: il backup di stanotte contiene l'elenco dei pacchetti giusto? Ho firmato l'elenco con md5sum." },
+    68: { from: "Giulia", text: "Prima regola nuova: il monitoraggio deve avvisarmi per gli ERROR e per i CRIT. Oggi abbiamo due regole quasi uguali: ne voglio una sola." },
+    69: { from: "Marco", text: "Il lettore dei badge accetta qualunque cosa, anche codici scritti male. Un codice buono ha 6 cifre, punto. Quali sono buoni?" },
+    70: { from: "Nadia", text: "La lezione 103.7 ha proprio questo esempio: tirare fuori gli indirizzi IP da un log. Proviamolo sugli accessi falliti di stanotte." },
+    71: { from: "Nadia", text: "Domanda da esame! ? + e * si confondono facilmente. Cosa tiene grep -E '^colou?r$'?" },
+    72: { from: "Giulia", text: "Il file di configurazione è lungo tre pagine, ma le righe che contano sono quattro. Togli i commenti e le righe vuote, senza rompere niente." },
+    73: { from: "Tommaso", text: "L'ufficio ordini scrive le date in tutti i modi. Il gestionale vuole AAAA-MM-GG: mi trovi quelle già giuste?" },
+    74: { from: "Giulia", text: "L'assistenza vuole il log dei pagamenti per un problema, ma i numeri delle carte non devono uscire dall'azienda. Coprili, lasciando le ultime 4 cifre." },
+    75: { from: "Giulia", text: "🚨 La regola più importante: chi bussa alla porta di SSH? Password sbagliate e utenti inventati, tutto insieme, dal più insistente." }
 };
 
 // Mostrato dopo l'ultimo livello
-const EPILOGUE = "L'audit si chiude senza una sola osservazione: elenchi verificati con le impronte, archivi letti senza decomprimere niente, e il carattere invisibile nella riga di admin finisce nel rapporto come «trovato e corretto». Nadia appende alla bacheca il calendario degli esami LPIC-1, con i nomi di tutto il team. Giulia ti chiama nel suo ufficio e ripercorre questi mesi: il sito, la newsletter e la posta salvati in un venerdì di fuoco, Tommaso diventato un sistemista vero, ogni byte portato nel nuovo datacenter, il Patch Tuesday chiuso senza riavvii in orario di lavoro, le notti di reperibilità. «E con Nadia nel team, adesso qui si legge anche il manuale. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline. E con man.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando e le lezioni LPI per l'esame.";
+const EPILOGUE = "Le nuove regole del monitoraggio vanno in produzione: una riga di grep -E al posto di tre script, e l'allarme notturno di marco.bk non suona più. Anche l'audit si era chiuso senza una sola osservazione, con gli elenchi verificati dalle impronte e il carattere invisibile nella riga di admin «trovato e corretto». Nadia appende alla bacheca il calendario degli esami LPIC-1, con i nomi di tutto il team. Giulia ti chiama nel suo ufficio e ripercorre questi mesi: il sito, la newsletter e la posta salvati in un venerdì di fuoco, Tommaso diventato un sistemista vero, ogni byte portato nel nuovo datacenter, il Patch Tuesday chiuso senza riavvii in orario di lavoro, le notti di reperibilità. «E con Nadia nel team, adesso qui si legge anche il manuale. Da oggi il guru delle pipeline sei tu.» Marco sorride: «Te l'avevo detto. Si risolve tutto con le pipeline. E con man.» Ma i guai non finiscono mai: ogni giorno ti aspetta una nuova sfida, e nel menu LIVELLI trovi l'allenamento per ogni comando e le lezioni LPI per l'esame.";

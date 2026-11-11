@@ -57,6 +57,44 @@ const MANUAL = [
         ]
     },
     {
+        id: "regex",
+        name: "grep -E",
+        cmds: ["grepe"],
+        summary: "Tiene le righe che corrispondono a un'espressione regolare estesa (ERE).",
+        syntax: "grep -E [-v] [-o] [-c] 'REGEX'",
+        description: "Come grep, ma il testo da cercare è un'espressione regolare estesa: un modello che descrive tanti testi diversi. Nel modello: . un carattere qualsiasi; [abc] uno dei caratteri; [^abc] uno qualsiasi tranne quelli; [0-9] o [[:digit:]] una cifra; * zero o più volte; + una o più volte; ? zero o una volta; {3} esattamente 3 volte, {2,4} da 2 a 4; ^ inizio riga; $ fine riga; a|b una delle due; ( ) raggruppa; \\. un punto vero. Tra apici singoli la shell non tocca nessuno di questi caratteri.",
+        options: [
+            { flag: "-E", text: "espressioni regolari estese: + ? | { } ( ) hanno un significato speciale (senza -E andrebbero scritti \\+ \\? \\|...). È quello che faceva egrep, ormai obsoleto" },
+            { flag: "-o", text: "stampa solo il pezzo che corrisponde, uno per riga: a parità di inizio il più lungo possibile" },
+            { flag: "-v", text: "tiene le righe che NON corrispondono" },
+            { flag: "-c", text: "stampa quante righe corrispondono" },
+            { flag: "[[:digit:]]", text: "una cifra; anche [[:alpha:]] lettere, [[:alnum:]] lettere e cifre, [[:upper:]] maiuscole, [[:lower:]] minuscole, [[:space:]] spazi e tabulazioni, [[:punct:]] punteggiatura" },
+            { flag: "^ e $", text: "inizio e fine riga: ^[0-9]+$ vuol dire «la riga è fatta solo di cifre»" }
+        ],
+        examples: [
+            { title: "Una cosa o l'altra (|)", input: ["ERROR disco", "WARN rete", "INFO avvio", "ERROR rete"], steps: [{ cmd: "grepe", args: { pattern: "ERROR|WARN" } }] },
+            { title: "Tutta la riga (^ e $)", input: ["2026", "anno 2026", "42", "4a2"], steps: [{ cmd: "grepe", args: { pattern: "^[0-9]+$" } }],
+              note: "Senza ^ e $ basterebbe una cifra in un punto qualsiasi della riga." },
+            { title: "Estrarre i numeri (-o)", input: ["porta 22 e 443", "nessuna", "8080"], steps: [{ cmd: "grepe", args: { pattern: "[[:digit:]]+", only: true } }] },
+            { title: "Ripetizioni esatte ({n})", input: ["cap 00184", "tel 3331234", "cap 2010"], steps: [{ cmd: "grepe", args: { pattern: "cap [0-9]{5}$", only: true } }],
+              note: "2010 ha solo 4 cifre: {5} ne vuole esattamente 5." },
+            { title: "Indirizzi IP", input: ["da 192.168.1.10 ok", "versione 1.2.3", "10.0.0.255 e 8.8.8.8"], steps: [{ cmd: "grepe", args: { pattern: "([0-9]{1,3}\\.){3}[0-9]{1,3}", only: true } }],
+              note: "\\. è un punto vero; da solo . varrebbe qualsiasi carattere. 1.2.3 ha solo tre numeri." },
+            { title: "Facoltativo (?)", input: ["color", "colour", "colore"], steps: [{ cmd: "grepe", args: { pattern: "^colou?r$" } }] },
+            { title: "Il più lungo vince", input: ["abcd"], steps: [{ cmd: "grepe", args: { pattern: "a|ab|abc", only: true } }],
+              note: "POSIX sceglie la corrispondenza più lunga fra quelle che iniziano nello stesso punto, non la prima alternativa." },
+            { title: "Contare le righe che non corrispondono", input: ["# commento", "", "porta 22", "   # rientro", "utente anna"], steps: [{ cmd: "grepe", args: { pattern: "^[[:space:]]*(#|$)", invert: true, count: true } }],
+              note: "Scarta i commenti (anche rientrati) e le righe vuote: restano le righe utili di un file di configurazione." }
+        ],
+        traps: [
+            "Senza -E, in grep + ? | { } ( ) sono caratteri normali: grep 'a|b' cerca proprio «a|b».",
+            ". vale un carattere qualsiasi: per un punto vero scrivi \\. (o [.]).",
+            "Scrivi sempre la regex tra apici singoli: senza, la shell interpreta * ? [ ] | da sola.",
+            "[[:digit:]] ha due parentesi quadre: [:digit:] da solo è l'elenco dei caratteri : d i g t.",
+            "\\d, \\w e \\s sono di Perl e di altri linguaggi, non delle regex estese POSIX: usa le classi [[:digit:]]."
+        ]
+    },
+    {
         id: "sort",
         name: "sort",
         cmds: ["sort"],
@@ -275,7 +313,9 @@ const MANUAL = [
             { title: "Classi e ripetizioni", input: ["tel 333 e 4444"], steps: [{ cmd: "sed", args: { pattern: "[0-9]+", replacement: "N", global: true } }] },
             { title: "Gruppi: scambiare due parole", input: ["Rossi Mario", "Bianchi Anna"], steps: [{ cmd: "sed", args: { pattern: "([A-Za-z]+) ([A-Za-z]+)", replacement: "\\2 \\1" } }] },
             { title: "& riusa la corrispondenza", input: ["a 1 b 22"], steps: [{ cmd: "sed", args: { pattern: "[0-9]+", replacement: "[&]", global: true } }] },
-            { title: "Cancellare un pezzo", input: ["x = 1   # commento", "y = 2"], steps: [{ cmd: "sed", args: { pattern: " *#.*" } }] }
+            { title: "Cancellare un pezzo", input: ["x = 1   # commento", "y = 2"], steps: [{ cmd: "sed", args: { pattern: " *#.*" } }] },
+            { title: "Classi POSIX", input: ["ordine 2026-11-11 ore 10"], steps: [{ cmd: "sed", args: { pattern: "[[:digit:]]", replacement: "#", global: true } }],
+              note: "[[:digit:]] è come [0-9]; c'è anche [[:alpha:]], [[:space:]]... L'alternativa | in sed non è nel gioco: usala con grep -E." }
         ],
         traps: [
             "Senza g cambia solo la prima corrispondenza di ogni riga.",
