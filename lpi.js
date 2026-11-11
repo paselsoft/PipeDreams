@@ -2,7 +2,8 @@
 // il link alla lezione ufficiale in italiano e i comandi indicati dagli obiettivi.
 // Fonti (consultate il 9/11/2026): learning.lpi.org/it (titoli italiani, link e PDF delle lezioni)
 // e wiki.lpi.org (pesi e comandi degli obiettivi). Le lezioni sono del Linux Professional Institute,
-// con licenza CC BY-NC-ND 4.0: qui ci sono solo titoli e link, nessun testo delle lezioni.
+// con licenza CC BY-NC-ND 4.0. offline: le lezioni copiate integrali e non modificate in
+// lpi-lessons.js (tools/import-lpi-lessons.py), da leggere nel gioco anche senza connessione.
 // cmds e note sono la parte di Pipe Dreams: i comandi del gioco che allenano l'obiettivo e una
 // nota scritta da noi. Dopo ogni modifica: node tools/check-lpi.js
 const LPI_SOURCE = {
@@ -96,6 +97,7 @@ const LPI_EXAMS = [
             },
             {
                 id: "103.1",
+                offline: ["103.1_01", "103.1_02"],
                 title: "Lavorare con la Command Line",
                 weight: 4,
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.1/",
@@ -106,6 +108,7 @@ const LPI_EXAMS = [
             },
             {
                 id: "103.2",
+                offline: ["103.2_01"],
                 title: "Elaborare flussi di testo utilizzando i filtri",
                 weight: 2,
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.2/",
@@ -124,6 +127,7 @@ const LPI_EXAMS = [
             },
             {
                 id: "103.4",
+                offline: ["103.4_01", "103.4_02"],
                 title: "Utilizzare flussi, pipe e reindirizzamenti",
                 weight: 4,
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.4/",
@@ -150,6 +154,7 @@ const LPI_EXAMS = [
             },
             {
                 id: "103.7",
+                offline: ["103.7_01", "103.7_02"],
                 title: "Cercare file di testo utilizzando espressioni regolari",
                 weight: 3,
                 url: "https://learning.lpi.org/it/learning-materials/101-500/103/103.7/",
@@ -233,6 +238,7 @@ const LPI_EXAMS = [
             },
             {
                 id: "105.2",
+                offline: ["105.2_01", "105.2_02"],
                 title: "Personalizzare o scrivere semplici script",
                 weight: 4,
                 url: "https://learning.lpi.org/it/learning-materials/102-500/105/105.2/",

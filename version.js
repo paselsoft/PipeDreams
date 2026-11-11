@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.25.0";
+const APP_VERSION = "1.26.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.26.0", date: "2026-11-11", items: [
+            "📖 Le lezioni ufficiali LPI in italiano si leggono dentro il gioco, anche senza connessione: 103.1, 103.2, 103.4, 103.7 (esame 101) e 105.2 (esame 102), nove lezioni in tutto, con esercizi guidati, esercizi esplorativi e risposte.",
+            "Nella sezione «Certificazioni LPI» c'è il pulsante «📖 Leggi qui», con l'indice delle sezioni e il ritorno all'obiettivo. Il testo è quello originale, integrale e non modificato, con l'avviso di licenza CC BY-NC-ND 4.0 e il link alla pagina su learning.lpi.org."
+        ]
+    },
     {
         version: "1.25.0", date: "2026-11-10", items: [
             "🔍 Nuovo caso a puntate «Il doppio di Marco» (si sblocca con l'Atto IX): da una settimana l'allarme dice che Marco entra nei server ogni notte alle 2, ma lui giura che dorme. Nadia, alla sua prima indagine, apre i log con grep -iw, sort -u e cut -f1,5."

@@ -1,6 +1,7 @@
 // Controlla i dati della sezione LPI (lpi.js): pesi che sommano come negli esami ufficiali (60 per
 // ogni esame LPIC-1, 40 per Linux Essentials), link alle lezioni italiane, comandi del gioco che
-// esistono e che allenano davvero almeno un livello della campagna.
+// esistono e che allenano davvero almeno un livello della campagna, lezioni copiate nel gioco
+// (lpi-lessons.js) presenti, del loro obiettivo e con l'avviso di licenza.
 // Uso: node tools/check-lpi.js            (solo dati)
 //      node tools/check-lpi.js --online   (anche: ogni link risponde 200; serve la rete)
 const fs = require("fs");
@@ -9,7 +10,7 @@ const vm = require("vm");
 
 const root = path.join(__dirname, "..");
 const context = vm.createContext({});
-for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "terminal.js", "tutor.js", "lpi.js"]) {
+for (const file of ["commands.js", "levels.js", "solver.js", "shell.js", "terminal.js", "tutor.js", "lpi.js", "lpi-lessons.js"]) {
     vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, { filename: file });
 }
 
@@ -32,6 +33,13 @@ const report = vm.runInContext(`(() => {
             if (!objective.url.startsWith("https://learning.lpi.org/it/learning-materials/" + exam.id + "/")) problems.push(name + ": link non valido " + objective.url);
             if (!(objective.lessons >= 1)) problems.push(name + ": nessuna lezione");
             urls.push(objective.url);
+            for (const lessonId of objective.offline || []) {
+                const lesson = LPI_LESSONS.find(item => item.id === lessonId);
+                if (!lesson) { problems.push(name + ": lezione offline mancante " + lessonId); continue; }
+                if (lesson.objective !== objective.id || !lesson.url.startsWith(objective.url)) problems.push(name + ": la lezione " + lessonId + " è di un altro obiettivo");
+                if (!/Creative Commons Attribution-NonCommercial-NoDerivatives 4\.0/.test(lesson.notice)) problems.push(name + ": lezione " + lessonId + " senza avviso di licenza");
+                if (lesson.body.filter(node => node[0] === "h2").length < 4) problems.push(name + ": lezione " + lessonId + " incompleta");
+            }
             for (const cmd of objective.cmds || []) {
                 if (!COMMANDS[cmd]) problems.push(name + ": comando del gioco sconosciuto " + cmd);
             }
@@ -40,6 +48,8 @@ const report = vm.runInContext(`(() => {
             }
         }
     }
+    const linked = new Set(LPI_EXAMS.flatMap(exam => exam.objectives.flatMap(item => item.offline || [])));
+    LPI_LESSONS.filter(lesson => !linked.has(lesson.id)).forEach(lesson => problems.push("lezione " + lesson.id + " non collegata a nessun obiettivo"));
     return { problems, urls, objectives: LPI_EXAMS.reduce((sum, exam) => sum + exam.objectives.length, 0) };
 })()`, context);
 

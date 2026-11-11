@@ -171,7 +171,10 @@ wiki.lpi.org), `lpi-view.js` (sezione «📘 Certificazioni LPI»), casella «st
 nel backup, pulsante «📘 LPI» nel Tutor, `tools/check-lpi.js` (in CI; `--online` controlla i 67
 link). Fase 0 risolta: licenza **CC BY-NC-ND 4.0** (uso non commerciale; copie integrali e non
 modificate permesse con attribuzione; niente riassunti o tagli del testo LPI). Strada 2 (lezioni
-integrali offline) in attesa della risposta di LPI alla mail in `docs/LPI-mail.md`.
+integrali offline) fatta nella v1.26.0: le nove lezioni di 103.1, 103.2, 103.4, 103.7 e 105.2,
+copiate senza modifiche da `tools/import-lpi-lessons.py` (che controlla che il testo sia identico
+all'originale) e lette con «📖 Leggi qui». La licenza permette già le copie integrali non
+commerciali; la mail in `docs/LPI-mail.md` resta utile per chiedere come preferiscono essere citati.
 
 ### Cosa c'è di gratuito in italiano
 

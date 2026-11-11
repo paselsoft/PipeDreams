@@ -1256,6 +1256,7 @@ body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
 /* Sezione LPI */
 .menu-lpi { background: #0d2240; border-color: #1f6feb; color: #79c0ff; }
 .lpi-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.lpi-tabs[hidden] { display: none; }
 .lpi-tabs button {
     flex: 1 1 auto;
     background: #21262d;
@@ -1300,4 +1301,42 @@ body.cvd .log-histogram .histogram-bar { color: #79c0ff; }
 .lpi-level:disabled { color: #8b949e; cursor: default; }
 .lpi-topic { color: #e3b341; }
 .lpi-source { margin-top: 12px; color: #8b949e; font-size: 12px; }
+.lpi-read { color: #7ee787; border-color: #238636; }
+/* Lezione LPI letta nel gioco */
+.lpi-lesson-bar, .lpi-lesson-index { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px 0; }
+.lpi-lesson-bar .lpi-level.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.lpi-lesson-objective { margin: 0 0 8px 0; color: #e3b341; }
+.lpi-lesson { min-width: 0; }
+.lpi-lesson h3, .lpi-lesson h4, .lpi-lesson h5 { color: #f0f6fc; margin: 14px 0 6px 0; scroll-margin-top: 8px; }
+.lpi-lesson h3 { font-size: 16px; color: #79c0ff; }
+.lpi-lesson-h1 { font-size: 17px; }
+.lpi-lesson h4 { font-size: 15px; }
+.lpi-lesson h5 { font-size: 14px; }
+.lpi-lesson p { margin: 6px 0; }
+.lpi-lesson ul, .lpi-lesson ol { margin: 6px 0; padding-left: 22px; }
+.lpi-lesson dt { color: #f0f6fc; font-weight: bold; margin-top: 6px; }
+.lpi-lesson dd { margin: 2px 0 6px 18px; }
+.lpi-lesson code, .lpi-lesson kbd { font-family: 'Courier New', Courier, monospace; color: #7ee787; }
+.lpi-lesson-pre {
+    margin: 6px 0;
+    padding: 6px 8px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.lpi-lesson-pre strong { color: #7ee787; }
+.lpi-lesson-caption { color: #e3b341; font-style: italic; }
+.lpi-lesson-note { border-left: 3px solid #e3b341; background: #161b22; padding: 4px 10px; margin: 8px 0; }
+.lpi-lesson-note-label { color: #e3b341; }
+.lpi-lesson-table { margin: 6px 0; }
+.lpi-lesson-table table { border-collapse: collapse; width: 100%; }
+.lpi-lesson-table th, .lpi-lesson-table td { border: 1px solid #30363d; padding: 2px 8px; vertical-align: top; text-align: left; }
+.lpi-lesson-table p { margin: 0; }
+.lpi-lesson-table th { overflow-wrap: normal; }
+.lpi-lesson-source { border-top: 1px solid #30363d; padding-top: 8px; }
 .tutor-links { display: flex; flex-wrap: wrap; gap: 6px; }

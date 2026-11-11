@@ -1,7 +1,8 @@
 // Sezione LPI: per ogni esame (LPIC-1 101 e 102, Linux Essentials) gli obiettivi con il peso, il
 // link alla lezione ufficiale in italiano, i comandi dell'obiettivo (segnati quelli che sono nel
 // gioco), i livelli e l'allenamento che lo esercitano e la casella «studiato».
-// Nessun testo delle lezioni LPI: solo titoli e link (licenza CC BY-NC-ND 4.0).
+// Alcune lezioni si leggono anche dentro il gioco, integrali e non modificate (licenza
+// CC BY-NC-ND 4.0): «📖 Leggi qui» le apre con lpi-lesson-view.js.
 
 // Comandi del gioco come compaiono negli obiettivi LPI
 const LPI_GAME_TERMS = new Set(["grep", "sort", "uniq", "head", "tail", "tac", "rev", "wc", "cut", "tr", "sed", "awk",
@@ -69,7 +70,13 @@ function lpiObjectiveCard(exam, objective) {
     card.appendChild(head);
 
     const actions = lpiEl("div", "lpi-actions");
-    actions.appendChild(lpiLink(`📖 ${objective.lessons === 1 ? "Lezione" : `${objective.lessons} lezioni`} in italiano`, objective.url));
+    if (objective.offline) {
+        const read = lpiEl("button", "lpi-level lpi-read", `📖 Leggi qui${objective.offline.length > 1 ? ` (${objective.offline.length} lezioni)` : ""}`);
+        read.title = "Il testo integrale della lezione, anche senza connessione";
+        read.onclick = () => openLpiLesson(exam.id, objective.id);
+        actions.appendChild(read);
+    }
+    actions.appendChild(lpiLink(`${objective.offline ? "Sul sito LPI" : `📖 ${objective.lessons === 1 ? "Lezione" : `${objective.lessons} lezioni`} in italiano`}`, objective.url));
     const studied = lpiEl("label", "lpi-studied");
     const box = document.createElement("input");
     box.type = "checkbox";
@@ -140,6 +147,8 @@ function renderLpiSummary(exam) {
 }
 
 function renderLpi() {
+    document.getElementById("lpi-tabs").hidden = false;
+    if (typeof lpiLessonState !== "undefined") lpiLessonState.objective = null;
     const exam = LPI_EXAMS.find(item => item.id === lpiState.exam) || LPI_EXAMS[0];
     document.querySelectorAll("#lpi-tabs button").forEach(button => {
         const active = button.dataset.exam === exam.id;
@@ -167,7 +176,7 @@ function renderLpi() {
         lpiLink(LPI_SOURCE.license, LPI_SOURCE.licenseUrl),
         document.createTextNode(`: si usano gratis per studio, senza scopo commerciale. Pesi e comandi dagli obiettivi ufficiali (`),
         lpiLink("wiki LPI", LPI_SOURCE.objectivesUrl[exam.id === "010-160" ? "le" : "lpic"]),
-        document.createTextNode(`), controllati il ${LPI_SOURCE.checked.split("-").reverse().join("/")}. Le note e i collegamenti ai livelli sono di Pipe Dreams. Le lezioni si aprono su learning.lpi.org: serve la connessione.`));
+        document.createTextNode(`), controllati il ${LPI_SOURCE.checked.split("-").reverse().join("/")}. Le note e i collegamenti ai livelli sono di Pipe Dreams. Le lezioni con «📖 Leggi qui» sono copiate nel gioco, integrali e non modificate, e si leggono anche senza connessione; le altre si aprono su learning.lpi.org.`));
     body.appendChild(source);
     renderLpiSummary(exam);
 }
