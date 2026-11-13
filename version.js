@@ -1,11 +1,17 @@
 // Versione del gioco e novità di ogni versione.
 // APP_VERSION si aggiorna a mano a ogni nuova funzione, insieme a una voce in CHANGELOG;
 // APP_BUILD lo scrive il workflow di pubblicazione (commit e data), in locale resta "sviluppo".
-const APP_VERSION = "1.27.0";
+const APP_VERSION = "1.28.0";
 const APP_BUILD = "sviluppo";
 
 // Dalla più recente alla più vecchia
 const CHANGELOG = [
+    {
+        version: "1.28.0", date: "2026-11-13", items: [
+            "🔄 Sincronizzazione fra i dispositivi: nella finestra «Backup progressi» colleghi un repository GitHub privato con una chiave (token) e i progressi si salvano lì. All'apertura del gioco e dopo ogni livello ogni dispositivo li ritrova, uniti: per ogni livello resta il risultato migliore, anche giocando su due dispositivi insieme.",
+            "Senza connessione il gioco va avanti e sincronizza appena torna la rete. La chiave resta solo nel browser del dispositivo; «Scollega» la cancella."
+        ]
+    },
     {
         version: "1.27.0", date: "2026-11-11", items: [
             "🔍 Atto XI «Espressioni regolari»: 8 livelli nuovi (68-75) per l'obiettivo LPIC-1 103.7. Giulia riscrive le regole del monitoraggio e Nadia apre la lezione sulle regex.",

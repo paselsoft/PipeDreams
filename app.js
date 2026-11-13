@@ -974,7 +974,10 @@ function closeActIntro() {
 }
 
 function persistProgress() {
-    if (!TEST_MODE) saveProgress(progress);
+    if (TEST_MODE) return;
+    saveProgress(progress);
+    // Con la sincronizzazione collegata, i progressi vanno anche su GitHub (sync.js)
+    if (typeof scheduleSync === "function") scheduleSync();
 }
 
 function openMenu() {

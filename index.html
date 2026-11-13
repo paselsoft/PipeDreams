@@ -269,6 +269,29 @@
                 <h2 id="backup-title">💾 BACKUP PROGRESSI</h2>
                 <button class="menu-close" onclick="closeBackup()" aria-label="Chiudi">✕</button>
             </div>
+            <section id="sync-panel" class="sync-panel" aria-labelledby="sync-title">
+                <h3 class="manual-section" id="sync-title">🔄 Sincronizza fra i dispositivi</h3>
+                <div id="sync-off">
+                    <p class="manual-hint">Collega un repository GitHub privato: i progressi si salvano lì e ogni dispositivo collegato li ritrova, uniti (per ogni livello il risultato migliore). Serve una chiave di GitHub con accesso solo a quel repository; resta in questo browser.</p>
+                    <label class="sync-label" for="sync-repo-input">Repository</label>
+                    <input class="sync-input" id="sync-repo-input" type="text" value="paselsoft/pipedreams-progressi" autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <label class="sync-label" for="sync-token">Chiave (token di GitHub)</label>
+                    <input class="sync-input" id="sync-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_...">
+                    <div class="backup-buttons">
+                        <button class="btn-hint" id="sync-connect" onclick="connectSync()">🔗 COLLEGA</button>
+                        <a class="btn-hint sync-help" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Crea la chiave su GitHub</a>
+                    </div>
+                    <p class="backup-message" id="sync-message" role="status"></p>
+                </div>
+                <div id="sync-on" hidden>
+                    <p class="manual-hint">Collegato a <strong id="sync-repo"></strong>. I progressi si sincronizzano all'apertura e dopo ogni livello.</p>
+                    <p class="backup-summary" id="sync-status" role="status"></p>
+                    <div class="backup-buttons">
+                        <button class="btn-hint" id="sync-now" onclick="syncNow()">🔄 SINCRONIZZA ORA</button>
+                        <button class="btn-hint backup-replace" id="sync-disconnect" onclick="disconnectSync()">SCOLLEGA</button>
+                    </div>
+                </div>
+            </section>
             <h3 class="manual-section">Salva</h3>
             <p class="manual-hint">I progressi restano in questo browser. Copia il codice o scarica il file per portarli su un altro dispositivo.</p>
             <p class="backup-summary" id="backup-summary"></p>
@@ -388,5 +411,6 @@
     <script src="lpi-lesson-view.js"></script>
     <script src="lab.js"></script>
     <script src="a11y.js"></script>
+    <script src="sync.js"></script>
 </body>
 </html>

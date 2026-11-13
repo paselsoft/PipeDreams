@@ -49,6 +49,7 @@ Ogni livello dà un input e lo stdout atteso: componi la pipeline scegliendo i c
 | `terminal-keys.js` | Terminale: cronologia con ↑↓ e completamento con Tab |
 | `tutor.js`, `tutor-view.js` | Il Tutor: il livello risolto spiegato passo passo (logica e finestra) |
 | `lpi.js`, `lpi-view.js` | Sezione Certificazioni LPI: obiettivi, pesi, link alle lezioni italiane (dati e finestra) |
+| `sync.js` | Sincronizzazione dei progressi fra i dispositivi con un repository GitHub privato (unione come il backup) |
 | `lpi-lessons.js`, `lpi-lesson-view.js` | Nove lezioni LPI in italiano copiate integrali (CC BY-NC-ND 4.0) e la finestra per leggerle offline; `tools/import-lpi-lessons.py` le riscarica |
 | `lab.js` | Laboratorio: pipeline libera con il risultato dopo ogni comando |
 | `command-form.js` | Campi dei comandi condivisi da editor e laboratorio |

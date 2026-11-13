@@ -98,6 +98,7 @@ function progressSummary(p) {
 
 function openBackup() {
     closeMenu();
+    if (typeof renderSyncPanel === "function") renderSyncPanel();
     document.getElementById("backup-summary").textContent = progressSummary(progress);
     document.getElementById("backup-code").value = backupCode(progress);
     document.getElementById("backup-input").value = "";
@@ -148,7 +149,9 @@ function restoreBackup(mode) {
         document.getElementById("backup-message").textContent = result.error;
         return;
     }
-    if (mode === "replace" && !confirm(`Sostituire i progressi attuali (${progressSummary(progress)}) con quelli del backup (${progressSummary(result.progress)})?`)) return;
+    const synced = typeof syncState !== "undefined" && syncState.config
+        ? " Attenzione: la sincronizzazione è collegata e riunirà i progressi salvati su GitHub. Per ripartire davvero da capo, scollegala prima." : "";
+    if (mode === "replace" && !confirm(`Sostituire i progressi attuali (${progressSummary(progress)}) con quelli del backup (${progressSummary(result.progress)})?${synced}`)) return;
     progress = mode === "replace" ? result.progress : mergeProgress(progress, result.progress);
     persistProgress();
     closeBackup();

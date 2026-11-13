@@ -895,6 +895,21 @@ body[data-input="terminal"] #grid-hint { display: none; }
 .backup-file { display: inline-block; cursor: pointer; box-sizing: border-box; }
 .backup-replace { border-color: #da3633; color: #f85149; }
 .backup-message { color: #e3b341; font-size: 14px; min-height: 1em; }
+.sync-panel { border-bottom: 1px solid #30363d; padding-bottom: 6px; margin-bottom: 6px; }
+.sync-label { display: block; color: #c9d1d9; font-size: 13px; margin-top: 6px; }
+.sync-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0d1117;
+    color: #79c0ff;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+.sync-input:focus-visible { outline: 2px solid #58a6ff; }
+.sync-help { text-decoration: none; display: inline-block; box-sizing: border-box; }
 
 /* Nuova versione pronta */
 .update-banner {
